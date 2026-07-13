@@ -1,0 +1,151 @@
+import { redirect } from "next/navigation";
+import Link from "@/components/admin/AdminLink";
+import AdminShell from "@/components/admin/AdminShell";
+import TopBar from "@/components/layout/TopBar";
+import MetricCard from "@/components/ui/MetricCard";
+import Card from "@/components/ui/Card";
+import { getOfferings } from "@/lib/cms/offerings";
+import { getPages } from "@/lib/cms/pages";
+import { getFormSubmissions } from "@/lib/cms/form-submissions";
+import { getRecentHistoryLogs } from "@/lib/cms/history-logs";
+import { requireAdminProfile } from "@/lib/auth/supabase-auth";
+
+const activityLabels: Record<string, string> = {
+  create: "Creacion",
+  update: "Actualizacion",
+  publish: "Publicacion",
+  unpublish: "Cambio a borrador",
+  archive: "Archivo",
+  trash: "Papelera",
+  restore: "Restauracion",
+  delete_permanently: "Eliminacion",
+  duplicate: "Duplicado",
+};
+
+function formatActivityDate(value: string) {
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+export default async function DashboardPage() {
+  const session = await requireAdminProfile();
+  if (!session) redirect("/auth");
+
+  const [offerings, pages, messages, historyLogs] = await Promise.all([
+    getOfferings(),
+    getPages(),
+    getFormSubmissions(),
+    getRecentHistoryLogs(5),
+  ]);
+
+  const activePages = pages.filter((p) => p.status !== "deleted");
+  const classes = offerings.filter((o) => o.type === "class" && o.status !== "deleted");
+  const workshops = offerings.filter((o) => o.type === "workshop" && o.status !== "deleted");
+  const activeMessages = messages.filter((m) => m.status !== "deleted");
+  const unreadMessages = activeMessages.filter((m) => m.status === "new");
+  const recentActivity = historyLogs;
+
+  return (
+    <AdminShell>
+      <TopBar
+        title="Dashboard"
+        subtitle="Bienvenido al panel de administración de Casa Rosier"
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-section-gap">
+        <MetricCard
+          icon="web"
+          iconBg="bg-surface-container-high"
+          iconClassName="text-primary"
+          value={activePages.length}
+          label="Páginas"
+          footer={
+            <>
+              <span className="material-symbols-outlined text-xs mr-1">public</span>
+              {activePages.filter((p) => p.status === "published").length} publicadas
+            </>
+          }
+        />
+        <MetricCard
+          icon="school"
+          iconBg="bg-primary-container"
+          value={classes.length}
+          label="Clases"
+          footer={
+            <>
+              <span className="material-symbols-outlined text-xs mr-1">check_circle</span>
+              {classes.filter((o) => o.status === "published").length} visibles
+            </>
+          }
+        />
+        <MetricCard
+          icon="description"
+          iconBg="bg-tertiary-container"
+          value={workshops.length}
+          label="Workshops"
+          footer={
+            <>
+              <span className="material-symbols-outlined text-xs mr-1">check_circle</span>
+              {workshops.filter((o) => o.status === "published").length} visibles
+            </>
+          }
+        />
+        <MetricCard
+          icon="mail"
+          iconBg="bg-secondary-container"
+          value={activeMessages.length}
+          label="Mensajes"
+          footer={
+            <>
+              <span className="material-symbols-outlined text-xs mr-1">mark_email_unread</span>
+              {unreadMessages.length} nuevos
+            </>
+          }
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <Card padding="none">
+          <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+            <h2 className="font-label-caps text-label-caps text-on-surface-variant tracking-widest uppercase">
+              ACTIVIDAD RECIENTE
+            </h2>
+            <Link href="/admin/history-logs" className="text-primary text-sm font-semibold hover:underline">
+              Ver todo
+            </Link>
+          </div>
+          {recentActivity.length ? (
+            <div className="divide-y divide-outline-variant">
+              {recentActivity.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 hover:bg-surface-container-low transition-colors flex items-center gap-4"
+                >
+                  <div className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-sm text-primary">
+                      history
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-on-surface truncate">{item.entity_title}</div>
+                    <div className="flex flex-wrap items-center gap-2 text-label-md text-on-surface-variant mt-0.5">
+                      <span>{activityLabels[item.action] ?? item.action}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{formatActivityDate(item.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-on-surface-variant">
+              No hay actividad reciente registrada todavía.
+            </div>
+          )}
+        </Card>
+      </div>
+    </AdminShell>
+  );
+}

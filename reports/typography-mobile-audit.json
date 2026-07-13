@@ -1,0 +1,812 @@
+[
+  {
+    "name": "Inicio",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".section-title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".content-card__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "26.45px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "26.45px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".content-card__excerpt",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "26.88px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "26.88px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      }
+    ]
+  },
+  {
+    "name": "Clases",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".section-title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".page-hero__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "34px",
+          "fontWeight": "400",
+          "lineHeight": "34.68px",
+          "letterSpacing": "1.02px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "34px",
+          "fontWeight": "400",
+          "lineHeight": "34.68px",
+          "letterSpacing": "1.02px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".content-card__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "20px",
+          "fontWeight": "400",
+          "lineHeight": "23px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "20px",
+          "fontWeight": "400",
+          "lineHeight": "23px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".content-card__excerpt",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "18px",
+          "fontWeight": "300",
+          "lineHeight": "23.04px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "18px",
+          "fontWeight": "300",
+          "lineHeight": "23.04px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      }
+    ]
+  },
+  {
+    "name": "Detalle clase",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".section-title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".page-hero__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "34px",
+          "fontWeight": "400",
+          "lineHeight": "34.68px",
+          "letterSpacing": "1.02px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "34px",
+          "fontWeight": "400",
+          "lineHeight": "34.68px",
+          "letterSpacing": "1.02px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".class-detail__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "32px",
+          "fontWeight": "400",
+          "lineHeight": "33.6px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "32px",
+          "fontWeight": "400",
+          "lineHeight": "33.6px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      }
+    ]
+  },
+  {
+    "name": "Shop",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".content-card__title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "22px",
+          "fontWeight": "400",
+          "lineHeight": "25.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "22px",
+          "fontWeight": "400",
+          "lineHeight": "25.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      }
+    ]
+  },
+  {
+    "name": "Blog",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".section-title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".blog-intro__container h2",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "31px",
+          "fontWeight": "400",
+          "lineHeight": "31.62px",
+          "letterSpacing": "0.62px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "31px",
+          "fontWeight": "400",
+          "lineHeight": "31.62px",
+          "letterSpacing": "0.62px"
+        },
+        "ok": true
+      }
+    ]
+  },
+  {
+    "name": "El estudio",
+    "rows": [
+      {
+        "selector": ".nav-mobile",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "14px",
+          "fontWeight": "300",
+          "lineHeight": "14px",
+          "letterSpacing": "1.68px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-menu__toggle",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "21px",
+          "fontWeight": "300",
+          "lineHeight": "27.3px",
+          "letterSpacing": "normal"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".mobile-submenu__link",
+        "original": {
+          "role": "menu",
+          "fontFamily": "Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "next": {
+          "role": "menu",
+          "fontFamily": "nunito, \"nunito Fallback\", Nunito, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "300",
+          "lineHeight": "20.8px",
+          "letterSpacing": "0.32px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".section-title",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "23px",
+          "fontWeight": "400",
+          "lineHeight": "24.15px",
+          "letterSpacing": "0.69px"
+        },
+        "ok": true
+      },
+      {
+        "selector": ".studio-editorial-intro__text",
+        "original": {
+          "role": "display",
+          "fontFamily": "Baskervville, serif",
+          "fontSize": "24px",
+          "fontWeight": "400",
+          "lineHeight": "30.24px",
+          "letterSpacing": "0.24px"
+        },
+        "next": {
+          "role": "display",
+          "fontFamily": "Baskervville, \"Baskervville Fallback\", Baskervville, serif",
+          "fontSize": "24px",
+          "fontWeight": "400",
+          "lineHeight": "30.24px",
+          "letterSpacing": "0.24px"
+        },
+        "ok": true
+      }
+    ]
+  }
+]

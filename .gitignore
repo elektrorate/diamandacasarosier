@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+
+# production
+/build
+
+# local CMS seed data
+/data
+
+# local logs and caches
+*.log
+*.tsbuildinfo
+
+# environment
+.env*
+!.env.example
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

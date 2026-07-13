@@ -1,0 +1,36 @@
+{
+  "name": "casa-rosier-ceramica",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "supabase:push": "npx supabase db push",
+    "supabase:seed": "node scripts/seed-supabase.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "next": "^16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.1",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.2.9",
+    "playwright-core": "^1.61.1",
+    "tailwindcss": "4.3.1",
+    "typescript": "6.0.3"
+  }
+}

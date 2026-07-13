@@ -1,0 +1,237 @@
+import type { CmsHeroSettings } from "@/lib/cms/types";
+
+export type ExperienceKind =
+  | "class"
+  | "workshop"
+  | "gift-card"
+  | "private-booking";
+
+export interface PriceOption {
+  label: string;
+  price: string;
+}
+
+export interface ScheduleItem {
+  day: string;
+  slots: string[];
+}
+
+export interface ProgramItem {
+  title: string;
+  content: string;
+  points?: string[];
+}
+
+export interface ExperienceItem {
+  id: string;
+  kind: ExperienceKind;
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  excerpt: string;
+  description: string[];
+  coverImage: string;
+  heroImage: string;
+  heroVariant?: "image" | "text" | "presentation";
+  heroMenuTone?: "light" | "dark";
+  heroMenuColor?: string;
+  heroMenuScale?: number;
+  heroLogoPositionX?: string;
+  heroLogoPositionY?: string;
+  heroLogoWidth?: string;
+  heroLogoTabletPositionX?: string;
+  heroLogoTabletPositionY?: string;
+  heroLogoTabletWidth?: string;
+  heroLogoMobilePositionX?: string;
+  heroLogoMobilePositionY?: string;
+  heroLogoMobileWidth?: string;
+  heroMenuPositionY?: string;
+  heroMenuTabletPositionY?: string;
+  heroMenuMobilePositionY?: string;
+  heroTitleImage?: string;
+  heroTitleImageSecondary?: string;
+  heroPresentationText?: string;
+  heroPresentationTextColor?: string;
+  heroPresentationImage?: string;
+  /* Hero con imagen */
+  titleImageScale?: number;
+  titleImageScaleTablet?: number;
+  titleImageScaleMobile?: number;
+  titleImagePositionX?: string;
+  titleImagePositionY?: string;
+  titleImagePositionXTablet?: string;
+  titleImagePositionYTablet?: string;
+  titleImagePositionXMobile?: string;
+  titleImagePositionYMobile?: string;
+  titleImageSecondaryScale?: number;
+  titleImageSecondaryScaleTablet?: number;
+  titleImageSecondaryScaleMobile?: number;
+  titleImageSecondaryPositionX?: string;
+  titleImageSecondaryPositionY?: string;
+  titleImageSecondaryPositionXTablet?: string;
+  titleImageSecondaryPositionYTablet?: string;
+  titleImageSecondaryPositionXMobile?: string;
+  titleImageSecondaryPositionYMobile?: string;
+  /* Hero tipográfico */
+  heroTitlePositionY?: string;
+  heroTitlePositionYTablet?: string;
+  heroTitlePositionYMobile?: string;
+  heroTitleScale?: number;
+  heroTitleScaleTablet?: number;
+  heroTitleScaleMobile?: number;
+  /* Hero con presentación */
+  presentationTextPositionX?: string;
+  presentationTextPositionY?: string;
+  presentationTextPositionXTablet?: string;
+  presentationTextPositionYTablet?: string;
+  presentationTextPositionXMobile?: string;
+  presentationTextPositionYMobile?: string;
+  presentationTextScale?: number;
+  presentationTextScaleTablet?: number;
+  presentationTextScaleMobile?: number;
+  presentationImagePositionX?: string;
+  presentationImagePositionY?: string;
+  presentationImagePositionXTablet?: string;
+  presentationImagePositionYTablet?: string;
+  presentationImagePositionXMobile?: string;
+  presentationImagePositionYMobile?: string;
+  presentationImageScale?: number;
+  presentationImageScaleTablet?: number;
+  presentationImageScaleMobile?: number;
+  heroTitle: string;
+  listingTitle: string;
+  listingSubtitle: string;
+  introHighlight: string;
+  galleryImages: string[];
+  videoCardImage: string;
+  videoCardLabel: string;
+  giftCardTypeLabel?: string;
+  giftCardTypeOptions?: string[];
+  priceOptions: PriceOption[];
+  duration: string;
+  schedule: ScheduleItem[];
+  included: string[];
+  program: ProgramItem[];
+  programSectionTitle?: string;
+  learningSectionTitle?: string;
+  whatYouWillLearn: string[];
+  participationSectionTitle?: string;
+  whoCanJoin: string[];
+  paymentMethods: string[];
+  additionalInfo: string;
+  showIdeaPromptSection?: boolean;
+  ctaHref: string;
+  ctaConsultHref: string;
+  ctaEnrollHref: string;
+  ctaConsultLabel: string;
+  ctaEnrollLabel: string;
+  seoTitle: string;
+  seoDescription: string;
+  isPublished: boolean;
+  isFeatured?: boolean;
+  order: number;
+}
+
+export type ClassItem = ExperienceItem & { kind: "class" };
+export type WorkshopItem = ExperienceItem & { kind: "workshop" };
+export type GiftCardItem = ExperienceItem & { kind: "gift-card" };
+export type PrivateExperienceItem = ExperienceItem & {
+  kind: "private-booking";
+};
+
+export interface ShopCategory {
+  key: string;
+  label: string;
+}
+
+export interface ShopItem {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  categoryLabel: string;
+  price: string;
+  availability: string;
+  image: string;
+  gallery: string[];
+  description: string;
+  details: Record<string, string>;
+  availabilityNote: string;
+  seoTitle: string;
+  seoDescription: string;
+  order: number;
+  isPublished: boolean;
+}
+
+export type BlogContentBlock =
+  | { type: "paragraph"; content: string }
+  | { type: "heading"; level: 2 | 3; content: string }
+  | { type: "quote"; content: string }
+  | {
+      type: "image";
+      src: string;
+      alt?: string;
+      caption?: string;
+    }
+  | { type: "list"; items: string[] }
+  | {
+      type: "gallery";
+      images: Array<{ src: string; alt?: string }>;
+    }
+  | { type: "cta"; text: string; href: string };
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: string;
+  category: string;
+  tags: string[];
+  author: string;
+  authorInitial: string;
+  status: "published" | "draft";
+  isFeatured: boolean;
+  featuredOrder?: number;
+  featuredImage?: string;
+  featuredExcerpt?: string;
+  featuredOnHome: boolean;
+  visibleInListing: boolean;
+  manualOrder: number;
+  publishedAt: string;
+  seoTitle: string;
+  seoDescription: string;
+  hero?: CmsHeroSettings;
+  contentBlocks: BlogContentBlock[];
+}
+
+export type BlogPostStatus = BlogPost["status"];
+
+export interface NavigationItem {
+  label: string;
+  href: string;
+  order: number;
+  visible: boolean;
+  target?: string;
+  children?: NavigationItem[];
+}
+
+export interface CartSummaryRow {
+  label: string;
+  value: string;
+}
+
+export interface CartItem {
+  cartItemId: string;
+  productId: string;
+  slug: string;
+  kind: ExperienceKind | string;
+  title: string;
+  subtitle?: string;
+  price?: string;
+  quantity: number;
+  giftCardType?: string;
+  orderSummary?: CartSummaryRow[];
+  addedAt: string;
+}
