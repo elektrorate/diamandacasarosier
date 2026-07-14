@@ -10,7 +10,7 @@ import { randomUUID } from "crypto";
 export const runtime = "nodejs";
 
 const STORAGE_BUCKET = "media";
-const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "pdf"]);
+const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "avif", "gif", "svg", "pdf"]);
 const ALLOWED_MIME_PREFIXES = ["image/", "application/pdf"];
 const MAX_SIZE = 10 * 1024 * 1024;
 
@@ -96,6 +96,8 @@ export async function POST(request: NextRequest) {
         finalSize: optimizedFile.size,
         savedBytes: optimizedFile.savedBytes,
         reductionPercent: optimizedFile.reductionPercent,
+        width: optimizedFile.width,
+        height: optimizedFile.height,
       },
     });
   } catch (error) {

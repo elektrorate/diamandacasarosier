@@ -57,7 +57,7 @@ export default function Sidebar({ userName, userEmail, appVersion }: SidebarProp
         </div>
       </header>
 
-      <nav className="admin-sidebar__nav hide-scrollbar">
+      <nav className="admin-sidebar__nav">
         <div className="admin-sidebar__nav-list">
           {adminSections.map((section) => {
             const children = section.children ?? [];

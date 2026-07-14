@@ -1,8 +1,8 @@
 import sharp from "sharp";
 
-const JPEG_QUALITY = 82;
 const WEBP_QUALITY = 85;
-const OPTIMIZABLE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
+const MAX_IMAGE_DIMENSION = 2560;
+const OPTIMIZABLE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "avif"]);
 
 export interface ImageUploadOptimization {
   buffer: Buffer;
@@ -13,6 +13,8 @@ export interface ImageUploadOptimization {
   savedBytes: number;
   reductionPercent: number;
   optimized: boolean;
+  width?: number;
+  height?: number;
 }
 
 interface OptimizeImageUploadInput {
@@ -45,6 +47,15 @@ function originalUpload(input: OptimizeImageUploadInput): ImageUploadOptimizatio
   };
 }
 
+function scaledDimensions(width?: number, height?: number) {
+  if (!width || !height) return {};
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(width, height));
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
+  };
+}
+
 export async function optimizeImageForUpload(input: OptimizeImageUploadInput): Promise<ImageUploadOptimization> {
   const extension = normalizeExtension(input.extension);
   const original = originalUpload({ ...input, extension });
@@ -54,28 +65,25 @@ export async function optimizeImageForUpload(input: OptimizeImageUploadInput): P
   }
 
   try {
-    const image = sharp(input.buffer, { failOn: "none" }).rotate();
-    const optimizedBuffer = await (
-      extension === "jpg" || extension === "jpeg"
-        ? image.jpeg({
-            quality: JPEG_QUALITY,
-            mozjpeg: true,
-            progressive: true,
-            chromaSubsampling: "4:2:0",
-          })
-        : extension === "png"
-          ? image.png({
-              compressionLevel: 9,
-              adaptiveFiltering: true,
-              effort: 10,
-            })
-          : image.webp({
-              quality: WEBP_QUALITY,
-              effort: 6,
-            })
-    ).toBuffer();
+    const source = sharp(input.buffer, { failOn: "none" }).rotate();
+    const metadata = await source.metadata();
+    const dimensions = scaledDimensions(metadata.width, metadata.height);
+    const optimizedBuffer = await source
+      .clone()
+      .resize({
+        width: MAX_IMAGE_DIMENSION,
+        height: MAX_IMAGE_DIMENSION,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({
+        quality: WEBP_QUALITY,
+        effort: 6,
+        smartSubsample: true,
+      })
+      .toBuffer();
 
-    if (optimizedBuffer.length >= input.buffer.length) {
+    if (optimizedBuffer.length >= input.buffer.length && extension !== "avif") {
       return original;
     }
 
@@ -83,13 +91,14 @@ export async function optimizeImageForUpload(input: OptimizeImageUploadInput): P
 
     return {
       buffer: optimizedBuffer,
-      extension,
-      mimeType: mimeTypeForExtension(extension, input.mimeType),
+      extension: "webp",
+      mimeType: mimeTypeForExtension("webp", input.mimeType),
       originalSize: input.buffer.length,
       size: optimizedBuffer.length,
       savedBytes,
       reductionPercent: Number(((savedBytes / input.buffer.length) * 100).toFixed(2)),
       optimized: true,
+      ...dimensions,
     };
   } catch {
     return original;

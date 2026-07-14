@@ -453,9 +453,32 @@ button:disabled {
 }
 
 .admin-sidebar__nav {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 16px 8px;
+  scrollbar-color: #a78bfa #f2eff7;
+  scrollbar-width: thin;
+}
+
+.admin-sidebar__nav::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-sidebar__nav::-webkit-scrollbar-track {
+  background: #f2eff7;
+}
+
+.admin-sidebar__nav::-webkit-scrollbar-thumb {
+  border: 3px solid #f2eff7;
+  border-radius: 999px;
+  background: #a78bfa;
+}
+
+.admin-sidebar__nav::-webkit-scrollbar-thumb:hover {
+  background: #674bb5;
 }
 
 .admin-sidebar__nav-list {

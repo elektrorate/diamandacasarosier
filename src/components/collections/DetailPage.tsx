@@ -13,6 +13,18 @@ function includedText(value: string) {
   return value.replace(/^\s*(?:[-*]\s+|\d+\.\s+)/, "");
 }
 
+function hasMeaningfulContent(value: string | string[] | undefined) {
+  const values = Array.isArray(value) ? value : [value ?? ""];
+  return values.some((entry) => entry.trim().length > 0);
+}
+
+function hasMeaningfulProgramItem(item: ExperienceItem["program"][number]) {
+  return (
+    hasMeaningfulContent(item.title) ||
+    hasMeaningfulContent(item.content) ||
+    (item.points?.some((point) => hasMeaningfulContent(point)) ?? false)
+  );
+}
 export function DetailPage({ item }: { item: ExperienceItem }) {
   const isGiftCard = item.kind === "gift-card";
   const consultHref = item.ctaConsultHref || item.ctaHref;
@@ -20,6 +32,9 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
   const consultLabel = item.ctaConsultLabel || (isGiftCard ? "Comprar" : "Consultar");
   const enrollLabel = item.ctaEnrollLabel || (isGiftCard ? "Anadir al carrito" : "Inscribirme");
   const [added, setAdded] = useState(false);
+  const programItems = item.program.filter(hasMeaningfulProgramItem);
+  const hasLearningContent = hasMeaningfulContent(item.whatYouWillLearn);
+  const hasParticipationContent = hasMeaningfulContent(item.whoCanJoin);
   const defaultPrice = useMemo(
     () =>
       item.priceOptions.length <= 1
@@ -155,62 +170,72 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                 ) : null}
               </section>
 
-              <section className="class-detail__text-block">
-                <h2>{item.learningSectionTitle || "¿Qué aprenderás?"}</h2>
-                <MarkdownContent source={item.whatYouWillLearn} />
-              </section>
+              {hasLearningContent ? (
+                <section className="class-detail__text-block">
+                  <h2>{item.learningSectionTitle || "¿Qué aprenderás?"}</h2>
+                  <MarkdownContent source={item.whatYouWillLearn} />
+                </section>
+              ) : null}
 
-              <section className="class-detail__text-block">
-                <h2>{item.participationSectionTitle || "¿Quién puede participar?"}</h2>
-                <MarkdownContent source={item.whoCanJoin} />
-              </section>
+              {hasParticipationContent ? (
+                <section className="class-detail__text-block">
+                  <h2>{item.participationSectionTitle || "¿Quién puede participar?"}</h2>
+                  <MarkdownContent source={item.whoCanJoin} />
+                </section>
+              ) : null}
 
-              <section className="class-detail__program">
-                <h2>{item.programSectionTitle || "Contenido del curso"}</h2>
-                <Accordion items={item.program} />
-                {isGiftCard && enrollHref ? (
-                  <>
-                    <button
+              {programItems.length > 0 || enrollHref ? (
+                <section className="class-detail__program">
+                  {programItems.length > 0 ? (
+                    <>
+                      <h2>{item.programSectionTitle || "Contenido del curso"}</h2>
+                      <Accordion items={programItems} />
+                    </>
+                  ) : null}
+                  {isGiftCard && enrollHref ? (
+                    <>
+                      <button
+                        className="class-detail__button class-detail__button--primary"
+                        type="button"
+                        onClick={addGiftCard}
+                      >
+                        {enrollLabel}
+                      </button>
+                      {added && (
+                        <div className="gift-card-cart-feedback">
+                          <p className="gift-card-cart-feedback__message">
+                            Gift card anadida al carrito.
+                          </p>
+                          <div className="gift-card-cart-feedback__summary">
+                            <div className="gift-card-cart-feedback__row">
+                              <span>Producto</span>
+                              <strong>{item.title}</strong>
+                            </div>
+                            {defaultPrice && (
+                              <div className="gift-card-cart-feedback__row">
+                                <span>Precio</span>
+                                <strong>{defaultPrice}</strong>
+                              </div>
+                            )}
+                          </div>
+                          <Link className="class-detail__button" href="/carrito">
+                            Ver carrito
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  ) : enrollHref ? (
+                    <a
                       className="class-detail__button class-detail__button--primary"
-                      type="button"
-                      onClick={addGiftCard}
+                      href={enrollHref}
+                      target="_blank"
+                      rel="noreferrer"
                     >
                       {enrollLabel}
-                    </button>
-                    {added && (
-                      <div className="gift-card-cart-feedback">
-                        <p className="gift-card-cart-feedback__message">
-                          Gift card anadida al carrito.
-                        </p>
-                        <div className="gift-card-cart-feedback__summary">
-                          <div className="gift-card-cart-feedback__row">
-                            <span>Producto</span>
-                            <strong>{item.title}</strong>
-                          </div>
-                          {defaultPrice && (
-                            <div className="gift-card-cart-feedback__row">
-                              <span>Precio</span>
-                              <strong>{defaultPrice}</strong>
-                            </div>
-                          )}
-                        </div>
-                        <Link className="class-detail__button" href="/carrito">
-                          Ver carrito
-                        </Link>
-                      </div>
-                    )}
-                  </>
-                ) : enrollHref ? (
-                  <a
-                    className="class-detail__button class-detail__button--primary"
-                    href={enrollHref}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {enrollLabel}
-                  </a>
-                ) : null}
-              </section>
+                    </a>
+                  ) : null}
+                </section>
+              ) : null}
             </section>
           </section>
         </div>

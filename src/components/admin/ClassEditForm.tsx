@@ -30,9 +30,10 @@ import type {
 
 type TabKey = "hero" | "basic" | "schedule" | "content" | "seo" | "additions" | "preview";
 type PickerTarget = "hero" | "presentation" | "title" | "titleSecondary" | "gallery" | `gallery:${number}` | "seo" | "videoPoster" | null;
-type UploadTarget = Exclude<PickerTarget, "gallery" | null>;
+type UploadTarget = Exclude<PickerTarget, "gallery" | null> | "gallery:new";
 type SaveIntent = "draft" | "publish";
 type FormNotice = { type: "success" | "error"; message: string; details?: string[] };
+type UploadOptimization = { originalSize: number; finalSize: number; reductionPercent: number };
 type LegacyOfferingDetails = Partial<ClassOfferingDetails> & {
   additionalInfo?: unknown;
   category?: unknown;
@@ -46,6 +47,11 @@ type LegacyOfferingDetails = Partial<ClassOfferingDetails> & {
 };
 
 const DEFAULT_HERO_IMAGE = "/img/hero-bg.jpg";
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "hero", label: "Hero" },
@@ -831,6 +837,7 @@ export default function ClassEditForm({
   const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
   const [draggedGalleryIndex, setDraggedGalleryIndex] = useState<number | null>(null);
   const [uploadingTarget, setUploadingTarget] = useState<UploadTarget | null>(null);
+  const [galleryUploadInfo, setGalleryUploadInfo] = useState<Record<string, UploadOptimization>>({});
 
   useEffect(() => {
     const handler = (event: BeforeUnloadEvent) => {
@@ -897,6 +904,16 @@ export default function ClassEditForm({
   }
 
   async function uploadImage(target: UploadTarget, file: File) {
+    if (!file.type.startsWith("image/")) {
+      setToast({ type: "error", message: "Selecciona un archivo de imagen valido." });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setToast({ type: "error", message: "La imagen supera el limite de 10 MB." });
+      return;
+    }
+
     setUploadingTarget(target);
     setToast(null);
 
@@ -911,7 +928,7 @@ export default function ClassEditForm({
         method: "POST",
         body: formData,
       });
-      const data = await response.json().catch(() => ({})) as { asset?: { file_url?: string }; error?: string };
+      const data = await response.json().catch(() => ({})) as { asset?: { file_url?: string }; error?: string; optimization?: UploadOptimization };
       if (!response.ok) throw new Error(data.error || "No se pudo subir la imagen.");
       const url = data.asset?.file_url;
       if (!url) throw new Error("La subida no devolvió una URL.");
@@ -922,9 +939,17 @@ export default function ClassEditForm({
       if (target === "titleSecondary") updateDetails({ titleImageSecondary: url });
       if (target === "seo") updateDetails({ seoImage: url });
       if (target === "videoPoster") updateDetails({ videoPoster: url });
+      if (target === "gallery:new") {
+        updateDetails({ galleryImages: [...details.galleryImages, { image: url, alt: "", seoTitle: "", seoDescription: "", order: details.galleryImages.length }] });
+        if (data.optimization) setGalleryUploadInfo((previous) => ({ ...previous, [url]: data.optimization! }));
+      }
+
       if (target.startsWith("gallery:")) {
         const index = Number(target.split(":")[1]);
-        if (Number.isInteger(index)) updateGalleryImage(index, { image: url });
+        if (Number.isInteger(index)) {
+          updateGalleryImage(index, { image: url });
+          if (data.optimization) setGalleryUploadInfo((previous) => ({ ...previous, [url]: data.optimization! }));
+        }
       }
     } catch (error) {
       setToast({
@@ -1384,7 +1409,24 @@ export default function ClassEditForm({
                   <h2 className="text-headline-sm text-on-surface">Imágenes de producto</h2>
                   <p className="mt-1 text-body-md text-on-surface-variant">Ordena las imágenes y agrega un texto alternativo breve para accesibilidad.</p>
                 </div>
-                <Button type="button" variant="outlined" onClick={() => setPickerTarget("gallery")}>Añadir imagen</Button>
+                <div className="flex flex-wrap gap-2">
+                  <label className="secondary-btn cms-hero-image-field__button" htmlFor="gallery-new-upload" aria-disabled={uploadingTarget === "gallery:new"}>
+                    {uploadingTarget === "gallery:new" ? "Subiendo..." : "Subir imagen"}
+                  </label>
+                  <input
+                    id="gallery-new-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    className="sr-only"
+                    disabled={uploadingTarget === "gallery:new"}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadImage("gallery:new", file);
+                      event.target.value = "";
+                    }}
+                  />
+                  <Button type="button" variant="outlined" onClick={() => setPickerTarget("gallery")}>Anadir imagen</Button>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {details.galleryImages.map((item, index) => (
@@ -1416,23 +1458,13 @@ export default function ClassEditForm({
                     <div className="grid gap-3 md:grid-cols-[160px_minmax(0,1fr)] md:items-start">
                       <div className="space-y-2">
                         <ImagePreview src={item.image} alt={item.alt || `Imagen ${index + 1}`} aspect="h-24 w-full md:h-[104px]" />
+                        {galleryUploadInfo[item.image] ? (
+                          <p className="text-xs leading-5 text-on-surface-variant">
+                            Original: {formatFileSize(galleryUploadInfo[item.image].originalSize)}. Optimizada: {formatFileSize(galleryUploadInfo[item.image].finalSize)} ({galleryUploadInfo[item.image].reductionPercent}% menos).
+                          </p>
+                        ) : null}
                         <div className="flex flex-col gap-2">
-                          <label className="secondary-btn cms-hero-image-field__button w-full" htmlFor={`gallery-${index}-upload`} aria-disabled={uploadingTarget === `gallery:${index}`}>
-                            {uploadingTarget === `gallery:${index}` ? "Subiendo..." : "Subir imagen"}
-                          </label>
-                          <input
-                            id={`gallery-${index}-upload`}
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            disabled={uploadingTarget === `gallery:${index}`}
-                            onChange={(event) => {
-                              const file = event.target.files?.[0];
-                              if (file) void uploadImage(`gallery:${index}`, file);
-                              event.target.value = "";
-                            }}
-                          />
-                          <Button type="button" variant="outlined" size="sm" className="w-full" onClick={() => setPickerTarget(`gallery:${index}`)}>
+<Button type="button" variant="outlined" size="sm" className="w-full" onClick={() => setPickerTarget(`gallery:${index}`)}>
                             Sustituir
                           </Button>
                         </div>
