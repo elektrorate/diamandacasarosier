@@ -33,8 +33,17 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
   const enrollLabel = item.ctaEnrollLabel || (isGiftCard ? "Anadir al carrito" : "Inscribirme");
   const [added, setAdded] = useState(false);
   const programItems = item.program.filter(hasMeaningfulProgramItem);
-  const hasLearningContent = hasMeaningfulContent(item.whatYouWillLearn);
-  const hasParticipationContent = hasMeaningfulContent(item.whoCanJoin);
+  const showProgram = item.showModulesSection && programItems.length > 0;
+  const showIncluded = item.showIncludedSection && hasMeaningfulContent(item.included);
+  const hasLearningContent = item.showLearningSection && hasMeaningfulContent(item.whatYouWillLearn);
+  const hasParticipationContent = item.showParticipationSection && hasMeaningfulContent(item.whoCanJoin);
+  const showPaymentMethods = item.showPaymentMethodsSection && item.paymentMethods.length > 0;
+  const hasSideContent = Boolean(
+    item.videoUrl ||
+    item.videoCardImage ||
+    showPaymentMethods ||
+    item.additionalInfo.trim()
+  );
   const defaultPrice = useMemo(
     () =>
       item.priceOptions.length <= 1
@@ -70,36 +79,47 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
               title={item.title}
               videoImage={item.videoCardImage}
               videoLabel={item.videoCardLabel}
-              ctaHref={consultHref}
+              ctaHref={item.videoUrl}
               showVideo={false}
             />
 
-            <aside className="class-detail__side-column">
-              {consultHref ? (
+            {hasSideContent ? (
+              <aside className="class-detail__side-column">
+              {item.videoUrl ? (
                 <a
                   className="class-gallery__video-card"
-                  href={consultHref}
+                  href={item.videoUrl}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <img src={assetPath(item.videoCardImage)} alt={item.title} />
-                  <span>{item.videoCardLabel}</span>
+                  {item.videoCardImage ? <img src={assetPath(item.videoCardImage)} alt={item.title} /> : null}
+                  <span>{item.videoCardLabel || "VIDEO"}</span>
                 </a>
+              ) : item.videoCardImage ? (
+                <div className="class-gallery__video-card">
+                  <img src={assetPath(item.videoCardImage)} alt={item.title} />
+                  <span>{item.videoCardLabel || "IMAGEN"}</span>
+                </div>
               ) : null}
-              <div className="class-sidecard">
-                <h3>Metodos de pago</h3>
-                <p>Puedes pagar con cualquiera de estos medios</p>
-                <ul>
-                  {item.paymentMethods.map((method) => (
-                    <li key={method}>{method}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="class-sidecard class-sidecard--soft">
-                <h3>Informacion adicional</h3>
-                <MarkdownContent source={item.additionalInfo} />
-              </div>
-            </aside>
+              {showPaymentMethods ? (
+                <div className="class-sidecard">
+                  <h3>Metodos de pago</h3>
+                  <p>Puedes pagar con cualquiera de estos medios</p>
+                  <ul>
+                    {item.paymentMethods.map((method) => (
+                      <li key={method}>{method}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {item.additionalInfo.trim() ? (
+                <div className="class-sidecard class-sidecard--soft">
+                  <h3>Informacion adicional</h3>
+                  <MarkdownContent source={item.additionalInfo} />
+                </div>
+              ) : null}
+              </aside>
+            ) : null}
           </section>
 
           <section className="class-detail__content-column">
@@ -151,24 +171,30 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                 </div>
               </section>
 
-              <section className="class-detail__includes">
-                <h2>Incluye</h2>
-                <ul>
-                  {item.included.map((included) => (
-                    <li key={included}>{renderInlineMarkdown(includedText(included))}</li>
-                  ))}
-                </ul>
-                {consultHref ? (
-                  <a
-                    className="class-detail__button"
-                    href={consultHref}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {consultLabel}
-                  </a>
-                ) : null}
-              </section>
+              {showIncluded || consultHref ? (
+                <section className="class-detail__includes">
+                  {showIncluded ? (
+                    <>
+                      <h2>Incluye</h2>
+                      <ul>
+                        {item.included.map((included) => (
+                          <li key={included}>{renderInlineMarkdown(includedText(included))}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                  {consultHref ? (
+                    <a
+                      className="class-detail__button"
+                      href={consultHref}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {consultLabel}
+                    </a>
+                  ) : null}
+                </section>
+              ) : null}
 
               {hasLearningContent ? (
                 <section className="class-detail__text-block">
@@ -184,9 +210,9 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                 </section>
               ) : null}
 
-              {programItems.length > 0 || enrollHref ? (
+              {showProgram || (isGiftCard && enrollHref) ? (
                 <section className="class-detail__program">
-                  {programItems.length > 0 ? (
+                  {showProgram ? (
                     <>
                       <h2>{item.programSectionTitle || "Contenido del curso"}</h2>
                       <Accordion items={programItems} />

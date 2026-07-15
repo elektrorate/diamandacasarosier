@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { FeaturedSection } from "@/components/home/FeaturedSection";
 import { IntroSlider } from "@/components/home/IntroSlider";
-import { NavbarGlobal } from "@/components/layout/NavbarGlobal";
+import { HomeHeroView, type HomeHeroMenuSettings } from "@/components/layout/HomeHeroView";
 import { HomeGiftCardSection } from "@/features/home/HomeGiftCardSection";
 import type { ExperienceItem, GiftCardItem, NavigationItem } from "@/data/types";
 import type { CmsHeroSettings, HomeIntroSlide, HomePageSettings } from "@/lib/cms/types";
@@ -297,7 +297,7 @@ export default function HomePageEditor({
             <div className="cms-public-preview__toolbar">Vista previa de escritorio</div>
             <div className="cms-public-preview home-page">
               <div className="cms-public-preview__scale">
-                <HomePreviewHeader navigationItems={navigationItems} previewMenu={previewMenu} />
+                <HomePreviewHeader hero={hero} navigationItems={navigationItems} previewMenu={previewMenu} />
                 <main>
                   <IntroSlider slides={introSlides.filter((slide) => slide.isVisible)} />
                   {selectedClasses.length ? <FeaturedSection id="clases-destacadas" title={classesTitle} subtitle={classesSubtitle} items={selectedClasses} variant="classes" /> : null}
@@ -320,56 +320,20 @@ export default function HomePageEditor({
 }
 
 function HomePreviewHeader({
+  hero,
   navigationItems,
   previewMenu,
 }: {
+  hero: CmsHeroSettings;
   navigationItems: NavigationItem[];
-  previewMenu: {
-    headerLogoUrl: string;
-    scrollMenuBackgroundColor: string;
-    scrollMenuTextColor: string;
-    scrollMenuIconColor: string;
-    scrollMenuLogoTintEnabled: boolean;
-    scrollMenuLogoTintColor: string;
-  };
+  previewMenu: HomeHeroMenuSettings;
 }) {
   return (
-    <header
-      id="hero"
-      className="hero header-home header-home--ready"
-      data-header-component="HeaderHome"
-    >
-      <div className="hero__bg" />
-      <NavbarGlobal
-        home
-        navigationItems={navigationItems}
-        logoUrl={previewMenu.headerLogoUrl}
-        scrollMenuBackgroundColor={previewMenu.scrollMenuBackgroundColor}
-        scrollMenuTextColor={previewMenu.scrollMenuTextColor}
-        scrollMenuIconColor={previewMenu.scrollMenuIconColor}
-        scrollMenuLogoTintEnabled={previewMenu.scrollMenuLogoTintEnabled}
-        scrollMenuLogoTintColor={previewMenu.scrollMenuLogoTintColor}
-      />
-      <h1 className="hero__title">Casa Rosier</h1>
-      <div className="hero__overlays" aria-hidden="true">
-        <img
-          className="hero__overlay hero__overlay--1"
-          src="/img/hero-overlay-1.png"
-          alt=""
-          width={578}
-          height={224}
-          decoding="async"
-        />
-        <img
-          className="hero__overlay hero__overlay--2"
-          src="/img/hero-overlay-2.png"
-          alt=""
-          width={501}
-          height={235}
-          decoding="async"
-        />
-      </div>
-    </header>
+    <HomeHeroView
+      hero={hero}
+      navigationItems={navigationItems}
+      menu={previewMenu}
+    />
   );
 }
 

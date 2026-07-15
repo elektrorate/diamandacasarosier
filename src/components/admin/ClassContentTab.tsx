@@ -2,6 +2,7 @@
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Switch from "@/components/ui/Switch";
 import RichTextField from "./RichTextField";
 import type { ClassOfferingContent, ClassOfferingModule } from "@/lib/cms/types";
 
@@ -13,6 +14,11 @@ interface ClassContentTabProps {
 
 function defaultContent(): ClassOfferingContent {
   return {
+    showCourseContent: undefined,
+    showLearningSection: false,
+    showParticipationSection: false,
+    showPaymentMethodsSection: false,
+    showModulesSection: false,
     learningSectionTitle: "",
     learningContent: "",
     participationSectionTitle: "",
@@ -134,6 +140,14 @@ export default function ClassContentTab({ content, onChange, onDirty }: ClassCon
       <Card padding="lg" className="space-y-5 rounded-2xl">
         <h2 className="text-headline-sm text-on-surface">Contenido del Curso</h2>
 
+
+        <Switch
+          checked={content.showLearningSection}
+          label="Mostrar ¿Qué aprenderás? en la página pública"
+          description="El texto permanece guardado aunque esta sección esté oculta."
+          onCheckedChange={(checked) => update("showLearningSection", checked)}
+        />
+
         <TextField
           label="Título de la sección '¿Qué aprenderás?'"
           value={content.learningSectionTitle}
@@ -147,6 +161,13 @@ export default function ClassContentTab({ content, onChange, onDirty }: ClassCon
           onChange={(value) => update("learningContent", value)}
           minHeight="200px"
           placeholder="Módulo 1. Arcillas y propiedades de la materia cerámica.&#10;Módulo 2. Modelado manual y técnicas constructivas básicas."
+        />
+
+        <Switch
+          checked={content.showParticipationSection}
+          label="Mostrar ¿Quién puede participar? en la página pública"
+          description="El texto permanece guardado aunque esta sección esté oculta."
+          onCheckedChange={(checked) => update("showParticipationSection", checked)}
         />
 
         <TextField
@@ -165,6 +186,12 @@ export default function ClassContentTab({ content, onChange, onDirty }: ClassCon
         />
 
         <div className="space-y-3">
+          <Switch
+            checked={content.showPaymentMethodsSection}
+            label="Mostrar Formas de pago en la página pública"
+            description="Las formas permanecen guardadas aunque esta sección esté oculta."
+            onCheckedChange={(checked) => update("showPaymentMethodsSection", checked)}
+          />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <FieldLabel>Formas de pago</FieldLabel>
@@ -212,6 +239,13 @@ export default function ClassContentTab({ content, onChange, onDirty }: ClassCon
       {/* ── Bloque: Módulos del Curso ── */}
       <Card padding="lg" className="space-y-5 rounded-2xl">
         <h2 className="text-headline-sm text-on-surface">Módulos del Curso</h2>
+
+        <Switch
+          checked={content.showModulesSection}
+          label="Mostrar Módulos del Curso en la página pública"
+          description="Los módulos permanecen guardados y editables aunque la sección esté oculta."
+          onCheckedChange={(checked) => update("showModulesSection", checked)}
+        />
 
         <TextField
           label="Título de la sección 'Contenido del curso'"

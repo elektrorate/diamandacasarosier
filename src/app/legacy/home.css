@@ -1481,6 +1481,25 @@ main {
 }
 
 /* ── Hero logo/menu positioning from CMS (HeaderHome) ── */
+.header-home--image-hero .hero__bg,
+.header-home--presentation-hero .hero__bg {
+  background-image: var(--home-hero-image, url("/img/hero-bg.jpg"));
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media (max-width: 640px) {
+  .header-home--image-hero .hero__bg,
+  .header-home--presentation-hero .hero__bg {
+    background-image: var(
+      --home-hero-image-mobile,
+      var(--home-hero-image, url("/img/hero-bg.jpg"))
+    );
+  }
+}
+
+
 .header-home--text-hero .hero__bg {
   background-image: none !important;
   background: #fbfaf6 !important;

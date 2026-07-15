@@ -10,7 +10,7 @@ export function PublicHeroContent({ hero }: { hero: CmsHeroSettings }) {
     return (
       <div className="public-hero-content" style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none" }}>
         {hero.titleImage ? (
-          <div style={{
+          <div className="public-hero-title" style={{
             position: "absolute",
             left: "var(--title-image-position-x, 50%)",
             top: "var(--title-image-position-y, 50%)",
@@ -24,7 +24,7 @@ export function PublicHeroContent({ hero }: { hero: CmsHeroSettings }) {
           </div>
         ) : null}
         {hero.titleImageSecondary ? (
-          <div style={{
+          <div className="public-hero-title" style={{
             position: "absolute",
             left: "var(--title-image-secondary-position-x, 50%)",
             top: "var(--title-image-secondary-position-y, 50%)",
@@ -63,9 +63,9 @@ export function PublicHeroContent({ hero }: { hero: CmsHeroSettings }) {
 
 export function PublicHeroTitle({ title, subtitle }: { hero: CmsHeroSettings; title: string; subtitle?: string }) {
   return (
-    <div style={{
+    <div className="public-hero-title" style={{
       position: "absolute",
-      left: "50%",
+      left: "var(--hero-title-position-x, 50%)",
       top: "var(--hero-title-position-y, 50%)",
       transform: "translateX(-50%) scale(var(--hero-title-scale, 1))",
       transformOrigin: "top center",

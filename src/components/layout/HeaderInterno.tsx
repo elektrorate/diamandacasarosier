@@ -9,6 +9,7 @@ import type { CmsHeroSettings } from "@/lib/cms/types";
 
 interface HeaderInternoProps {
   image?: string;
+  mobileImage?: string;
   variant?: "image" | "text" | "presentation";
   hero?: CmsHeroSettings;
   eyebrow?: string;
@@ -48,6 +49,9 @@ interface HeaderInternoProps {
   heroTitleImageSecondaryPositionYTablet?: string;
   heroTitleImageSecondaryPositionXMobile?: string;
   heroTitleImageSecondaryPositionYMobile?: string;
+  heroTitlePositionX?: string;
+  heroTitlePositionXTablet?: string;
+  heroTitlePositionXMobile?: string;
   heroTitlePositionY?: string;
   heroTitlePositionYTablet?: string;
   heroTitlePositionYMobile?: string;
@@ -78,6 +82,7 @@ interface HeaderInternoProps {
 
 export async function HeaderInterno({
   image = "img/hero-bg.jpg",
+  mobileImage,
   variant = "text",
   hero,
   eyebrow,
@@ -117,6 +122,9 @@ export async function HeaderInterno({
   heroTitleImageSecondaryPositionYTablet,
   heroTitleImageSecondaryPositionXMobile,
   heroTitleImageSecondaryPositionYMobile,
+  heroTitlePositionX,
+  heroTitlePositionXTablet,
+  heroTitlePositionXMobile,
   heroTitlePositionY,
   heroTitlePositionYTablet,
   heroTitlePositionYMobile,
@@ -150,6 +158,7 @@ export async function HeaderInterno({
   ]);
   const style = {
     "--page-hero-image": `url("${assetPath(image)}")`,
+    "--page-hero-image-mobile": `url("${assetPath(mobileImage || image)}")`,
     "--hero-logo-position-x": heroLogoPositionX ?? "50%",
     "--hero-logo-position-y": heroLogoPositionY ?? "46px",
     "--hero-logo-width": heroLogoWidth ?? "118px",
@@ -184,6 +193,9 @@ export async function HeaderInterno({
     "--title-image-secondary-position-x-mobile": heroTitleImageSecondaryPositionXMobile ?? heroTitleImageSecondaryPositionX ?? "50%",
     "--title-image-secondary-position-y-mobile": heroTitleImageSecondaryPositionYMobile ?? "50%",
     /* Hero tipográfico */
+    "--hero-title-position-x": heroTitlePositionX ?? "50%",
+    "--hero-title-position-x-tablet": heroTitlePositionXTablet ?? heroTitlePositionX ?? "50%",
+    "--hero-title-position-x-mobile": heroTitlePositionXMobile ?? "50%",
     "--hero-title-position-y": heroTitlePositionY ?? "50%",
     "--hero-title-position-y-tablet": heroTitlePositionYTablet ?? heroTitlePositionY ?? "50%",
     "--hero-title-position-y-mobile": heroTitlePositionYMobile ?? "50%",

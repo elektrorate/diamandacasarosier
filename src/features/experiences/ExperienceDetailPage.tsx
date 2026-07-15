@@ -33,6 +33,7 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
     heroMenuTabletPositionY: item.heroMenuTabletPositionY,
     heroMenuMobilePositionY: item.heroMenuMobilePositionY,
     heroImage: item.heroImage,
+    heroImageMobile: item.heroImageMobile ?? "",
     titleImage: item.heroTitleImage ?? "",
     titleImageSecondary: item.heroTitleImageSecondary ?? "",
     titleImageScale: item.titleImageScale,
@@ -53,6 +54,9 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
     titleImageSecondaryPositionYTablet: item.titleImageSecondaryPositionYTablet,
     titleImageSecondaryPositionXMobile: item.titleImageSecondaryPositionXMobile,
     titleImageSecondaryPositionYMobile: item.titleImageSecondaryPositionYMobile,
+    heroTitlePositionX: item.heroTitlePositionX,
+    heroTitlePositionXTablet: item.heroTitlePositionXTablet,
+    heroTitlePositionXMobile: item.heroTitlePositionXMobile,
     heroTitlePositionY: item.heroTitlePositionY,
     heroTitlePositionYTablet: item.heroTitlePositionYTablet,
     heroTitlePositionYMobile: item.heroTitlePositionYMobile,
@@ -87,6 +91,7 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
         <HeaderInterno
           variant={hero.heroVariant}
           image={hero.heroImage || item.heroImage}
+          mobileImage={hero.heroImageMobile || undefined}
           hero={hero}
           heroMenuTone={hero.heroMenuTone}
           heroMenuColor={hero.heroMenuColor}
@@ -121,6 +126,9 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
           heroTitleImageSecondaryPositionYTablet={hero.titleImageSecondaryPositionYTablet}
           heroTitleImageSecondaryPositionXMobile={hero.titleImageSecondaryPositionXMobile}
           heroTitleImageSecondaryPositionYMobile={hero.titleImageSecondaryPositionYMobile}
+          heroTitlePositionX={hero.heroTitlePositionX}
+          heroTitlePositionXTablet={hero.heroTitlePositionXTablet}
+          heroTitlePositionXMobile={hero.heroTitlePositionXMobile}
           heroTitlePositionY={hero.heroTitlePositionY}
           heroTitlePositionYTablet={hero.heroTitlePositionYTablet}
           heroTitlePositionYMobile={hero.heroTitlePositionYMobile}
