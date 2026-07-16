@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import AdminActionModal from "./AdminActionModal";
 import type { FormSubmission, FormSubmissionStatus } from "@/lib/cms/types";
+import { formatAdminDateTime, formatAdminShortDate } from "@/lib/admin/date-format";
 
 const statusLabels: Record<FormSubmissionStatus, string> = {
   new: "Nuevo",
@@ -27,22 +28,6 @@ const inboxTabs: Array<{ value: InboxFilter; label: string }> = [
   { value: "new", label: "No leídos" },
 ];
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function shortDate(value: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    day: "2-digit",
-    month: "short",
-  }).format(new Date(value));
-}
 
 function previewText(item: FormSubmission) {
   const text = item.message || item.subject || item.form_name;
@@ -233,7 +218,7 @@ export default function MessagesTable({ items }: { items: FormSubmission[] }) {
             >
               <span className="message-list-item__top">
                 <strong>{item.name || "Sin nombre"}</strong>
-                <small>{shortDate(item.created_at)}</small>
+                <small>{formatAdminShortDate(item.created_at)}</small>
               </span>
               <span className="message-list-item__subject">{originTitle(item)}</span>
               <span className="message-list-item__preview">{previewText(item)}</span>
@@ -270,7 +255,7 @@ export default function MessagesTable({ items }: { items: FormSubmission[] }) {
               <div><span>Nombre</span><strong>{selected.name || "Sin nombre"}</strong></div>
               <div><span>Email</span><a href={`mailto:${selected.email}`}>{selected.email}</a></div>
               {selected.phone ? <div><span>Teléfono</span><a href={`tel:${selected.phone}`}>{selected.phone}</a></div> : null}
-              <div><span>Recibido</span><strong>{formatDate(selected.created_at)}</strong></div>
+              <div><span>Recibido</span><strong>{formatAdminDateTime(selected.created_at)}</strong></div>
               <div><span>Estado</span><strong>{statusLabels[selected.status]}</strong></div>
               {selected.source_page ? <div><span>Origen</span><strong>{selected.source_page}</strong></div> : null}
             </div>

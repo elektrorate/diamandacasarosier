@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Menu } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const locLabels: Record<string, string> = { main: "Principal", mobile: "Móvil", footer: "Footer" };
 type Toast = { type: "success" | "error"; message: string };
@@ -72,7 +73,7 @@ export default function MenusTable({ menus }: { menus: Menu[] }) {
               <td><span className="entity-badge">{locLabels[menu.location] || menu.location}</span></td>
               <td>{menu.status}</td>
               <td>{menu.items.length}</td>
-              <td>{new Date(menu.updated_at).toLocaleString()}</td>
+              <td>{formatAdminDateTime(menu.updated_at)}</td>
               <td>
                 <div className="row-actions">
                   <a className="link-btn" href={`/admin/menu/${menu.id}/edit`}>Editar</a>

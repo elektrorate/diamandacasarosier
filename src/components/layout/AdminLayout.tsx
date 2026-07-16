@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { requireAdminProfile, type AdminProfile } from "@/lib/auth/supabase-auth";
-import { PROJECT_VERSION } from "@/lib/project-version";
+import LogoutButton from "@/components/admin/LogoutButton";
 import Sidebar from "./Sidebar";
 
 interface AdminLayoutProps {
@@ -15,8 +15,11 @@ export default async function AdminLayout({ children, session: initialSession }:
 
   return (
     <div className="cms-admin cms-admin-shell">
-      <Sidebar userName={name} userEmail={email} appVersion={PROJECT_VERSION} />
+      <Sidebar userName={name} userEmail={email} />
       <main className="cms-admin-main">
+        <header className="cms-admin-toolbar">
+          <LogoutButton />
+        </header>
         <div className="cms-admin-content">{children}</div>
       </main>
     </div>

@@ -6,6 +6,7 @@ import type { Menu } from "@/lib/cms/types";
 import SettingsSection from "./SettingsSection";
 import MediaSelectField from "./MediaSelectField";
 import ColorPickerField from "./ColorPickerField";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 type EditableMenuItem = {
   id?: string;
@@ -487,7 +488,7 @@ export default function SettingsForm({ initial, initialMenu }: { initial: SiteSe
             <span>Última actualización</span>
             <p className="muted" style={{ padding: "0.95rem 0" }}>
               {settings.system.updated_at
-                ? new Date(settings.system.updated_at).toLocaleString()
+                ? formatAdminDateTime(settings.system.updated_at)
                 : "Nunca"}
             </p>
           </div>

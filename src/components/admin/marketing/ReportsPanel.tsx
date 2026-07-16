@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import type { MarketingReport, MarketingReportType } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const reportTypes: { value: MarketingReportType; label: string; description: string }[] = [
   { value: "weekly", label: "Semanal", description: "Actividad general y pendientes rápidos." },
@@ -136,7 +137,7 @@ export default function ReportsPanel({ initialReports }: { initialReports: Marke
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold text-green-700">{report.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-on-surface-variant">{report.generated_at ? new Date(report.generated_at).toLocaleString() : "-"}</td>
+                    <td className="px-4 py-3 text-on-surface-variant">{report.generated_at ? formatAdminDateTime(report.generated_at) : "-"}</td>
                     <td className="px-4 py-3">
                       {report.file_url ? (
                         <a

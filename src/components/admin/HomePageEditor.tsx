@@ -366,16 +366,16 @@ function FeaturedPicker({
         {items.length ? items.map((item) => (
           <label className={`cms-home-feature-card ${selectedIds.includes(item.id) ? "is-selected" : ""}`} key={item.id}>
             <span className="cms-home-feature-card__image">
-              <img src={assetPath(item.coverImage)} alt="" loading="lazy" decoding="async" />
+              <img src={assetPath(item.homeImage || item.coverImage)} alt={item.homeImageAlt || item.homeTitle || item.title} loading="lazy" decoding="async" />
             </span>
             <span className="cms-home-feature-card__content">
               <span className="cms-home-feature-card__topline">
                 <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => onToggle(item.id)} />
                 <span>{selectedIds.includes(item.id) ? "Visible en home" : "Oculto en home"}</span>
               </span>
-              <strong>{item.title}</strong>
-              <small>{item.category}</small>
-              <span className="cms-home-feature-card__excerpt">{item.excerpt}</span>
+              <strong>{item.homeTitle || item.title}</strong>
+              <small>{item.homeEyebrow || item.category}</small>
+              <span className="cms-home-feature-card__excerpt">{item.homeExcerpt || item.excerpt}</span>
             </span>
           </label>
         )) : <p className="muted">{emptyText}</p>}

@@ -3,14 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { CmsAdminUser } from "@/lib/admin/users";
-
-function formatDate(value: string | null) {
-  if (!value) return "Sin ingreso";
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 export default function UsersManager({ initialUsers }: { initialUsers: CmsAdminUser[] }) {
   const router = useRouter();
@@ -231,8 +224,8 @@ export default function UsersManager({ initialUsers }: { initialUsers: CmsAdminU
                   <span className="muted">{user.email}</span>
                 </td>
                 <td><span className="entity-badge">Administrador</span></td>
-                <td>{formatDate(user.created_at)}</td>
-                <td>{formatDate(user.last_sign_in_at)}</td>
+                <td>{formatAdminDateTime(user.created_at)}</td>
+                <td>{formatAdminDateTime(user.last_sign_in_at, "Sin ingreso")}</td>
                 <td>
                   <div className="row-actions">
                     <button type="button" className="secondary-btn" onClick={() => setEditingUser(user)}>

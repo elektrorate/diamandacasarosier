@@ -9,6 +9,7 @@ import { getPages } from "@/lib/cms/pages";
 import { getFormSubmissions } from "@/lib/cms/form-submissions";
 import { getRecentHistoryLogs } from "@/lib/cms/history-logs";
 import { requireAdminProfile } from "@/lib/auth/supabase-auth";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const activityLabels: Record<string, string> = {
   create: "Creacion",
@@ -21,13 +22,6 @@ const activityLabels: Record<string, string> = {
   delete_permanently: "Eliminacion",
   duplicate: "Duplicado",
 };
-
-function formatActivityDate(value: string) {
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
 
 export default async function DashboardPage() {
   const session = await requireAdminProfile();
@@ -133,7 +127,7 @@ export default async function DashboardPage() {
                     <div className="flex flex-wrap items-center gap-2 text-label-md text-on-surface-variant mt-0.5">
                       <span>{activityLabels[item.action] ?? item.action}</span>
                       <span aria-hidden="true">·</span>
-                      <span>{formatActivityDate(item.created_at)}</span>
+                      <span>{formatAdminDateTime(item.created_at)}</span>
                     </div>
                   </div>
                 </div>

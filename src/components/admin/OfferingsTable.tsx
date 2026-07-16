@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "@/components/admin/AdminLink";
 import type { Offering, OfferingStatus } from "@/lib/cms/types";
+import { formatAdminDate } from "@/lib/admin/date-format";
 
 const statusBadge: Record<OfferingStatus, { label: string; variant: string }> = {
   draft: { label: "Borrador", variant: "warning" },
@@ -103,7 +104,7 @@ export default function OfferingsTable({ offerings }: { offerings: Offering[] })
                     </span>
                   </td>
                   <td className="py-3 px-4 text-label-md text-on-surface-variant">
-                    {new Date(offering.updated_at).toLocaleDateString()}
+                    {formatAdminDate(offering.updated_at)}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdminPagination from "./AdminPagination";
 import { getTrashEntityLabel, type TrashEntityOption } from "@/lib/cms/trash-entity-labels";
 import type { TrashItem } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const apiMap: Record<string, { restore: string; del: string; method?: string; body?: (id: string, action: string) => string }> = {
   offering: { restore: `/api/admin/offerings/`, del: `/api/admin/offerings/` },
@@ -245,7 +246,7 @@ export default function TrashTable({
               <tr key={item.id}>
                 <td><span className="entity-badge">{getTrashEntityLabel(item)}</span></td>
                 <td>{item.title}</td>
-                <td>{new Date(item.deleted_at).toLocaleString()}</td>
+                <td>{formatAdminDateTime(item.deleted_at)}</td>
                 <td>
                   <div className="row-actions">
                     <button type="button" className="secondary-btn" onClick={() => action(item, "restore")}>Restaurar</button>

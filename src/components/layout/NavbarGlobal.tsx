@@ -278,6 +278,8 @@ export function NavbarGlobal({
                     <Link
                       className="hero__nav-link"
                       href={item.href}
+                      target={item.target}
+                      rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                       aria-current={current(item.href) ? "page" : undefined}
                       onClick={() => {
                         setMobileOpen(false);
@@ -313,6 +315,8 @@ export function NavbarGlobal({
                           <Link
                             className="nav-submenu__link"
                             href={child.href}
+                            target={child.target}
+                            rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
                             role="menuitem"
                             aria-current={
                               current(child.href) ? "page" : undefined
@@ -439,6 +443,8 @@ export function NavbarGlobal({
                     <Link
                       className="scroll-desktop-nav__link"
                       href={item.href}
+                      target={item.target}
+                      rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                       aria-current={current(item.href) ? "page" : undefined}
                       onClick={closeScrollDesktopMenu}
                     >
@@ -463,6 +469,8 @@ export function NavbarGlobal({
                             <Link
                               className="scroll-desktop-submenu__link"
                               href={child.href}
+                              target={child.target}
+                              rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
                               role="menuitem"
                               aria-current={
                                 current(child.href) ? "page" : undefined
@@ -536,6 +544,8 @@ export function NavbarGlobal({
                     <Link
                       className="mobile-menu__link"
                       href={item.href}
+                      target={item.target}
+                      rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                       aria-current={current(item.href) ? "page" : undefined}
                       onClick={() => setMobileOpen(false)}
                     >
@@ -565,6 +575,8 @@ export function NavbarGlobal({
                               <Link
                                 className="mobile-submenu__link"
                                 href={child.href}
+                                target={child.target}
+                                rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
                                 aria-current={
                                   current(child.href) ? "page" : undefined
                                 }

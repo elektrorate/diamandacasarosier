@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import type { Redirect } from "@/lib/cms/types";
+import { formatAdminDate } from "@/lib/admin/date-format";
 import RedirectsTable from "./RedirectsTable";
 
 export default function RedirectsForm({ items }: { items: Redirect[] }) {
@@ -18,7 +19,7 @@ export default function RedirectsForm({ items }: { items: Redirect[] }) {
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   const permanentCount = active.filter((redirect) => redirect.redirect_type === "301").length;
   const lastUpdated = active[0]?.updated_at
-    ? new Date(active[0].updated_at).toLocaleDateString()
+    ? formatAdminDate(active[0].updated_at)
     : "Sin cambios";
 
   async function create(event: FormEvent) {

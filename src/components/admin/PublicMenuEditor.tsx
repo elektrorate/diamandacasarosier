@@ -41,8 +41,7 @@ const DEFAULT_POINTS: EditableMenuItem[] = [
   menuPoint("giftcards", "GiftCards", "/gift-cards", 4),
   menuPoint("estudio", "El estudio", "/el-estudio", 5, {
     children: [
-      menuChild("estudio-el-estudio", "El Estudio", "/el-estudio", 0),
-      menuChild("estudio-bitacora", "Bitácora", "/blog", 1),
+      menuChild("estudio-bitacora", "Bitácora", "/blog", 0),
     ],
   }),
   menuPoint("shop", "Shop", "/shop", 6),
@@ -101,7 +100,7 @@ function keyForItem(item: Pick<MenuItem, "label" | "url">) {
   if (item.url === "/experiencias" || item.url === "/reservas-privadas" || label === "experiencias" || label === "reservas privadas") return "experiencias";
   if (item.url === "/gift-cards" || item.url === "/gift-card" || label === "gift cards" || label === "giftcards" || label.includes("regalo")) return "giftcards";
   if (item.url === "/el-estudio" || label === "el estudio") return "estudio";
-  if (item.url === "/shop" || (item.url === "/blog" && (label === "blog" || label === "bitacora")) || label === "shop") return "shop";
+  if (item.url === "/shop" || label === "shop") return "shop";
   return `item-${item.url || label}`;
 }
 
@@ -160,7 +159,6 @@ function availableChildrenByRoot(navigationItems: NavigationItem[]) {
     if (!DYNAMIC_MENU_KEYS.has(key)) return;
 
     const children = (item.children ?? [])
-      .filter((child) => child.visible)
       .sort((a, b) => a.order - b.order)
       .map((child, index) => editableChildFromNavigation(child, index));
     childrenByRoot.set(key, children);
@@ -173,6 +171,7 @@ function itemToEditable(item: MenuItem, children: MenuItem[]): EditableMenuItem 
   const key = keyForItem(item);
   const defaultPoint = DEFAULT_POINTS.find((point) => point.key === key);
   const normalizedChildren = children
+    .filter((child) => child.url !== item.url)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((child) => ({
       id: child.id,
@@ -191,13 +190,7 @@ function itemToEditable(item: MenuItem, children: MenuItem[]): EditableMenuItem 
   return {
     id: item.id,
     key,
-    label: key === "experiencias" && normalizeLabel(item.label) === "reservas privadas"
-      ? "Experiencias"
-      : key === "giftcards" && item.label.toLowerCase().includes("regalo")
-        ? "GiftCards"
-        : key === "shop"
-          ? "Shop"
-          : item.label,
+    label: item.label,
     url: key === "shop" ? "/shop" : (defaultPoint?.url ?? item.url),
     sort_order: defaultPoint?.sort_order ?? item.sort_order,
     type: item.type,
@@ -230,7 +223,7 @@ function buildEditableMenu(menu: Menu | null, availableNavigationItems: Navigati
   }
 
   const roots = menu.items
-    .filter((item) => !item.parent_id && item.is_visible)
+    .filter((item) => !item.parent_id)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((item) => itemToEditable(item, childrenByParent.get(item.id) ?? []));
 
@@ -302,7 +295,7 @@ function InteractiveMenuPreview({
           {visibleItems.map((item, index) => (
             <span className="interactive-menu-preview__item" key={item.key} style={{ color: textColor }}>
               <span>{item.label || "Sin nombre"}</span>
-              {item.children.length ? <span className="interactive-menu-preview__plus">+</span> : null}
+              {item.children.some((child) => child.is_visible) ? <span className="interactive-menu-preview__plus">+</span> : null}
               {index < visibleItems.length - 1 ? <span className="interactive-menu-preview__separator" aria-hidden="true">|</span> : null}
             </span>
           ))}
@@ -481,6 +474,7 @@ export default function PublicMenuEditor({
             <div className="public-menu-simple__head" role="row">
               <span role="columnheader">Elemento</span>
               <span role="columnheader">URL</span>
+              <span role="columnheader">Comportamiento</span>
             </div>
             <div className="public-menu-simple__body">
               {items.map((item) => (
@@ -502,6 +496,26 @@ export default function PublicMenuEditor({
                         aria-label={`URL de ${item.label || "elemento del menú"}`}
                       />
                     </label>
+                    <div className="public-menu-simple__options">
+                      <label className="public-menu-simple__option">
+                        <input
+                          type="checkbox"
+                          checked={item.is_visible}
+                          disabled={item.locked}
+                          onChange={(event) => updateItem(item.key, { is_visible: event.target.checked })}
+                        />
+                        <span>Mostrar en la web</span>
+                      </label>
+                      <label className="public-menu-simple__option">
+                        <input
+                          type="checkbox"
+                          checked={item.open_in_new_tab}
+                          disabled={item.locked}
+                          onChange={(event) => updateItem(item.key, { open_in_new_tab: event.target.checked })}
+                        />
+                        <span>Abrir en nueva pestaña</span>
+                      </label>
+                    </div>
                   </div>
 
                   {item.children.map((child, childIndex) => (
@@ -522,6 +536,24 @@ export default function PublicMenuEditor({
                           aria-label={`URL de ${child.label || "subelemento del menú"}`}
                         />
                       </label>
+                      <div className="public-menu-simple__options">
+                        <label className="public-menu-simple__option">
+                          <input
+                            type="checkbox"
+                            checked={child.is_visible}
+                            onChange={(event) => updateChild(item.key, child.key, { is_visible: event.target.checked })}
+                          />
+                          <span>Mostrar en la web</span>
+                        </label>
+                        <label className="public-menu-simple__option">
+                          <input
+                            type="checkbox"
+                            checked={child.open_in_new_tab}
+                            onChange={(event) => updateChild(item.key, child.key, { open_in_new_tab: event.target.checked })}
+                          />
+                          <span>Abrir en nueva pestaña</span>
+                        </label>
+                      </div>
                       <div className="public-menu-simple__child-actions" aria-label={`Orden de ${child.label || "subelemento"}`}>
                         <button
                           type="button"

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import type { Page, PageType } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const typeLabels: Record<string, string> = {
   home: "Home", studio: "Estudio", contact: "Contacto", faq: "FAQ",
@@ -42,7 +43,7 @@ export default function PagesTable({ pages }: { pages: Page[] }) {
               <td>{page.status}</td>
               <td>{page.header_id ? "Sí" : "—"}</td>
               <td>/{page.slug}</td>
-              <td>{new Date(page.updated_at).toLocaleString()}</td>
+              <td>{formatAdminDateTime(page.updated_at)}</td>
               <td>
                 <div className="row-actions">
                   <a className="link-btn" href={`/admin/pages/${page.id}/edit`}>Editar</a>

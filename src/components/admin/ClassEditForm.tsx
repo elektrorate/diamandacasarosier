@@ -9,6 +9,7 @@ import { NavbarGlobal } from "@/components/layout/NavbarGlobal";
 import { PublicFooterContent } from "@/components/layout/PublicFooterContent";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import Switch from "@/components/ui/Switch";
 import { SocialGallery } from "@/components/home/SocialGallery";
 import type { NavigationItem } from "@/data/types";
@@ -21,6 +22,7 @@ import RichTextField from "./RichTextField";
 import SharedHeroEditor from "./SharedHeroEditor";
 import ClassContentTab, { defaultContent } from "./ClassContentTab";
 import type {
+  ClassHomeCard,
   ClassOfferingDetails,
   ClassScheduleDay,
   Offering,
@@ -28,8 +30,8 @@ import type {
   OfferingPriceOption,
 } from "@/lib/cms/types";
 
-type TabKey = "hero" | "basic" | "schedule" | "content" | "seo" | "additions" | "preview";
-type PickerTarget = "hero" | "presentation" | "title" | "titleSecondary" | "gallery" | `gallery:${number}` | "seo" | "videoPoster" | null;
+type TabKey = "hero" | "home" | "basic" | "schedule" | "content" | "seo" | "additions" | "preview";
+type PickerTarget = "hero" | "home" | "presentation" | "title" | "titleSecondary" | "gallery" | `gallery:${number}` | "seo" | "videoPoster" | null;
 type UploadTarget = Exclude<PickerTarget, "gallery" | null> | "gallery:new";
 type SaveIntent = "draft" | "publish";
 type FormNotice = { type: "success" | "error"; message: string; details?: string[] };
@@ -55,7 +57,8 @@ function formatFileSize(bytes: number) {
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "hero", label: "Hero" },
-  { key: "basic", label: "Información básica" },
+  { key: "home", label: "Tarjeta para Home" },
+  { key: "basic", label: "Página detallada" },
   { key: "schedule", label: "Horario" },
   { key: "content", label: "Contenido" },
   { key: "seo", label: "SEO" },
@@ -93,6 +96,13 @@ const defaultClassDetails: ClassOfferingDetails = {
   showConsultCta: true,
   showEnrollCta: true,
   highlightDescription: "",
+  homeCard: {
+    image: "",
+    imageAlt: "",
+    eyebrow: "",
+    title: "",
+    excerpt: "",
+  },
   homeExcerpt: "",
   durationText: "",
   whatsappNumber: "",
@@ -332,6 +342,7 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
   const heroVariant = fromDetails.heroVariant === "image" || fromDetails.heroVariant === "text" || fromDetails.heroVariant === "presentation"
     ? fromDetails.heroVariant
     : "text";
+  const persistedHomeCard = fromDetails.homeCard ?? defaultClassDetails.homeCard;
 
   return {
     ...defaultClassDetails,
@@ -367,6 +378,13 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
     heroPresentationTextColor: firstText(fromDetails.heroPresentationTextColor, defaultClassDetails.heroPresentationTextColor),
     heroPresentationImage: firstText(fromDetails.heroPresentationImage),
     highlightDescription: firstText(fromDetails.highlightDescription, fromDetails.introHighlight, offering.excerpt),
+    homeCard: {
+      image: firstText(persistedHomeCard.image),
+      imageAlt: firstText(persistedHomeCard.imageAlt),
+      eyebrow: firstText(persistedHomeCard.eyebrow),
+      title: firstText(persistedHomeCard.title),
+      excerpt: firstText(persistedHomeCard.excerpt, fromDetails.homeExcerpt),
+    },
     durationText: firstText(fromDetails.durationText, offering.duration),
     heroImage: fromDetails.heroImage || offering.cover_image_url || DEFAULT_HERO_IMAGE,
     heroImageMobile: fromDetails.heroImageMobile || "",
@@ -623,6 +641,11 @@ function buildPreviewItem({
     excerpt: details.highlightDescription,
     description: toLines(description),
     coverImage: galleryImages[0] || fallbackImage,
+    homeImage: details.homeCard.image || galleryImages[0] || fallbackImage,
+    homeImageAlt: details.homeCard.imageAlt || details.homeCard.title || title || "Tarjeta destacada",
+    homeEyebrow: details.homeCard.eyebrow || details.heroSubtitle || offeringType,
+    homeTitle: details.homeCard.title || title || "Título del producto",
+    homeExcerpt: details.homeCard.excerpt || details.homeExcerpt || details.highlightDescription,
     heroImage: fallbackImage,
     heroImageMobile: details.heroImageMobile || undefined,
     heroVariant: details.heroVariant,
@@ -929,6 +952,14 @@ export default function ClassEditForm({
     setIsDirty(true);
   }
 
+  function updateHomeCard(next: Partial<ClassHomeCard>) {
+    setDetails((current) => ({
+      ...current,
+      homeCard: { ...current.homeCard, ...next },
+    }));
+    setIsDirty(true);
+  }
+
   function updatePricing(index: number, next: Partial<OfferingPriceOption>) {
     updateDetails({ pricing: details.pricing.map((item, i) => (i === index ? { ...item, ...next } : item)) });
   }
@@ -963,6 +994,7 @@ export default function ClassEditForm({
 
   function handleSelectImage(url: string) {
     if (pickerTarget === "hero") updateDetails({ heroImage: url });
+    if (pickerTarget === "home") updateHomeCard({ image: url });
     if (pickerTarget === "presentation") updateDetails({ heroPresentationImage: url });
     if (pickerTarget === "title") updateDetails({ titleImage: url });
     if (pickerTarget === "titleSecondary") updateDetails({ titleImageSecondary: url });
@@ -1009,6 +1041,7 @@ export default function ClassEditForm({
       if (!url) throw new Error("La subida no devolvió una URL.");
 
       if (target === "hero") updateDetails({ heroImage: url });
+      if (target === "home") updateHomeCard({ image: url });
       if (target === "presentation") updateDetails({ heroPresentationImage: url });
       if (target === "title") updateDetails({ titleImage: url });
       if (target === "titleSecondary") updateDetails({ titleImageSecondary: url });
@@ -1190,7 +1223,14 @@ export default function ClassEditForm({
               heroTitle: details.heroTitle.trim(),
               heroSubtitle: details.heroSubtitle.trim(),
               highlightDescription: details.highlightDescription.trim(),
-              homeExcerpt: details.homeExcerpt.trim(),
+              homeCard: {
+                image: details.homeCard.image.trim(),
+                imageAlt: details.homeCard.imageAlt.trim(),
+                eyebrow: details.homeCard.eyebrow.trim(),
+                title: details.homeCard.title.trim(),
+                excerpt: details.homeCard.excerpt.trim(),
+              },
+              homeExcerpt: details.homeCard.excerpt.trim(),
               durationText: details.durationText.trim(),
               whatsappNumber: details.whatsappNumber.trim(),
               scheduleDescription: details.scheduleDescription.trim(),
@@ -1300,6 +1340,127 @@ export default function ClassEditForm({
             subtitleFallback={subtitle || "Clases - Iniciación"}
             onChange={(next) => updateDetails(next as Partial<ClassOfferingDetails>)}
           />
+        ) : null}
+
+        {activeTab === "home" ? (
+          <>
+            <Card padding="lg" className="space-y-6 rounded-2xl">
+              <div>
+                <h2 className="text-headline-sm text-on-surface">Tarjeta para Home</h2>
+                <p className="mt-1 text-body-md text-on-surface-variant">
+                  Estos campos controlan únicamente la tarjeta destacada de la portada. No cambian el Hero ni el contenido de la página detallada.
+                </p>
+              </div>
+
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+                <div className="space-y-4">
+                  <div>
+                    <FieldLabel>Imagen de la tarjeta</FieldLabel>
+                    {details.homeCard.image ? (
+                      <ImagePreview
+                        src={details.homeCard.image}
+                        alt={details.homeCard.imageAlt || details.homeCard.title || title || "Imagen de la tarjeta"}
+                      />
+                    ) : (
+                      <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-6 text-center">
+                        <p className="text-label-md text-on-surface-variant">
+                          Sin imagen específica. En Home se usará la imagen de portada actual.
+                        </p>
+                      </div>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button type="button" variant="outlined" size="sm" onClick={() => setPickerTarget("home")}>
+                        Biblioteca
+                      </Button>
+                      <label className="secondary-btn cms-hero-image-field__button" htmlFor="home-card-upload" aria-disabled={uploadingTarget === "home"}>
+                        {uploadingTarget === "home" ? "Subiendo..." : "Subir imagen"}
+                      </label>
+                      <input
+                        id="home-card-upload"
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={uploadingTarget === "home"}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) void uploadImage("home", file);
+                          event.target.value = "";
+                        }}
+                      />
+                      {details.homeCard.image ? (
+                        <Button type="button" variant="outlined" size="sm" onClick={() => updateHomeCard({ image: "" })}>
+                          Eliminar imagen
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                  <TextField
+                    label="Texto alternativo de la imagen"
+                    value={details.homeCard.imageAlt}
+                    placeholder={details.homeCard.title || title || "Descripción breve de la imagen"}
+                    help="Si queda vacío, se utilizará el título de la tarjeta."
+                    onChange={(event) => updateHomeCard({ imageAlt: event.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <TextField
+                    label="Etiqueta superior"
+                    value={details.homeCard.eyebrow}
+                    placeholder={details.heroSubtitle || offering.type}
+                    help="Ejemplo: CLASES · INICIACIÓN."
+                    onChange={(event) => updateHomeCard({ eyebrow: event.target.value })}
+                  />
+                  <TextField
+                    label="Título para Home"
+                    value={details.homeCard.title}
+                    placeholder={title || "Título de la tarjeta"}
+                    help="Puede ser distinto del título del Hero y de la página detallada."
+                    onChange={(event) => updateHomeCard({ title: event.target.value })}
+                  />
+                  <RichTextField
+                    label="Descripción corta para Home"
+                    value={details.homeCard.excerpt}
+                    onChange={(value) => updateHomeCard({ excerpt: value })}
+                    minHeight="150px"
+                    placeholder={details.highlightDescription || "Resumen breve para la tarjeta de portada."}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            <Card padding="lg" className="space-y-5 rounded-2xl">
+              <div>
+                <h2 className="text-headline-sm text-on-surface">Vista previa de la tarjeta</h2>
+                <p className="mt-1 text-body-md text-on-surface-variant">
+                  Esta es la misma estructura visual que se mostrará si seleccionas este contenido desde Inicio → destacados.
+                </p>
+              </div>
+              <div className="mx-auto w-full max-w-[420px]">
+                <article className="content-card">
+                  <div className="content-card__media relative">
+                    <Image
+                      src={assetPath(details.homeCard.image || details.galleryImages.find((item) => item.image)?.image || details.heroImage || DEFAULT_HERO_IMAGE)}
+                      alt={details.homeCard.imageAlt || details.homeCard.title || title || "Vista previa de la tarjeta"}
+                      fill
+                      sizes="420px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="content-card__body">
+                    <p className="content-card__meta">{details.homeCard.eyebrow || details.heroSubtitle || offering.type}</p>
+                    <h3 className="content-card__title card__title">{details.homeCard.title || title || "Título de la tarjeta"}</h3>
+                    <MarkdownContent
+                      className="content-card__excerpt body-text"
+                      source={details.homeCard.excerpt || details.homeExcerpt || details.highlightDescription || "Descripción breve de la tarjeta."}
+                    />
+                    <span className="content-card__cta">leer mas</span>
+                  </div>
+                </article>
+              </div>
+            </Card>
+          </>
         ) : null}
 
         {activeTab === "basic" ? (

@@ -1,6 +1,7 @@
 export interface AdminNavLink {
   label: string;
   href: string;
+  activePaths?: string[];
 }
 
 export interface AdminNavSection {
@@ -17,6 +18,7 @@ export const adminRoutes = {
   workshops: "/admin/workshops",
   experiences: "/admin/experiencias",
   giftCards: "/admin/gift-cards",
+  reservations: "/admin/reservas",
   pages: "/admin/pages",
   home: "/admin/home",
   studio: "/admin/estudio",
@@ -31,6 +33,7 @@ export const adminRoutes = {
   footers: "/admin/components/footers",
   promoBanners: "/admin/components/promo-banners",
   faqs: "/admin/components/faqs",
+  teachers: "/admin/components/teachers",
   menus: "/admin/menu",
   shop: "/admin/shop",
   products: "/admin/shop/products",
@@ -57,81 +60,85 @@ export const adminRoutes = {
 } as const;
 
 export const adminSections: AdminNavSection[] = [
+  { label: "Dashboard", icon: "home", href: adminRoutes.dashboard },
   {
-    label: "Dashboard",
-    icon: "home",
-    href: adminRoutes.dashboard,
-  },
-  {
-    label: "Componentes",
-    icon: "extension",
-    children: [
-      { label: "Galerías Sociales", href: adminRoutes.socialGalleries },
-      { label: "Testimonios", href: adminRoutes.testimonials },
-      { label: "Banners Promocionales", href: adminRoutes.promoBanners },
-    ],
-  },
-  {
-    label: "Clases",
+    label: "Actividades",
     icon: "school",
     children: [
       { label: "Clases", href: adminRoutes.classes },
       { label: "Workshops", href: adminRoutes.workshops },
       { label: "Experiencias", href: adminRoutes.experiences },
       { label: "Gift Cards", href: adminRoutes.giftCards },
+      { label: "Reservas", href: adminRoutes.reservations },
     ],
   },
   {
     label: "Contenido",
     icon: "description",
     children: [
-      { label: "Shop", href: adminRoutes.shop },
+      { label: "Home", href: adminRoutes.home },
       { label: "El estudio", href: adminRoutes.studio },
       { label: "Bitácora", href: adminRoutes.blog },
+      { label: "Páginas", href: adminRoutes.pages },
+      { label: "Mensajes", href: adminRoutes.messages },
     ],
   },
   {
-    label: "Setup Página",
-    icon: "sync_alt",
+    label: "Componentes",
+    icon: "extension",
     children: [
-      { label: "Home", href: adminRoutes.home },
+      { label: "Headers", href: adminRoutes.headers },
       { label: "Footer", href: adminRoutes.footers },
-      { label: "Menú", href: adminRoutes.menus },
-      { label: "Multimedia", href: adminRoutes.media },
-      { label: "Redirecciones", href: adminRoutes.redirects },
+      { label: "Formularios", href: adminRoutes.forms },
+      { label: "FAQs", href: adminRoutes.faqs },
+      { label: "Galerías sociales", href: adminRoutes.socialGalleries },
+      { label: "Testimonios", href: adminRoutes.testimonials },
+      { label: "Banners promocionales", href: adminRoutes.promoBanners },
+    ],
+  },
+  {
+    label: "Shop",
+    icon: "storefront",
+    children: [
+      { label: "Página de Shop", href: adminRoutes.shop },
+      {
+        label: "Productos",
+        href: adminRoutes.products,
+        activePaths: [adminRoutes.products, `${adminRoutes.shop}?tab=items`],
+      },
+      { label: "Categorías", href: adminRoutes.categories },
+      { label: "Pedidos", href: adminRoutes.orders },
+      { label: "Cupones", href: adminRoutes.coupons },
+      { label: "Envíos", href: adminRoutes.shipping },
     ],
   },
   {
     label: "Marketing",
     icon: "analytics",
     children: [
-      { label: "Configuración", href: adminRoutes.marketingSettings },
       { label: "Resumen", href: adminRoutes.marketing },
       { label: "Analytics", href: adminRoutes.marketingAnalytics },
       { label: "Search Console", href: adminRoutes.marketingSearchConsole },
-      { label: "Páginas", href: adminRoutes.marketingPages },
+      { label: "SEO", href: adminRoutes.marketingSeo },
+      { label: "Rendimiento de páginas", href: adminRoutes.marketingPages },
       { label: "Eventos", href: adminRoutes.marketingEvents },
       { label: "Campañas UTM", href: adminRoutes.marketingCampaigns },
       { label: "Conversiones", href: adminRoutes.marketingConversions },
-      { label: "SEO", href: adminRoutes.marketingSeo },
+      { label: "Landing Pages", href: adminRoutes.landingPages },
       { label: "Reportes", href: adminRoutes.marketingReports },
+      { label: "Configuración de marketing", href: adminRoutes.marketingSettings },
     ],
-  },
-  {
-    label: "Mensajes",
-    icon: "mail",
-    href: adminRoutes.messages,
-  },
-  {
-    label: "Usuarios",
-    icon: "group",
-    href: adminRoutes.users,
   },
   {
     label: "Configuración",
     icon: "settings",
     children: [
-      { label: "Políticas de privacidad", href: adminRoutes.legal },
+      { label: "Menú", href: adminRoutes.menus },
+      { label: "Multimedia", href: adminRoutes.media },
+      { label: "Redirecciones", href: adminRoutes.redirects },
+      { label: "Usuarios", href: adminRoutes.users },
+      { label: "Privacidad y cookies", href: adminRoutes.legal },
+      { label: "Configuración general", href: adminRoutes.settings },
       { label: "Historial de actividad", href: adminRoutes.historyLogs },
       { label: "Papelera", href: adminRoutes.trash },
     ],

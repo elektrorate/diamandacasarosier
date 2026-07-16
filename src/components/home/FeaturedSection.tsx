@@ -37,23 +37,23 @@ export function FeaturedSection({
                 href={experienceHref(item.kind, item.slug)}
               >
                 <img
-                  src={assetPath(item.coverImage)}
-                  alt={item.title}
+                  src={assetPath(item.homeImage || item.coverImage)}
+                  alt={item.homeImageAlt || item.homeTitle || item.title}
                   loading="lazy"
                   decoding="async"
                   className={
-                    assetPath(item.coverImage) !== `/${item.coverImage}`
+                    assetPath(item.homeImage || item.coverImage) !== `/${item.homeImage || item.coverImage}`
                       ? "asset-fallback"
                       : undefined
                   }
                 />
               </Link>
               <div className="content-card__body">
-                <p className="content-card__meta">{item.category}</p>
+                <p className="content-card__meta">{item.homeEyebrow || item.category}</p>
                 <h3 className="content-card__title card__title">
-                  {item.title}
+                  {item.homeTitle || item.title}
                 </h3>
-                <MarkdownContent className="content-card__excerpt body-text" source={item.excerpt} />
+                <MarkdownContent className="content-card__excerpt body-text" source={item.homeExcerpt || item.excerpt} />
                 <Link
                   className="content-card__cta"
                   href={experienceHref(item.kind, item.slug)}

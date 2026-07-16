@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AdminPagination from "./AdminPagination";
 import type { HistoryLog } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const actionLabels: Record<string, string> = {
   create: "Creación", update: "Actualización", publish: "Publicación", unpublish: "Despublicación",
@@ -97,7 +98,7 @@ export default function HistoryLogsTable({
                 <td>{l.entity_type}</td>
                 <td>{l.entity_title}</td>
                 <td className="muted">{l.user_email}</td>
-                <td>{new Date(l.created_at).toLocaleString()}</td>
+                <td>{formatAdminDateTime(l.created_at)}</td>
               </tr>
             ))}
             {!items.length ? (

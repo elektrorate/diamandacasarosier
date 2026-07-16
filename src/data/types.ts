@@ -32,6 +32,11 @@ export interface ExperienceItem {
   excerpt: string;
   description: string[];
   coverImage: string;
+  homeImage?: string;
+  homeImageAlt?: string;
+  homeEyebrow?: string;
+  homeTitle?: string;
+  homeExcerpt?: string;
   heroImage: string;
   heroImageMobile?: string;
   heroVariant?: "image" | "text" | "presentation";

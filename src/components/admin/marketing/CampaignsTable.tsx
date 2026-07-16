@@ -3,6 +3,7 @@
 import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import type { MarketingCampaign } from "@/lib/cms/types";
+import { formatAdminDate } from "@/lib/admin/date-format";
 import EmptyMarketingState from "./EmptyMarketingState";
 
 const statusStyles: Record<string, string> = {
@@ -68,8 +69,8 @@ export default function CampaignsTable({ campaigns }: { campaigns: MarketingCamp
                   {c.status}
                 </span>
               </td>
-              <td className="px-4 py-3 text-on-surface-variant">{c.start_date ? new Date(c.start_date).toLocaleDateString() : "—"}</td>
-              <td className="px-4 py-3 text-on-surface-variant">{c.end_date ? new Date(c.end_date).toLocaleDateString() : "—"}</td>
+              <td className="px-4 py-3 text-on-surface-variant">{c.start_date ? formatAdminDate(c.start_date) : "—"}</td>
+              <td className="px-4 py-3 text-on-surface-variant">{c.end_date ? formatAdminDate(c.end_date) : "—"}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1">
                   <Link href={`/admin/marketing/campaigns/${c.id}/edit`} className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-secondary focus:outline-none focus:ring-2 focus:ring-primary-container" aria-label={`Editar campaña ${c.name}`}>
