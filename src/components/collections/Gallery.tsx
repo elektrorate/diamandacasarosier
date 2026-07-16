@@ -14,9 +14,9 @@ export function Gallery({
 }: {
   images: string[];
   title: string;
-  videoImage: string;
+  videoImage?: string;
   videoLabel: string;
-  ctaHref: string;
+  ctaHref?: string;
   showVideo?: boolean;
 }) {
   return (
@@ -46,17 +46,19 @@ export function Gallery({
           </button>
         )}
       />
-      {showVideo && (
-        <a
-          className="class-gallery__video-card"
-          href={ctaHref}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <img src={assetPath(videoImage)} alt={title} />
-          <span>{videoLabel}</span>
-        </a>
-      )}
+      {showVideo && (videoImage || ctaHref) ? (
+        ctaHref ? (
+          <a className="class-gallery__video-card" href={ctaHref} target="_blank" rel="noreferrer">
+            {videoImage ? <img src={assetPath(videoImage)} alt={title} /> : null}
+            <span>{videoLabel || "VIDEO"}</span>
+          </a>
+        ) : (
+          <div className="class-gallery__video-card">
+            {videoImage ? <img src={assetPath(videoImage)} alt={title} /> : null}
+            <span>{videoLabel || "IMAGEN"}</span>
+          </div>
+        )
+      ) : null}
     </div>
   );
 }

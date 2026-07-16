@@ -64,6 +64,8 @@ export function NavbarGlobal({
 }) {
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
+  const staticMobileToggleRef = useRef<HTMLButtonElement>(null);
+  const scrollMobileToggleRef = useRef<HTMLButtonElement>(null);
   const desktopCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -71,7 +73,6 @@ export function NavbarGlobal({
     ReturnType<typeof setTimeout> | null
   >(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [staticMobileOpen, setStaticMobileOpen] = useState(false);
   const [mobileScrolled, setMobileScrolled] = useState(false);
   const [desktopOpen, setDesktopOpen] = useState<string | null>(null);
   const [scrollDesktopOpen, setScrollDesktopOpen] = useState<string | null>(
@@ -165,7 +166,6 @@ export function NavbarGlobal({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMobileOpen(false);
-        setStaticMobileOpen(false);
         clearDesktopCloseTimeout();
         clearScrollDesktopCloseTimeout();
         setDesktopOpen(null);
@@ -179,7 +179,6 @@ export function NavbarGlobal({
         !rootRef.current.contains(event.target)
       ) {
         setMobileOpen(false);
-        setStaticMobileOpen(false);
         clearDesktopCloseTimeout();
         clearScrollDesktopCloseTimeout();
         setDesktopOpen(null);
@@ -210,9 +209,6 @@ export function NavbarGlobal({
     const onScroll = () => {
       const scrolled = window.scrollY > currentThreshold();
       setMobileScrolled(scrolled);
-      if (scrolled) {
-        setStaticMobileOpen(false);
-      }
       if (!scrolled) {
         setMobileOpen(false);
       }
@@ -339,9 +335,10 @@ export function NavbarGlobal({
       <div
         className={classNames(
           "mobile-static-nav",
-          staticMobileOpen && "is-open",
-          mobileScrolled && "is-scrolled"
+          (mobileScrolled || mobileOpen) && "is-scrolled"
         )}
+        aria-hidden={mobileScrolled || mobileOpen}
+        inert={mobileScrolled || mobileOpen ? true : undefined}
       >
         <div className="mobile-static-nav__bar">
           <Link
@@ -349,7 +346,6 @@ export function NavbarGlobal({
             href="/#hero"
             aria-label="Casa Rosier"
             onClick={() => {
-              setStaticMobileOpen(false);
               setMobileOpen(false);
             }}
           >
@@ -364,91 +360,23 @@ export function NavbarGlobal({
             )}
           </Link>
           <button
+            ref={staticMobileToggleRef}
             className="mobile-static-nav__toggle"
             type="button"
             aria-expanded={mobileOpen}
             aria-controls="mobile-scroll-menu"
             aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
             onClick={() => {
-              setStaticMobileOpen(false);
-              setMobileOpen((open) => !open);
+              setMobileOpen(true);
+              window.setTimeout(() =>
+                scrollMobileToggleRef.current?.focus()
+              );
             }}
           >
             <span className="mobile-scroll-nav__icon" aria-hidden="true" />
           </button>
         </div>
 
-        <nav
-          id="mobile-static-menu"
-          className="mobile-static-menu"
-          aria-label="Principal movil"
-          hidden={!staticMobileOpen}
-        >
-          <ul className="mobile-menu__list">
-            {mobileItems.map((item, index) => {
-              const children =
-                item.children?.filter((child) => child.visible) ?? [];
-              const open = mobileAccordion === item.label;
-              const submenuId = `mobile-static-submenu-${index}`;
-              return (
-                <li
-                  className={classNames(
-                    "mobile-menu__item",
-                    open && "mobile-menu__item--open"
-                  )}
-                  key={item.label}
-                >
-                  <div className="mobile-menu__row">
-                    <Link
-                      className="mobile-menu__link"
-                      href={item.href}
-                      aria-current={current(item.href) ? "page" : undefined}
-                      onClick={() => setStaticMobileOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                    {children.length > 0 && (
-                      <button
-                        className="mobile-menu__toggle"
-                        type="button"
-                        aria-expanded={open}
-                        aria-controls={submenuId}
-                        aria-label={`Abrir submenu de ${item.label}`}
-                        onClick={() =>
-                          setMobileAccordion(open ? null : item.label)
-                        }
-                      >
-                        <span aria-hidden="true">{open ? "x" : "+"}</span>
-                      </button>
-                    )}
-                  </div>
-                  {children.length > 0 && (
-                    <div className="mobile-submenu" id={submenuId}>
-                      <div className="mobile-submenu__inner">
-                        <ul className="mobile-submenu__list">
-                          {children.map((child) => (
-                            <li key={child.href}>
-                              <Link
-                                className="mobile-submenu__link"
-                                href={child.href}
-                                aria-current={
-                                  current(child.href) ? "page" : undefined
-                                }
-                                onClick={() => setStaticMobileOpen(false)}
-                              >
-                                {child.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
       </div>
 
       <div
@@ -457,6 +385,8 @@ export function NavbarGlobal({
           (mobileScrolled || mobileOpen) && "is-visible",
           mobileOpen && "is-open"
         )}
+        aria-hidden={!mobileScrolled && !mobileOpen}
+        inert={!mobileScrolled && !mobileOpen ? true : undefined}
       >
         <div className="mobile-scroll-nav__bar">
           <Link
@@ -559,12 +489,24 @@ export function NavbarGlobal({
             </ul>
           </nav>
           <button
+            ref={scrollMobileToggleRef}
             className="mobile-scroll-nav__toggle"
             type="button"
             aria-expanded={mobileOpen}
             aria-controls="mobile-scroll-menu"
             aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
-            onClick={() => setMobileOpen((open) => !open)}
+            onClick={() => {
+              if (mobileOpen) {
+                setMobileOpen(false);
+                if (!mobileScrolled) {
+                  window.setTimeout(() =>
+                    staticMobileToggleRef.current?.focus()
+                  );
+                }
+                return;
+              }
+              setMobileOpen(true);
+            }}
           >
             <span className="mobile-scroll-nav__icon" aria-hidden="true" />
           </button>

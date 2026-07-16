@@ -51,6 +51,7 @@ function deviceKeys(device: DeviceKey) {
       titleSecondaryScale: "titleImageSecondaryScaleMobile",
       titleSecondaryPosX: "titleImageSecondaryPositionXMobile",
       titleSecondaryPosY: "titleImageSecondaryPositionYMobile",
+      heroTitleX: "heroTitlePositionXMobile",
       heroTitleY: "heroTitlePositionYMobile",
       heroTitleScale: "heroTitleScaleMobile",
       presentationTextX: "presentationTextPositionXMobile",
@@ -73,6 +74,7 @@ function deviceKeys(device: DeviceKey) {
       titleSecondaryScale: "titleImageSecondaryScaleTablet",
       titleSecondaryPosX: "titleImageSecondaryPositionXTablet",
       titleSecondaryPosY: "titleImageSecondaryPositionYTablet",
+      heroTitleX: "heroTitlePositionXTablet",
       heroTitleY: "heroTitlePositionYTablet",
       heroTitleScale: "heroTitleScaleTablet",
       presentationTextX: "presentationTextPositionXTablet",
@@ -94,6 +96,7 @@ function deviceKeys(device: DeviceKey) {
     titleSecondaryScale: "titleImageSecondaryScale",
     titleSecondaryPosX: "titleImageSecondaryPositionX",
     titleSecondaryPosY: "titleImageSecondaryPositionY",
+    heroTitleX: "heroTitlePositionX",
     heroTitleY: "heroTitlePositionY",
     heroTitleScale: "heroTitleScale",
     presentationTextX: "presentationTextPositionX",
@@ -155,9 +158,9 @@ export default function SharedHeroEditor({
     "--presentation-image-position-y": heroText(details, keys.presentationImageY) || "50%",
     "--presentation-image-scale": heroScale(details, keys.presentationImageScale),
     background: isPresentationHero
-      ? `url("${details.heroImage}") center / cover no-repeat`
+      ? `url("${device === "phone" && details.heroImageMobile ? details.heroImageMobile : details.heroImage}") center / cover no-repeat`
       : isImageHero
-        ? `linear-gradient(to bottom, rgba(58,48,37,.2), rgba(251,250,246,.94)), url("${details.heroImage}") center / cover no-repeat`
+        ? `linear-gradient(to bottom, rgba(58,48,37,.2), rgba(251,250,246,.94)), url("${device === "phone" && details.heroImageMobile ? details.heroImageMobile : details.heroImage}") center / cover no-repeat`
         : "#fbfaf6",
   } as CSSProperties;
   const menuStyle = {
@@ -216,8 +219,21 @@ export default function SharedHeroEditor({
           <TextField label="Título del hero" value={details.heroTitle} placeholder={titleFallback} onChange={(event) => onChange({ heroTitle: event.target.value })} />
           <TextField label="Subtítulo del hero" value={details.heroSubtitle} placeholder={subtitleFallback} onChange={(event) => onChange({ heroSubtitle: event.target.value })} />
           {details.heroVariant === "presentation" ? (
-            <div className="md:col-span-2">
-              <MediaSelectField label="Imagen de fondo" value={details.heroImage} onChange={(heroImage) => onChange({ heroImage })} previewClassName="cms-shared-hero-media-preview" />
+            <div className="cms-shared-hero-image-fields md:col-span-2">
+              <MediaSelectField
+                label="Imagen de fondo"
+                value={details.heroImage}
+                onChange={(heroImage) => onChange({ heroImage })}
+                className="cms-shared-hero-image-fields__background"
+                previewClassName="cms-shared-hero-media-preview"
+              />
+              <MediaSelectField
+                label="Imagen de fondo para móvil (opcional)"
+                value={details.heroImageMobile}
+                onChange={(heroImageMobile) => onChange({ heroImageMobile })}
+                className="cms-shared-hero-image-fields__background-mobile"
+                previewClassName="cms-shared-hero-media-preview"
+              />
             </div>
           ) : null}
           {details.heroVariant === "image" ? (
@@ -229,7 +245,18 @@ export default function SharedHeroEditor({
                 className="cms-shared-hero-image-fields__background"
                 previewClassName="cms-shared-hero-media-preview"
               />
+              <MediaSelectField
+                label="Imagen de fondo para móvil (opcional)"
+                value={details.heroImageMobile}
+                onChange={(heroImageMobile) => onChange({ heroImageMobile })}
+                className="cms-shared-hero-image-fields__background-mobile"
+                previewClassName="cms-shared-hero-media-preview"
+              />
               <div className="cms-shared-hero-image-fields__titles">
+                <div className="cms-hero-overlay-images__head">
+                  <h4>Imágenes superpuestas del hero</h4>
+                  <p>La imagen 1 se muestra detrás y la imagen 2 se coloca delante para formar la composición visual.</p>
+                </div>
                 <MediaSelectField
                   label="Imagen superpuesta 1"
                   value={details.titleImage}
@@ -331,6 +358,10 @@ export default function SharedHeroEditor({
 
         {isImageHero ? (
           <div className="cms-hero-position-grid">
+            <div className="cms-hero-overlay-position__head">
+              <h4>Posición responsive de imágenes superpuestas</h4>
+              <p>Ajusta X, Y y la escala de cada imagen en el dispositivo seleccionado.</p>
+            </div>
             <fieldset className="cms-hero-position-fieldset">
               <legend>Imagen superpuesta 1</legend>
               <div className="cms-hero-position-fields">
@@ -355,6 +386,7 @@ export default function SharedHeroEditor({
             <fieldset className="cms-hero-position-fieldset">
               <legend>Título tipográfico</legend>
               <div className="cms-hero-position-fields">
+                <TextField label="Posición X" value={heroText(details, keys.heroTitleX)} onChange={(event) => onChange({ [keys.heroTitleX]: event.target.value } as Partial<CmsHeroSettings>)} />
                 <TextField label="Posición Y" value={heroText(details, keys.heroTitleY)} onChange={(event) => onChange({ [keys.heroTitleY]: event.target.value } as Partial<CmsHeroSettings>)} />
                 <ScaleField label="Escala del título y subtítulo" value={heroScale(details, keys.heroTitleScale)} onChange={(n) => onChange({ [keys.heroTitleScale]: n } as Partial<CmsHeroSettings>)} />
               </div>
@@ -462,8 +494,9 @@ export default function SharedHeroEditor({
               ) : null}
               {details.heroVariant === "text" ? (
                 <div className="absolute w-full text-center" style={{
+                  left: heroText(details, keys.heroTitleX) || "50%",
                   top: heroText(details, keys.heroTitleY) || "50%",
-                  transform: `translateY(-50%) scale(${heroScale(details, keys.heroTitleScale)})`,
+                  transform: `translate(-50%, -50%) scale(${heroScale(details, keys.heroTitleScale)})`,
                   transformOrigin: "center center",
                 }}>
                   <h3 className="font-serif text-[clamp(30px,4vw,54px)] uppercase leading-none text-[#5b554f]">{details.heroTitle || titleFallback}</h3>

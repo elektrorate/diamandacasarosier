@@ -16,6 +16,10 @@ export interface AdminProfile {
 
 export const ADMIN_ROLES: AdminRole[] = ["admin", "editor"];
 
+function isLocalAuthBypassEnabled() {
+  return process.env.NODE_ENV !== "production" && process.env.LOCAL_AUTH_BYPASS === "true";
+}
+
 function hasSupabaseAuthEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
@@ -121,6 +125,18 @@ export function isAdminRole(role: string): role is AdminRole {
 }
 
 async function requireAdminProfileUncached(): Promise<{ user: { id: string; email?: string | null }; profile: AdminProfile } | null> {
+  if (isLocalAuthBypassEnabled()) {
+    return {
+      user: { id: "local-bypass-admin", email: LOCAL_ADMIN_EMAIL },
+      profile: {
+        id: "local-bypass-admin",
+        full_name: "Local Admin",
+        email: LOCAL_ADMIN_EMAIL,
+        role: "admin",
+        avatar_url: null,
+      },
+    };
+  }
   const localSession = await getCurrentLocalSession();
   if (localSession) {
     return {
@@ -153,6 +169,9 @@ export interface AdminSession {
 }
 
 export async function requireAdminApi(): Promise<AdminSession | null> {
+  if (isLocalAuthBypassEnabled()) {
+    return { userId: "local-bypass-admin", userEmail: LOCAL_ADMIN_EMAIL };
+  }
   const localSession = await getCurrentLocalSession();
   if (localSession) {
     return { userId: "bootstrap-admin", userEmail: localSession.email };

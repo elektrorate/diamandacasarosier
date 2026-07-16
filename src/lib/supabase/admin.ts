@@ -93,12 +93,14 @@ export function createAdminClient() {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const apiKey = serviceRoleKey || publishableKey;
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Missing Supabase admin environment variables. Define NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+  if (!supabaseUrl || !apiKey) {
+    throw new Error("Missing Supabase environment variables. Define NEXT_PUBLIC_SUPABASE_URL and a service role or publishable key.");
   }
 
-  adminClient = createClient(supabaseUrl, serviceRoleKey, {
+  adminClient = createClient(supabaseUrl, apiKey, {
     auth: { autoRefreshToken: false, persistSession: false },
     global: { fetch: cachedAdminFetch },
   });

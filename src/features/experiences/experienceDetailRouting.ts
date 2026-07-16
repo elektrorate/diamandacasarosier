@@ -166,6 +166,15 @@ function programForDetails(content: Partial<ClassOfferingDetails["content"]>, de
 function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
   const details = detailsForOffering(offering);
   const content = { ...details.content };
+  const classDetails = (offering.details as LegacyOfferingDetails).class;
+  const classContent = classDetails?.content as Partial<ClassOfferingDetails["content"]> | undefined;
+  const hasClassLearningContent = Boolean(classContent && Object.prototype.hasOwnProperty.call(classContent, "learningContent"));
+  const hasClassParticipationContent = Boolean(classContent && Object.prototype.hasOwnProperty.call(classContent, "participationContent"));
+  const hasClassPaymentMethods = Boolean(classContent && (
+    Object.prototype.hasOwnProperty.call(classContent, "paymentMethods") ||
+    Object.prototype.hasOwnProperty.call(classContent, "paymentMethodsList")
+  ));
+  const hasClassExtraInfo = Boolean(classContent && Object.prototype.hasOwnProperty.call(classContent, "extraInfo"));
   const galleryImages = (details.galleryImages?.length ? details.galleryImages : offering.gallery.map((image, order) => ({ image, alt: "", order })))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map((item) => item.image)
@@ -181,6 +190,26 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     heroSubtitle: details.heroSubtitle || stringValue(details.category) || offering.type,
     heroImage: details.heroImage || offering.cover_image_url || "img/hero-bg.jpg",
   });
+  const program = programForDetails(content, details);
+  const included = details.includedItems?.length ? details.includedItems : splitList(details.included);
+  const showIncludedSection = typeof classDetails?.showIncludedSection === "boolean"
+    ? classDetails.showIncludedSection
+    : false;
+  const paymentMethods = splitList(content.paymentMethodsList?.length ? content.paymentMethodsList : hasClassPaymentMethods ? content.paymentMethods : content.paymentMethods || details.paymentMethods);
+  const showLearningSection = typeof classContent?.showLearningSection === "boolean"
+    ? classContent.showLearningSection
+    : splitParagraphs(hasClassLearningContent ? content.learningContent : content.learningContent || details.whatYouWillLearn).length > 0;
+  const showParticipationSection = typeof classContent?.showParticipationSection === "boolean"
+    ? classContent.showParticipationSection
+    : splitParagraphs(hasClassParticipationContent ? content.participationContent : content.participationContent || details.whoCanJoin).length > 0;
+  const showPaymentMethodsSection = typeof classContent?.showPaymentMethodsSection === "boolean"
+    ? classContent.showPaymentMethodsSection
+    : paymentMethods.length > 0;
+  const showModulesSection = typeof classContent?.showModulesSection === "boolean"
+    ? classContent.showModulesSection
+    : typeof classContent?.showCourseContent === "boolean"
+      ? classContent.showCourseContent
+      : program.length > 0;
 
   return {
     id: offering.id,
@@ -193,6 +222,7 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     description: splitParagraphs(offering.description),
     coverImage: offering.cover_image_url || galleryImages[0] || details.heroImage || "img/hero-bg.jpg",
     heroImage: hero.heroImage || offering.cover_image_url || "img/hero-bg.jpg",
+    heroImageMobile: hero.heroImageMobile || undefined,
     heroVariant: hero.heroVariant,
     heroMenuTone: hero.heroMenuTone,
     heroMenuColor: hero.heroMenuColor,
@@ -232,6 +262,9 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     titleImageSecondaryPositionYTablet: hero.titleImageSecondaryPositionYTablet,
     titleImageSecondaryPositionXMobile: hero.titleImageSecondaryPositionXMobile,
     titleImageSecondaryPositionYMobile: hero.titleImageSecondaryPositionYMobile,
+    heroTitlePositionX: hero.heroTitlePositionX,
+    heroTitlePositionXTablet: hero.heroTitlePositionXTablet,
+    heroTitlePositionXMobile: hero.heroTitlePositionXMobile,
     heroTitlePositionY: hero.heroTitlePositionY,
     heroTitlePositionYTablet: hero.heroTitlePositionYTablet,
     heroTitlePositionYMobile: hero.heroTitlePositionYMobile,
@@ -261,22 +294,28 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     listingSubtitle: details.heroSubtitle || "",
     introHighlight: details.highlightDescription || stringValue(details.introHighlight) || offering.excerpt,
     galleryImages: galleryImages.length ? galleryImages : [offering.cover_image_url || details.heroImage || "img/hero-bg.jpg"],
-    videoCardImage: details.videoPoster || stringValue(details.videoCardImage) || galleryImages[0] || offering.cover_image_url || "img/hero-bg.jpg",
-    videoCardLabel: details.videoUrl ? "VIDEO" : stringValue(details.videoCardLabel) || "IMAGEN",
+    videoCardImage: details.videoPoster || stringValue(details.videoCardImage) || undefined,
+    videoCardLabel: details.videoUrl ? "VIDEO" : details.videoPoster || stringValue(details.videoCardImage) ? stringValue(details.videoCardLabel) || "IMAGEN" : "",
+    videoUrl: details.videoUrl || undefined,
     giftCardTypeLabel: stringValue(details.giftCardTypeLabel) || undefined,
     giftCardTypeOptions: splitList(details.giftCardTypeOptions),
     priceOptions,
     duration: details.durationText || offering.duration,
     schedule,
-    included: details.includedItems?.length ? details.includedItems : splitList(details.included),
-    program: programForDetails(content, details),
+    included,
+    showIncludedSection,
+    program,
+    showLearningSection,
+    showParticipationSection,
+    showPaymentMethodsSection,
+    showModulesSection,
     programSectionTitle: stringValue(content.modulesSectionTitle) || "Contenido del curso",
     learningSectionTitle: stringValue(content.learningSectionTitle) || "¿Qué aprenderás?",
-    whatYouWillLearn: splitParagraphs(content.learningContent || details.whatYouWillLearn),
+    whatYouWillLearn: splitParagraphs(hasClassLearningContent ? content.learningContent : content.learningContent || details.whatYouWillLearn),
     participationSectionTitle: stringValue(content.participationSectionTitle) || "¿Quién puede participar?",
-    whoCanJoin: splitParagraphs(content.participationContent || details.whoCanJoin),
-    paymentMethods: splitList(content.paymentMethodsList?.length ? content.paymentMethodsList : content.paymentMethods || details.paymentMethods),
-    additionalInfo: content.extraInfo || stringValue(details.additionalInfo) || `Cualquier consulta o información adicional que necesites, puedes escribir al WhatsApp ${details.whatsappNumber || content.contactWhatsapp || "633788860"}.`,
+    whoCanJoin: splitParagraphs(hasClassParticipationContent ? content.participationContent : content.participationContent || details.whoCanJoin),
+    paymentMethods,
+    additionalInfo: hasClassExtraInfo ? stringValue(content.extraInfo) : stringValue(content.extraInfo) || stringValue(details.additionalInfo),
     showIdeaPromptSection: details.showIdeaPromptSection === true,
     ctaHref: consultHref,
     ctaConsultHref: consultHref,

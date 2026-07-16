@@ -46,6 +46,12 @@ export interface ClassOfferingActivityItem {
 }
 
 export interface ClassOfferingContent {
+  /** Compatibilidad con registros creados antes de los controles independientes. */
+  showCourseContent?: boolean;
+  showLearningSection: boolean;
+  showParticipationSection: boolean;
+  showPaymentMethodsSection: boolean;
+  showModulesSection: boolean;
   learningSectionTitle: string;
   learningContent: string;
   participationSectionTitle: string;
@@ -92,6 +98,7 @@ export interface CmsHeroSettings {
   heroMenuTabletPositionY: string;
   heroMenuMobilePositionY: string;
   heroImage: string;
+  heroImageMobile: string;
   titleImage: string;
   titleImageSecondary: string;
   /* Hero con imagen: escala + posición X/Y de cada imagen superpuesta */
@@ -114,6 +121,9 @@ export interface CmsHeroSettings {
   titleImageSecondaryPositionXMobile: string;
   titleImageSecondaryPositionYMobile: string;
   /* Hero tipográfico: posición Y + escala del título */
+  heroTitlePositionX: string;
+  heroTitlePositionXTablet: string;
+  heroTitlePositionXMobile: string;
   heroTitlePositionY: string;
   heroTitlePositionYTablet: string;
   heroTitlePositionYMobile: string;
@@ -180,6 +190,7 @@ export interface ClassOfferingDetails {
   menuPlacement: string[];
   homeSections: string[];
   heroImage: string;
+  heroImageMobile: string;
   titleImage: string;
   titleImageSecondary: string;
   titleImageScale: number;
@@ -200,6 +211,9 @@ export interface ClassOfferingDetails {
   titleImageSecondaryPositionYTablet: string;
   titleImageSecondaryPositionXMobile: string;
   titleImageSecondaryPositionYMobile: string;
+  heroTitlePositionX: string;
+  heroTitlePositionXTablet: string;
+  heroTitlePositionXMobile: string;
   heroTitlePositionY: string;
   heroTitlePositionYTablet: string;
   heroTitlePositionYMobile: string;
@@ -227,6 +241,7 @@ export interface ClassOfferingDetails {
   galleryImages: OfferingGalleryImage[];
   videoUrl: string;
   videoPoster: string;
+  showIncludedSection: boolean;
   includedItems: string[];
   pricing: OfferingPriceOption[];
   seoImage: string;

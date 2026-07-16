@@ -102,6 +102,7 @@ const defaultClassDetails: ClassOfferingDetails = {
   menuPlacement: ["classes"],
   homeSections: [],
   heroImage: DEFAULT_HERO_IMAGE,
+  heroImageMobile: "",
   titleImage: "",
   titleImageSecondary: "",
   titleImageScale: 1,
@@ -122,6 +123,9 @@ const defaultClassDetails: ClassOfferingDetails = {
   titleImageSecondaryPositionYTablet: "50%",
   titleImageSecondaryPositionXMobile: "50%",
   titleImageSecondaryPositionYMobile: "50%",
+  heroTitlePositionX: "50%",
+  heroTitlePositionXTablet: "50%",
+  heroTitlePositionXMobile: "50%",
   heroTitlePositionY: "50%",
   heroTitlePositionYTablet: "50%",
   heroTitlePositionYMobile: "50%",
@@ -149,6 +153,7 @@ const defaultClassDetails: ClassOfferingDetails = {
   galleryImages: [],
   videoUrl: "",
   videoPoster: "",
+  showIncludedSection: false,
   includedItems: [],
   pricing: [],
   seoImage: "",
@@ -269,16 +274,41 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
   legacyContent.modules = legacyModules(fromDetails.program);
 
   const persistedContent = fromDetails.content ?? {};
+  const persistedContentFields = persistedContent as Partial<ClassOfferingDetails["content"]>;
+  const hasPersistedLearningContent = Object.prototype.hasOwnProperty.call(persistedContentFields, "learningContent");
+  const hasPersistedParticipationContent = Object.prototype.hasOwnProperty.call(persistedContentFields, "participationContent");
+  const hasPersistedPaymentMethods =
+    Object.prototype.hasOwnProperty.call(persistedContentFields, "paymentMethods") ||
+    Object.prototype.hasOwnProperty.call(persistedContentFields, "paymentMethodsList");
+  const hasPersistedExtraInfo = Object.prototype.hasOwnProperty.call(persistedContentFields, "extraInfo");
   const mergedContent = {
     ...legacyContent,
     ...persistedContent,
-    learningContent: firstText((persistedContent as Partial<ClassOfferingDetails["content"]>).learningContent, legacyContent.learningContent),
-    participationContent: firstText((persistedContent as Partial<ClassOfferingDetails["content"]>).participationContent, legacyContent.participationContent),
-    paymentMethods: firstText((persistedContent as Partial<ClassOfferingDetails["content"]>).paymentMethods, legacyContent.paymentMethods),
-    paymentMethodsList: Array.isArray((persistedContent as Partial<ClassOfferingDetails["content"]>).paymentMethodsList)
-      ? (persistedContent as Partial<ClassOfferingDetails["content"]>).paymentMethodsList?.map((item) => String(item).trim()).filter(Boolean) ?? []
-      : textList(firstText((persistedContent as Partial<ClassOfferingDetails["content"]>).paymentMethods, legacyContent.paymentMethods)),
-    extraInfo: firstText((persistedContent as Partial<ClassOfferingDetails["content"]>).extraInfo, legacyContent.extraInfo),
+    showLearningSection: typeof persistedContentFields.showLearningSection === "boolean"
+      ? persistedContentFields.showLearningSection
+      : Boolean(firstText(persistedContentFields.learningContent, legacyContent.learningContent)),
+    showParticipationSection: typeof persistedContentFields.showParticipationSection === "boolean"
+      ? persistedContentFields.showParticipationSection
+      : Boolean(firstText(persistedContentFields.participationContent, legacyContent.participationContent)),
+    showPaymentMethodsSection: typeof persistedContentFields.showPaymentMethodsSection === "boolean"
+      ? persistedContentFields.showPaymentMethodsSection
+      : Array.isArray(persistedContentFields.paymentMethodsList)
+        ? persistedContentFields.paymentMethodsList.some((item) => String(item).trim())
+        : Boolean(firstText(persistedContentFields.paymentMethods, legacyContent.paymentMethods)),
+    showModulesSection: typeof persistedContentFields.showModulesSection === "boolean"
+      ? persistedContentFields.showModulesSection
+      : typeof persistedContentFields.showCourseContent === "boolean"
+        ? persistedContentFields.showCourseContent
+        : Array.isArray(persistedContentFields.modules)
+          ? persistedContentFields.modules.length > 0
+          : legacyContent.modules.length > 0,
+    learningContent: hasPersistedLearningContent ? firstText(persistedContentFields.learningContent) : legacyContent.learningContent,
+    participationContent: hasPersistedParticipationContent ? firstText(persistedContentFields.participationContent) : legacyContent.participationContent,
+    paymentMethods: hasPersistedPaymentMethods ? firstText(persistedContentFields.paymentMethods) : legacyContent.paymentMethods,
+    paymentMethodsList: Array.isArray(persistedContentFields.paymentMethodsList)
+      ? persistedContentFields.paymentMethodsList.map((item) => String(item).trim()).filter(Boolean)
+      : textList(hasPersistedPaymentMethods ? firstText(persistedContentFields.paymentMethods) : legacyContent.paymentMethods),
+    extraInfo: hasPersistedExtraInfo ? firstText(persistedContentFields.extraInfo) : legacyContent.extraInfo,
     modules: Array.isArray((persistedContent as Partial<ClassOfferingDetails["content"]>).modules) && (persistedContent as Partial<ClassOfferingDetails["content"]>).modules?.length
       ? (persistedContent as ClassOfferingDetails["content"]).modules
       : legacyContent.modules,
@@ -339,10 +369,14 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
     highlightDescription: firstText(fromDetails.highlightDescription, fromDetails.introHighlight, offering.excerpt),
     durationText: firstText(fromDetails.durationText, offering.duration),
     heroImage: fromDetails.heroImage || offering.cover_image_url || DEFAULT_HERO_IMAGE,
+    heroImageMobile: fromDetails.heroImageMobile || "",
     titleImage: fromDetails.titleImage ?? "",
     titleImageSecondary: fromDetails.titleImageSecondary ?? "",
     videoUrl: fromDetails.videoUrl ?? "",
     videoPoster: firstText(fromDetails.videoPoster, fromDetails.videoCardImage),
+    showIncludedSection: typeof fromDetails.showIncludedSection === "boolean"
+      ? fromDetails.showIncludedSection
+      : false,
     includedItems,
     galleryImages: galleryImages
       .map((item, index) => ({
@@ -590,6 +624,7 @@ function buildPreviewItem({
     description: toLines(description),
     coverImage: galleryImages[0] || fallbackImage,
     heroImage: fallbackImage,
+    heroImageMobile: details.heroImageMobile || undefined,
     heroVariant: details.heroVariant,
     heroMenuTone: details.heroMenuTone,
     heroMenuColor: details.heroMenuColor,
@@ -616,22 +651,26 @@ function buildPreviewItem({
     listingSubtitle: details.heroSubtitle || "",
     introHighlight: details.highlightDescription || "Texto remarcado color café.",
     galleryImages: galleryImages.length ? galleryImages : [fallbackImage],
-    videoCardImage: details.videoPoster || galleryImages[0] || fallbackImage,
-    videoCardLabel: details.videoUrl ? "VIDEO" : "IMAGEN",
+    videoCardImage: details.videoPoster || undefined,
+    videoCardLabel: details.videoUrl ? "VIDEO" : details.videoPoster ? "IMAGEN" : "",
+    videoUrl: details.videoUrl || undefined,
     priceOptions: priceOptions.length ? priceOptions : [{ label: "Precio", price: "0 EUR" }],
     duration: details.durationText || "Duración pendiente",
     schedule: previewSchedule(details),
     included: details.includedItems.filter((item) => item.trim()),
+    showIncludedSection: details.showIncludedSection,
     program: previewProgram(details),
+    showLearningSection: details.content.showLearningSection,
+    showParticipationSection: details.content.showParticipationSection,
+    showPaymentMethodsSection: details.content.showPaymentMethodsSection,
+    showModulesSection: details.content.showModulesSection,
     programSectionTitle: details.content.modulesSectionTitle.trim() || "Contenido del curso",
     learningSectionTitle: details.content.learningSectionTitle.trim() || "¿Qué aprenderás?",
     whatYouWillLearn: toLines(details.content.learningContent),
     participationSectionTitle: details.content.participationSectionTitle.trim() || "¿Quién puede participar?",
     whoCanJoin: toLines(details.content.participationContent),
-    paymentMethods: paymentMethods.length ? paymentMethods : ["Transferencia bancaria", "Tarjeta", "Efectivo"],
-    additionalInfo:
-      details.content.extraInfo ||
-      `Cualquier consulta o información adicional que necesites, puedes escribir al WhatsApp ${details.whatsappNumber || details.content.contactWhatsapp || "633788860"}.`,
+    paymentMethods: paymentMethods.map((method) => method.trim()).filter(Boolean),
+    additionalInfo: details.content.extraInfo.trim(),
     showIdeaPromptSection: details.showIdeaPromptSection,
     ctaHref: consultHref,
     ctaConsultHref: consultHref,
@@ -644,6 +683,14 @@ function buildPreviewItem({
     order: 0,
   };
 }
+
+type PreviewDevice = "phone" | "tablet" | "desktop";
+
+const previewDevices: Array<{ key: PreviewDevice; label: string; width: number }> = [
+  { key: "phone", label: "Teléfono", width: 390 },
+  { key: "tablet", label: "Tablet", width: 768 },
+  { key: "desktop", label: "Desktop", width: 1180 },
+];
 
 function PreviewPane({
   offeringType,
@@ -664,20 +711,38 @@ function PreviewPane({
   details: ClassOfferingDetails;
   previewChrome: ClassEditorPreviewChrome;
 }) {
+  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
+  const activePreviewDevice = previewDevices.find((device) => device.key === previewDevice) ?? previewDevices[2];
   const previewItem = buildPreviewItem({ offeringType, title, slug, subtitle, description, details });
   const promoPage = previewItem.kind === "private-booking" ? undefined : previewItem.kind.replace("-card", "");
 
   return (
     <div className="cms-preview-frame">
       <div className="cms-public-preview__toolbar">
-        Vista previa de escritorio · {status === "published" ? "Publicado" : "Borrador"}
+        <span>Vista previa · {status === "published" ? "Publicado" : "Borrador"}</span>
+        <div className="cms-public-preview__devices" role="tablist" aria-label="Dispositivo de vista previa">
+          {previewDevices.map((device) => (
+            <button
+              key={device.key}
+              type="button"
+              role="tab"
+              aria-selected={previewDevice === device.key}
+              className={previewDevice === device.key ? "is-active" : ""}
+              onClick={() => setPreviewDevice(device.key)}
+            >
+              {device.label}
+            </button>
+          ))}
+        </div>
       </div>
+      <div className="cms-public-preview__viewport">
       <div
-        className="cms-public-preview class-detail-page"
+        className={`cms-public-preview class-detail-page cms-public-preview--${previewDevice}`}
         data-promo-page={promoPage}
+        style={{ width: `${activePreviewDevice.width}px`, maxWidth: "100%" }}
       >
         <div className="cms-public-preview__scale">
-          <PreviewHeader item={previewItem} details={details} previewChrome={previewChrome} />
+          <PreviewHeader item={previewItem} details={details} previewChrome={previewChrome} previewDevice={previewDevice} />
 
           <div className="cms-public-preview__body">
             <DetailPage item={previewItem} />
@@ -685,6 +750,7 @@ function PreviewPane({
           </div>
           <PublicFooterContent footer={previewChrome.footer} preview />
         </div>
+      </div>
       </div>
     </div>
   );
@@ -694,18 +760,24 @@ function PreviewHeader({
   item,
   details,
   previewChrome,
+  previewDevice,
 }: {
   item: ExperienceItem;
   details: ClassOfferingDetails;
   previewChrome: ClassEditorPreviewChrome;
+  previewDevice: PreviewDevice;
 }) {
   const variant = item.heroVariant ?? "text";
+  const isPhonePreview = previewDevice === "phone";
+  const isTabletPreview = previewDevice === "tablet";
+  const responsiveValue = <T,>(desktop: T, tablet: T, phone: T) => isPhonePreview ? phone : isTabletPreview ? tablet : desktop;
   const isImageLike = variant === "image" || variant === "presentation";
   const style = {
-    "--page-hero-image": `url("${assetPath(item.heroImage)}")`,
-    "--hero-logo-position-x": item.heroLogoPositionX ?? "50%",
-    "--hero-logo-position-y": item.heroLogoPositionY ?? "46px",
-    "--hero-logo-width": item.heroLogoWidth ?? "118px",
+    "--page-hero-image": `url("${assetPath(isPhonePreview && item.heroImageMobile ? item.heroImageMobile : item.heroImage)}")`,
+    "--page-hero-image-mobile": `url("${assetPath(item.heroImageMobile || item.heroImage)}")`,
+    "--hero-logo-position-x": responsiveValue(item.heroLogoPositionX ?? "50%", item.heroLogoTabletPositionX ?? item.heroLogoPositionX ?? "50%", item.heroLogoMobilePositionX ?? item.heroLogoPositionX ?? "50%"),
+    "--hero-logo-position-y": responsiveValue(item.heroLogoPositionY ?? "46px", item.heroLogoTabletPositionY ?? item.heroLogoPositionY ?? "42px", item.heroLogoMobilePositionY ?? "34px"),
+    "--hero-logo-width": responsiveValue(item.heroLogoWidth ?? "118px", item.heroLogoTabletWidth ?? item.heroLogoWidth ?? "106px", item.heroLogoMobileWidth ?? "92px"),
     "--hero-logo-tablet-position-x": item.heroLogoTabletPositionX ?? item.heroLogoPositionX ?? "50%",
     "--hero-logo-tablet-position-y": item.heroLogoTabletPositionY ?? item.heroLogoPositionY ?? "42px",
     "--hero-logo-tablet-width": item.heroLogoTabletWidth ?? item.heroLogoWidth ?? "106px",
@@ -735,6 +807,9 @@ function PreviewHeader({
     "--title-image-secondary-position-y-tablet": details.titleImageSecondaryPositionYTablet ?? details.titleImageSecondaryPositionY ?? "50%",
     "--title-image-secondary-position-x-mobile": details.titleImageSecondaryPositionXMobile ?? details.titleImageSecondaryPositionX ?? "50%",
     "--title-image-secondary-position-y-mobile": details.titleImageSecondaryPositionYMobile ?? "50%",
+    "--hero-title-position-x": responsiveValue(details.heroTitlePositionX ?? "50%", details.heroTitlePositionXTablet ?? details.heroTitlePositionX ?? "50%", details.heroTitlePositionXMobile ?? "50%"),
+    "--hero-title-position-y": responsiveValue(details.heroTitlePositionY ?? "50%", details.heroTitlePositionYTablet ?? details.heroTitlePositionY ?? "50%", details.heroTitlePositionYMobile ?? "50%"),
+    "--hero-title-scale": responsiveValue(details.heroTitleScale ?? 1, details.heroTitleScaleTablet ?? details.heroTitleScale ?? 1, details.heroTitleScaleMobile ?? 1),
     "--presentation-text-position-x": details.presentationTextPositionX ?? "8%",
     "--presentation-text-position-y": details.presentationTextPositionY ?? "50%",
     "--presentation-text-position-x-tablet": details.presentationTextPositionXTablet ?? details.presentationTextPositionX ?? "8%",
@@ -1073,6 +1148,11 @@ export default function ClassEditForm({
           seo_description: seoDescription.trim(),
           details: {
             ...offering.details,
+            videoCardImage: "",
+            videoCardLabel: "",
+            whatYouWillLearn: [],
+            whoCanJoin: [],
+            paymentMethods: [],
             class: {
               ...details,
               heroMenuTone: details.heroMenuTone,
@@ -1118,6 +1198,8 @@ export default function ClassEditForm({
               seoImage: details.seoImage,
               videoUrl: details.videoUrl.trim(),
               videoPoster: details.videoPoster.trim(),
+              videoCardImage: "",
+              videoCardLabel: "",
               content: {
                 ...details.content,
                 learningSectionTitle: details.content.learningSectionTitle.trim(),
@@ -1374,6 +1456,12 @@ export default function ClassEditForm({
                 minHeight="150px"
                 placeholder="Un elemento por línea. Puedes usar negritas, itálica, listas y enlaces."
               />
+              <Switch
+                checked={details.showIncludedSection}
+                label="Mostrar Qué incluye en la página pública"
+                description="Activa o desactiva únicamente esta sección en el frontend público."
+                onCheckedChange={(checked) => updateDetails({ showIncludedSection: checked })}
+              />
               <div className="grid gap-4 md:grid-cols-[1fr_260px]">
                 <TextField label="Video URL" value={details.videoUrl} placeholder="https://..." onChange={(event) => updateDetails({ videoUrl: event.target.value })} />
                 <div>
@@ -1398,6 +1486,11 @@ export default function ClassEditForm({
                     <Button type="button" variant="outlined" size="sm" onClick={() => setPickerTarget("videoPoster")}>
                       {details.videoPoster ? "Abrir biblioteca" : "Seleccionar imagen"}
                     </Button>
+                    {details.videoPoster ? (
+                      <Button type="button" variant="outlined" size="sm" onClick={() => updateDetails({ videoPoster: "" })}>
+                        Eliminar imagen
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               </div>

@@ -33,6 +33,7 @@ export interface ExperienceItem {
   description: string[];
   coverImage: string;
   heroImage: string;
+  heroImageMobile?: string;
   heroVariant?: "image" | "text" | "presentation";
   heroMenuTone?: "light" | "dark";
   heroMenuColor?: string;
@@ -74,6 +75,9 @@ export interface ExperienceItem {
   titleImageSecondaryPositionXMobile?: string;
   titleImageSecondaryPositionYMobile?: string;
   /* Hero tipográfico */
+  heroTitlePositionX?: string;
+  heroTitlePositionXTablet?: string;
+  heroTitlePositionXMobile?: string;
   heroTitlePositionY?: string;
   heroTitlePositionYTablet?: string;
   heroTitlePositionYMobile?: string;
@@ -104,15 +108,21 @@ export interface ExperienceItem {
   listingSubtitle: string;
   introHighlight: string;
   galleryImages: string[];
-  videoCardImage: string;
+  videoCardImage?: string;
   videoCardLabel: string;
+  videoUrl?: string;
   giftCardTypeLabel?: string;
   giftCardTypeOptions?: string[];
   priceOptions: PriceOption[];
   duration: string;
   schedule: ScheduleItem[];
   included: string[];
+  showIncludedSection: boolean;
   program: ProgramItem[];
+  showLearningSection: boolean;
+  showParticipationSection: boolean;
+  showPaymentMethodsSection: boolean;
+  showModulesSection: boolean;
   programSectionTitle?: string;
   learningSectionTitle?: string;
   whatYouWillLearn: string[];
