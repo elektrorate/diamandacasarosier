@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type CSSProperties, type InputHTMLAttributes } from "react";
+import { useId, useState, type CSSProperties, type InputHTMLAttributes } from "react";
 import { PublicHeroContent } from "@/components/hero/PublicHeroContent";
 import type { CmsHeroSettings, ClassHeroVariant } from "@/lib/cms/types";
 import ColorPickerField from "./ColorPickerField";
@@ -16,24 +16,31 @@ const devices: Array<{ key: DeviceKey; label: string; width: number; height: num
   { key: "desktop", label: "Desktop", width: 1180, height: 620 },
 ];
 
-function FieldLabel({ children }: { children: string }) {
-  return <label className="text-label-md font-bold uppercase tracking-wide text-on-surface-variant">{children}</label>;
+function FieldLabel({ children, htmlFor }: { children: string; htmlFor?: string }) {
+  return <label htmlFor={htmlFor} className="text-label-md font-bold uppercase tracking-wide text-on-surface-variant">{children}</label>;
 }
 
 function TextField({
   label,
   help,
+  id,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { label: string; help?: string }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const helpId = help ? `${inputId}-help` : undefined;
+
   return (
     <div className="space-y-1.5">
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
       <input
         {...props}
+        id={inputId}
+        aria-describedby={helpId}
         value={props.value ?? ""}
         className={`block min-h-11 w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary-container ${props.className ?? ""}`}
       />
-      {help ? <p className="text-label-md text-on-surface-variant/70">{help}</p> : null}
+      {help ? <p id={helpId} className="text-label-md text-on-surface-variant/70">{help}</p> : null}
     </div>
   );
 }
@@ -119,13 +126,15 @@ function heroScale(details: CmsHeroSettings, key: keyof CmsHeroSettings) {
 }
 
 function ScaleField({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
+  const inputId = useId();
+
   return (
     <div className="cms-hero-menu-scale">
       <div className="cms-hero-menu-scale__head">
-        <FieldLabel>{label}</FieldLabel>
-        <span>{value.toFixed(2)}x</span>
+        <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+        <span aria-hidden="true">{value.toFixed(2)}x</span>
       </div>
-      <input type="range" min="0.5" max="2" step="0.05" value={value} onChange={(event) => onChange(Number(event.target.value))} />
+      <input id={inputId} type="range" min="0.5" max="2" step="0.05" value={value} aria-valuetext={`${value.toFixed(2)}x`} onChange={(event) => onChange(Number(event.target.value))} />
     </div>
   );
 }
@@ -142,6 +151,7 @@ export default function SharedHeroEditor({
   onChange: (next: Partial<CmsHeroSettings>) => void;
 }) {
   const [device, setDevice] = useState<DeviceKey>("desktop");
+  const menuScaleId = useId();
   const preset = devices.find((item) => item.key === device) ?? devices[2];
   const keys = deviceKeys(device);
   const navColor = details.heroMenuColor || (details.heroMenuTone === "light" ? "#ffffff" : "#3f3933");
@@ -341,10 +351,10 @@ export default function SharedHeroEditor({
               {device === "desktop" ? (
                 <div className="cms-hero-menu-scale">
                   <div className="cms-hero-menu-scale__head">
-                    <FieldLabel>Escala del menú en computadora</FieldLabel>
+                    <FieldLabel htmlFor={menuScaleId}>Escala del menú en computadora</FieldLabel>
                     <span>{(details.heroMenuScale ?? 1).toFixed(2)}x</span>
                   </div>
-                  <input type="range" min="0.75" max="1.4" step="0.05" value={details.heroMenuScale ?? 1} onChange={(event) => onChange({ heroMenuScale: Number(event.target.value) })} />
+                  <input id={menuScaleId} type="range" min="0.75" max="1.4" step="0.05" value={details.heroMenuScale ?? 1} aria-valuetext={`${(details.heroMenuScale ?? 1).toFixed(2)}x`} onChange={(event) => onChange({ heroMenuScale: Number(event.target.value) })} />
                   <p>Esta escala solo se aplica al menú expandido de escritorio.</p>
                 </div>
               ) : (

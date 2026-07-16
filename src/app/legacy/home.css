@@ -783,6 +783,20 @@ main {
   max-width: 330px;
 }
 
+.gift-carousel__eyebrow {
+  margin: 0 0 8px;
+  color: #817c77;
+  font: 700 11px/1.2 var(--font-menu);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.gift-carousel__title {
+  margin: 0 0 10px;
+  color: #36322f;
+  font: 400 clamp(22px, 2.2vw, 30px)/1.12 var(--font-display);
+}
+
 .gift-carousel__text {
   margin: 0;
   font: italic 300 16px/1.45 var(--font-display);

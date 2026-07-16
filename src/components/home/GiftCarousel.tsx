@@ -11,6 +11,42 @@ interface GiftCarouselProps {
   items: readonly ExperienceItem[];
 }
 
+function giftHomeContent(item: ExperienceItem) {
+  return {
+    image: item.homeImage || item.coverImage,
+    imageAlt: item.homeImageAlt || item.homeTitle || item.title,
+    eyebrow: item.homeEyebrow || item.subtitle || item.category,
+    title: item.homeTitle || item.title,
+    excerpt: item.homeExcerpt || item.excerpt,
+  };
+}
+
+function GiftCard({ item }: { item: ExperienceItem }) {
+  const content = giftHomeContent(item);
+  const href = experienceHref(item.kind, item.slug);
+
+  return (
+    <>
+      <Link className="gift-carousel__media" href={href}>
+        <img
+          src={assetPath(content.image)}
+          alt={content.imageAlt}
+          loading="lazy"
+          decoding="async"
+        />
+      </Link>
+      <div className="gift-carousel__body">
+        {content.eyebrow ? <p className="gift-carousel__eyebrow">{content.eyebrow}</p> : null}
+        <h3 className="gift-carousel__title">{content.title}</h3>
+        <MarkdownContent className="gift-carousel__text" source={content.excerpt} />
+        <Link className="gift-carousel__cta" href={href}>
+          ver mas
+        </Link>
+      </div>
+    </>
+  );
+}
+
 export function GiftCarousel({ items }: GiftCarouselProps) {
   if (items.length === 0) return null;
   const singleItem = items[0];
@@ -18,26 +54,7 @@ export function GiftCarousel({ items }: GiftCarouselProps) {
   if (items.length === 1 && singleItem) {
     return (
       <article className="gift-carousel gift-carousel--single">
-        <Link
-          className="gift-carousel__media"
-          href={experienceHref(singleItem.kind, singleItem.slug)}
-        >
-          <img
-            src={assetPath(singleItem.coverImage)}
-            alt={singleItem.title}
-            loading="lazy"
-            decoding="async"
-          />
-        </Link>
-        <div className="gift-carousel__body">
-          <MarkdownContent className="gift-carousel__text" source={singleItem.excerpt} />
-          <Link
-            className="gift-carousel__cta"
-            href={experienceHref(singleItem.kind, singleItem.slug)}
-          >
-            ver mas
-          </Link>
-        </div>
+        <GiftCard item={singleItem} />
       </article>
     );
   }
@@ -56,30 +73,7 @@ export function GiftCarousel({ items }: GiftCarouselProps) {
       previousLabel="Experiencia anterior"
       nextLabel="Experiencia siguiente"
       showArrows
-      renderItem={(item) => (
-        <>
-          <Link
-            className="gift-carousel__media"
-            href={experienceHref(item.kind, item.slug)}
-          >
-            <img
-              src={assetPath(item.coverImage)}
-              alt={item.title}
-              loading="lazy"
-              decoding="async"
-            />
-          </Link>
-          <div className="gift-carousel__body">
-            <MarkdownContent className="gift-carousel__text" source={item.excerpt} />
-            <Link
-              className="gift-carousel__cta"
-              href={experienceHref(item.kind, item.slug)}
-            >
-              ver mas
-            </Link>
-          </div>
-        </>
-      )}
+      renderItem={(item) => <GiftCard item={item} />}
     />
   );
 }
