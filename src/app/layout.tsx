@@ -15,6 +15,7 @@ import "./legacy/footer.css";
 import "./legacy/cookiebar.css";
 import "./legacy/site.css";
 import "./globals.css";
+import "./responsive-tuning.css";
 
 const baskervville = Baskervville({
   subsets: ["latin"],

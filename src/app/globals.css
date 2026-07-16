@@ -354,6 +354,7 @@ button:disabled {
 }
 
 .cms-admin-shell {
+  position: relative;
   display: block;
   min-height: 100dvh;
   background: #f8f9ff;
@@ -376,7 +377,22 @@ button:disabled {
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
-  padding: 32px;
+  padding: 24px 32px 32px;
+}
+
+.cms-admin-toolbar {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 32px 0;
+}
+
+.cms-admin-toolbar .secondary-btn {
+  width: auto;
+  white-space: nowrap;
 }
 
 .admin-sidebar {
@@ -400,6 +416,7 @@ button:disabled {
   gap: 12px;
   padding: 16px;
   border-bottom: 1px solid #cac4d4;
+  background: #facc15;
 }
 
 .admin-sidebar__avatar-wrap {
@@ -2623,13 +2640,39 @@ button:disabled {
 .public-menu-simple__head,
 .public-menu-simple__row {
   display: grid;
-  grid-template-columns: minmax(180px, 0.42fr) minmax(220px, 0.58fr);
+  grid-template-columns: minmax(180px, 0.34fr) minmax(220px, 0.38fr) minmax(210px, 0.28fr);
   align-items: end;
   gap: 16px;
 }
 
 .public-menu-simple__row--child {
-  grid-template-columns: minmax(180px, 0.42fr) minmax(220px, 0.58fr) auto;
+  grid-template-columns: minmax(180px, 0.34fr) minmax(220px, 0.38fr) minmax(210px, 0.28fr) auto;
+}
+
+.public-menu-simple__options {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 64px;
+}
+
+.public-menu-simple__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #494552;
+  font: 700 12px/16px var(--font-inter), Inter, sans-serif;
+}
+
+.public-menu-simple__option input {
+  width: 16px;
+  height: 16px;
+  accent-color: #674bb5;
+}
+
+.public-menu-simple__option input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .public-menu-simple__head {
@@ -4274,6 +4317,20 @@ button:disabled {
     border-bottom: 1px solid #cac4d4;
   }
 
+  .admin-sidebar__header {
+    padding-right: 156px;
+  }
+
+  .cms-admin-toolbar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 60;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
   .cms-admin-main {
     width: 100%;
     max-width: 100%;
@@ -4493,7 +4550,12 @@ button:disabled {
 
   .admin-sidebar__header {
     min-height: auto;
-    padding: 12px;
+    padding: 12px 148px 12px 12px;
+  }
+
+  .cms-admin-toolbar {
+    top: 12px;
+    right: 12px;
   }
 
   .admin-sidebar__nav {
@@ -8168,6 +8230,8 @@ body {
 
 .cms-shared-hero-title-preview.img-preview {
   aspect-ratio: 16 / 4.4;
+  border-color: #d8c5ad;
+  background: #e9dccb;
 }
 
 .cms-hero-position-card {

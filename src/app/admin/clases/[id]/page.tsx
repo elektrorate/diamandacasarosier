@@ -1,4 +1,5 @@
 import Link from "@/components/admin/AdminLink";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
@@ -139,9 +140,9 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
           <Card padding="lg">
             <h3 className="text-headline-sm text-on-surface mb-4">Sistema</h3>
             <div className="space-y-3 text-body-md text-on-surface-variant">
-              <p>Creada: {new Date(offering.created_at).toLocaleString("es-ES")}</p>
-              <p>Actualizada: {new Date(offering.updated_at).toLocaleString("es-ES")}</p>
-              {offering.deleted_at ? <p>Eliminada: {new Date(offering.deleted_at).toLocaleString("es-ES")}</p> : null}
+              <p>Creada: {formatAdminDateTime(offering.created_at)}</p>
+              <p>Actualizada: {formatAdminDateTime(offering.updated_at)}</p>
+              {offering.deleted_at ? <p>Eliminada: {formatAdminDateTime(offering.deleted_at)}</p> : null}
             </div>
           </Card>
 

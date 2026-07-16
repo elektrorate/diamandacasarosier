@@ -5,6 +5,7 @@ import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormSubmission } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const stLabels: Record<string, string> = { new: "Nuevo", read: "Leído", replied: "Respondido", archived: "Archivado", spam: "Spam", deleted: "Eliminado" };
 type ModalState = {
@@ -81,7 +82,7 @@ export default function MessageDetail({ item }: { item: FormSubmission }) {
               {item.phone ? <div><p className="auth-kicker">Teléfono</p><p>{item.phone}</p></div> : null}
               <div><p className="auth-kicker">Formulario</p><p>{item.form_name} ({item.form_slug})</p></div>
               {item.source_page ? <div><p className="auth-kicker">Página de origen</p><p className="muted">{item.source_page}</p></div> : null}
-              <div><p className="auth-kicker">Recibido</p><p>{new Date(item.created_at).toLocaleString()}</p></div>
+              <div><p className="auth-kicker">Recibido</p><p>{formatAdminDateTime(item.created_at)}</p></div>
               <div><p className="auth-kicker">Estado</p><p><span className="entity-badge">{stLabels[item.status]}</span></p></div>
             </div>
           </div>

@@ -4,6 +4,7 @@ import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BlogPost } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 import AdminActionModal from "./AdminActionModal";
 
 type Notice = {
@@ -130,7 +131,7 @@ export default function BlogTable({
                   <td>{post.sort_order}</td>
                   <td>{post.blocks.length}</td>
                   <td>{post.reading_time} min</td>
-                  <td>{new Date(post.updated_at).toLocaleString()}</td>
+                  <td>{formatAdminDateTime(post.updated_at)}</td>
                   <td>
                     <div className="row-actions">
                       <Link

@@ -37,6 +37,14 @@ export interface ClassOfferingModule {
   order: number;
 }
 
+export interface ClassHomeCard {
+  image: string;
+  imageAlt: string;
+  eyebrow: string;
+  title: string;
+  excerpt: string;
+}
+
 export interface ClassOfferingActivityItem {
   id: string;
   title: string;
@@ -181,6 +189,8 @@ export interface ClassOfferingDetails {
   showConsultCta: boolean;
   showEnrollCta: boolean;
   highlightDescription: string;
+  homeCard: ClassHomeCard;
+  /** Compatibilidad con registros anteriores a la tarjeta de Home independiente. */
   homeExcerpt: string;
   durationText: string;
   whatsappNumber: string;

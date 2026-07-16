@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MarketingEventType } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 import Select from "@/components/ui/Select";
 import EmptyMarketingState from "./EmptyMarketingState";
 import MarketingSwitch from "./MarketingSwitch";
@@ -138,7 +139,7 @@ export default function EventsTable({ events }: { events: MarketingEventType[] }
                     aria-label={`${e.is_active ? "Desactivar" : "Activar"} evento ${e.label}`}
                   />
                 </td>
-                <td className="px-4 py-3 text-on-surface-variant">{e.last_triggered_at ? new Date(e.last_triggered_at).toLocaleString() : "—"}</td>
+                <td className="px-4 py-3 text-on-surface-variant">{e.last_triggered_at ? formatAdminDateTime(e.last_triggered_at) : "—"}</td>
               </tr>
             ))}
           </tbody>

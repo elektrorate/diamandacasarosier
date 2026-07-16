@@ -35,8 +35,7 @@ const staticFallbackItems: NavigationItem[] = [
     order: 5,
     visible: true,
     children: [
-      { label: "El Estudio", href: "/el-estudio", order: 0, visible: true },
-      { label: "Bitácora", href: "/blog", order: 1, visible: true },
+      { label: "Bitácora", href: "/blog", order: 0, visible: true },
     ],
   },
   { label: "Shop", href: "/shop", order: 6, visible: true },
@@ -72,7 +71,7 @@ function toNavigationItem(item: MenuItem, children: MenuItem[]): NavigationItem 
     visible: item.is_visible,
     target: item.open_in_new_tab ? "_blank" : undefined,
     children: children
-      .filter((child) => child.is_visible)
+      .filter((child) => child.url !== item.url)
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((child) => toNavigationItem(child, [])),
   };
@@ -114,67 +113,8 @@ function dynamicKeyForItem(item: NavigationItem): DynamicMenuKey | null {
   return null;
 }
 
-function labelForDynamicItem(item: NavigationItem, key: DynamicMenuKey) {
-  const label = normalizeLabel(item.label);
-  if (key === "privateBookings" && label === "reservas privadas") {
-    return dynamicMenuConfig[key].label;
-  }
-  if (
-    key === "giftCards" &&
-    (label === "tarjeta de regalo" ||
-      label === "tarjetas de regalo" ||
-      label === "targetas de regalo")
-  ) {
-    return dynamicMenuConfig[key].label;
-  }
-  return item.label;
-}
-
-function isStudioItem(item: NavigationItem) {
-  return item.href === "/el-estudio" || normalizeLabel(item.label) === "el estudio";
-}
-
-function isLegacyBlogRootItem(item: NavigationItem) {
-  const label = normalizeLabel(item.label);
-  return item.href === "/blog" && (label === "blog" || label === "bitacora");
-}
-
-function ensureStudioSubmenu(children: NavigationItem[] = []) {
-  const byHref = new Map(children.map((child) => [child.href, child]));
-  const normalized = children.map((child, index) => ({ ...child, order: child.order ?? index }));
-  const nextOrder = normalized.length ? Math.max(...normalized.map((child) => child.order)) + 1 : 0;
-  const additions: NavigationItem[] = [];
-
-  if (!byHref.has("/el-estudio")) {
-    additions.push({ label: "El Estudio", href: "/el-estudio", order: nextOrder, visible: true });
-  }
-  if (!byHref.has("/blog")) {
-    additions.push({ label: "Bitácora", href: "/blog", order: nextOrder + additions.length, visible: true });
-  }
-
-  return [
-    ...normalized.map((child) => {
-      if (child.href === "/el-estudio") return { ...child, label: child.label || "El Estudio", visible: true };
-      if (child.href === "/blog") return { ...child, label: child.label || "Bitácora", visible: true };
-      return child;
-    }),
-    ...additions,
-  ].sort((a, b) => a.order - b.order);
-}
-
 function normalizePublicMenuStructure(items: NavigationItem[]) {
-  const hasShop = items.some((item) => item.href === "/shop");
-  return items
-    .flatMap((item) => {
-      if (!isLegacyBlogRootItem(item)) return [item];
-      return hasShop ? [] : [{ ...item, label: "Shop", href: "/shop", children: [] }];
-    })
-    .map((item) => (
-      isStudioItem(item)
-        ? { ...item, label: "El Estudio", children: ensureStudioSubmenu(item.children) }
-        : item
-    ))
-    .sort((a, b) => a.order - b.order);
+  return items.slice().sort((a, b) => a.order - b.order);
 }
 
 function offeringToNavigationItem(offering: Offering, order: number): NavigationItem {
@@ -194,7 +134,6 @@ function mergeGeneratedChildrenWithSavedOrder(generated: NavigationItem[], saved
   const merged: NavigationItem[] = [];
 
   saved
-    .filter((child) => child.visible)
     .slice()
     .sort((a, b) => a.order - b.order)
     .forEach((child) => {
@@ -239,7 +178,7 @@ function withDynamicChildren(items: NavigationItem[], dynamicChildren: Record<Dy
     seen.add(key);
     return {
       ...item,
-      label: labelForDynamicItem(item, key),
+      label: item.label,
       href: dynamicMenuConfig[key].href,
       children: mergeGeneratedChildrenWithSavedOrder(dynamicChildren[key], item.children),
     };
@@ -277,7 +216,7 @@ export async function getPublicNavigationItems(location: "main" | "mobile" | "fo
   }
 
   const items = menu.items
-    .filter((item) => item.is_visible && !item.parent_id)
+    .filter((item) => !item.parent_id)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((item) => toNavigationItem(item, childrenByParent.get(item.id) ?? []));
 

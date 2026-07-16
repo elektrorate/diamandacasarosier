@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Order } from "@/lib/cms/types";
 import { ORDER_STATUSES } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const stLabels: Record<string, string> = { new: "Nuevo", paid: "Pagado", preparing: "Preparando", shipped: "Enviado", completed: "Completado", cancelled: "Cancelado" };
 
@@ -26,7 +27,7 @@ export default function OrderDetail({ item }: { item: Order }) {
             <div><p className="auth-kicker">Nombre</p><p style={{ fontWeight: 500 }}>{item.customer_name}</p></div>
             <div><p className="auth-kicker">Email</p><p><a href={`mailto:${item.customer_email}`}>{item.customer_email}</a></p></div>
             {item.customer_phone ? <div><p className="auth-kicker">Teléfono</p><p>{item.customer_phone}</p></div> : null}
-            <div><p className="auth-kicker">Fecha</p><p>{new Date(item.created_at).toLocaleString()}</p></div>
+            <div><p className="auth-kicker">Fecha</p><p>{formatAdminDateTime(item.created_at)}</p></div>
           </div></div>
 
           <div className="form-block"><h3>Estado</h3><div className="grid-2">

@@ -4,6 +4,7 @@ import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { Testimonial, TestimonialStatus } from "@/lib/cms/types";
+import { formatAdminDate } from "@/lib/admin/date-format";
 import AdminActionModal from "./AdminActionModal";
 
 type Notice = { type: "success" | "error"; title: string; message: string };
@@ -220,7 +221,7 @@ export default function TestimonialsTable({
               </p>
               <div className="admin-list-card__meta">
                 <span>Orden {index + 1}</span>
-                <span>Actualizado {new Date(testimonial.updated_at).toLocaleDateString()}</span>
+                <span>Actualizado {formatAdminDate(testimonial.updated_at)}</span>
               </div>
               <div className="row-actions admin-list-card__actions">
                 <button

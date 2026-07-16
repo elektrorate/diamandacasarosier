@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Product, ProductCategory } from "@/lib/cms/types";
+import { formatAdminDateTime } from "@/lib/admin/date-format";
 import AdminActionModal from "./AdminActionModal";
 
 type Notice = {
@@ -79,7 +80,7 @@ export default function ProductsTable({ items, categories }: { items: Product[];
                   <td style={p.stock !== null && p.stock <= p.low_stock_threshold ? { color: "var(--danger)", fontWeight: 600 } : undefined}>
                     {p.stock !== null ? p.stock : "∞"}
                   </td>
-                  <td>{new Date(p.updated_at).toLocaleString()}</td>
+                  <td>{formatAdminDateTime(p.updated_at)}</td>
                   <td>
                     <div className="row-actions">
                       <a className="link-btn" href={`/admin/shop/products/${p.id}/edit`}>Editar</a>

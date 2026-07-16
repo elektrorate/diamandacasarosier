@@ -73,14 +73,13 @@ function stringArray(value: unknown) {
 }
 
 function normalizeSlide(input: Partial<HomeIntroSlide>, index: number): HomeIntroSlide {
-  const fallback = defaultHomeIntroSlides[index] ?? defaultHomeIntroSlides[0];
   return {
-    id: String(input.id ?? fallback.id ?? `intro-${index + 1}`),
-    text: String(input.text ?? fallback.text ?? ""),
-    buttonText: String(input.buttonText ?? fallback.buttonText ?? ""),
-    buttonHref: String(input.buttonHref ?? fallback.buttonHref ?? "/"),
-    image: String(input.image ?? fallback.image ?? ""),
-    imageAlt: String(input.imageAlt ?? fallback.imageAlt ?? ""),
+    id: String(input.id ?? `intro-${index + 1}`),
+    text: String(input.text ?? ""),
+    buttonText: String(input.buttonText ?? ""),
+    buttonHref: String(input.buttonHref ?? ""),
+    image: String(input.image ?? ""),
+    imageAlt: String(input.imageAlt ?? ""),
     isVisible: input.isVisible !== false,
     sortOrder: Number(input.sortOrder ?? index),
   };
@@ -101,7 +100,7 @@ function normalizeHomePageSettings(input: Partial<HomePageSettings> | null | und
   } | null | undefined;
   const rawSlides = Array.isArray(input?.introSlides ?? row?.intro_slides)
     ? (input?.introSlides ?? row?.intro_slides) as Partial<HomeIntroSlide>[]
-    : defaultHomeIntroSlides;
+    : [];
 
   return {
     id: SETTINGS_ID,
@@ -140,12 +139,12 @@ function toRow(settings: HomePageSettings) {
   };
 }
 
-async function readFromFile() {
+async function readFromFile(): Promise<HomePageSettings | null> {
   try {
     const raw = await fs.readFile(FILE_PATH, "utf8");
     return normalizeHomePageSettings(JSON.parse(raw) as Partial<HomePageSettings>);
   } catch {
-    return defaultHomePageSettings;
+    return null;
   }
 }
 
@@ -160,11 +159,15 @@ export async function getHomePageSettings() {
     const { data, error } = await supabase.from(TABLE).select("*").eq("id", SETTINGS_ID).maybeSingle();
     if (error) throw error;
     if (data) return normalizeHomePageSettings(data as Partial<HomePageSettings>);
-  } catch {
-    return readFromFile();
-  }
 
-  return readFromFile();
+    return (await readFromFile()) ?? defaultHomePageSettings;
+  } catch (error) {
+    console.error("[home-page] No se pudo leer la configuracion de Supabase.", error);
+    const localSettings = await readFromFile();
+    if (localSettings) return localSettings;
+
+    return { ...defaultHomePageSettings, introSlides: [] };
+  }
 }
 
 export async function updateHomePageSettings(input: Partial<HomePageSettings>) {

@@ -210,6 +210,9 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     : typeof classContent?.showCourseContent === "boolean"
       ? classContent.showCourseContent
       : program.length > 0;
+  const homeCard = classDetails?.homeCard;
+  const defaultHomeImage = offering.cover_image_url || galleryImages[0] || details.heroImage || "img/hero-bg.jpg";
+  const defaultHomeEyebrow = details.heroSubtitle || stringValue(details.category) || offering.type;
 
   return {
     id: offering.id,
@@ -220,7 +223,12 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     category: details.heroSubtitle || stringValue(details.category) || offering.type,
     excerpt: offering.excerpt,
     description: splitParagraphs(offering.description),
-    coverImage: offering.cover_image_url || galleryImages[0] || details.heroImage || "img/hero-bg.jpg",
+    coverImage: defaultHomeImage,
+    homeImage: stringValue(homeCard?.image) || defaultHomeImage,
+    homeImageAlt: stringValue(homeCard?.imageAlt) || stringValue(homeCard?.title) || offering.title,
+    homeEyebrow: stringValue(homeCard?.eyebrow) || defaultHomeEyebrow,
+    homeTitle: stringValue(homeCard?.title) || offering.title,
+    homeExcerpt: stringValue(homeCard?.excerpt) || stringValue(classDetails?.homeExcerpt) || offering.excerpt,
     heroImage: hero.heroImage || offering.cover_image_url || "img/hero-bg.jpg",
     heroImageMobile: hero.heroImageMobile || undefined,
     heroVariant: hero.heroVariant,

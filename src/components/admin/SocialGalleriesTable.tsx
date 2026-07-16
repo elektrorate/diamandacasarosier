@@ -1,6 +1,7 @@
 "use client";
 
 import type { SocialGallery } from "@/lib/cms/types";
+import { formatAdminDate } from "@/lib/admin/date-format";
 
 export default function SocialGalleriesTable({ items }: { items: SocialGallery[] }) {
   return (
@@ -23,7 +24,7 @@ export default function SocialGalleriesTable({ items }: { items: SocialGallery[]
             </div>
             <div className="admin-list-card__meta">
               <span>{gallery.items.length} fotos</span>
-              <span>Actualizado {new Date(gallery.updated_at).toLocaleDateString()}</span>
+              <span>Actualizado {formatAdminDate(gallery.updated_at)}</span>
             </div>
             <div className="row-actions admin-list-card__actions">
               <a className="link-btn" href="/admin/components/social-galleries">
