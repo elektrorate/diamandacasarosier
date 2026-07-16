@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useId, useState, type CSSProperties, type FormEvent } from "react";
 import { DetailPage } from "@/components/collections/DetailPage";
 import { PublicHeroContent } from "@/components/hero/PublicHeroContent";
 import { NavbarGlobal } from "@/components/layout/NavbarGlobal";
@@ -427,9 +427,9 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
   };
 }
 
-function FieldLabel({ children, required = false }: { children: string; required?: boolean }) {
+function FieldLabel({ children, required = false, htmlFor }: { children: string; required?: boolean; htmlFor?: string }) {
   return (
-    <label className="text-label-md font-bold uppercase tracking-wide text-on-surface-variant">
+    <label htmlFor={htmlFor} className="text-label-md font-bold uppercase tracking-wide text-on-surface-variant">
       {children}{required ? " *" : ""}
     </label>
   );
@@ -442,23 +442,31 @@ function TextField({
   help,
   validationKey,
   value,
+  id,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; required?: boolean; error?: string; help?: string; validationKey?: string }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const descriptionId = error || help ? `${inputId}-description` : undefined;
+
   return (
     <div
       className={`space-y-1.5 rounded-xl ${error ? "ring-2 ring-error/30 ring-offset-2 ring-offset-surface-container-lowest" : ""}`}
       data-validation-key={validationKey}
     >
-      <FieldLabel required={required}>{label}</FieldLabel>
+      <FieldLabel required={required} htmlFor={inputId}>{label}</FieldLabel>
       <input
         {...props}
+        id={inputId}
+        aria-describedby={descriptionId}
+        aria-invalid={Boolean(error) || undefined}
         value={value ?? ""}
         className={`block w-full rounded-xl border bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary-container ${
           error ? "border-error" : "border-outline-variant"
         } ${props.className ?? ""}`}
       />
-      {help && !error ? <p className="text-label-md text-on-surface-variant/70">{help}</p> : null}
-      {error ? <p className="text-label-md text-error">{error}</p> : null}
+      {help && !error ? <p id={descriptionId} className="text-label-md text-on-surface-variant/70">{help}</p> : null}
+      {error ? <p id={descriptionId} className="text-label-md text-error">{error}</p> : null}
     </div>
   );
 }
@@ -469,27 +477,34 @@ function TextAreaField({
   help,
   validationKey,
   value,
+  id,
   ...props
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string; help?: string; validationKey?: string }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const descriptionId = error || help ? `${inputId}-description` : undefined;
+
   return (
     <div
       className={`space-y-1.5 rounded-xl ${error ? "ring-2 ring-error/30 ring-offset-2 ring-offset-surface-container-lowest" : ""}`}
       data-validation-key={validationKey}
     >
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
       <textarea
         {...props}
+        id={inputId}
+        aria-describedby={descriptionId}
+        aria-invalid={Boolean(error) || undefined}
         value={value ?? ""}
         className={`block min-h-[110px] w-full rounded-xl border bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary-container ${
           error ? "border-error" : "border-outline-variant"
         } ${props.className ?? ""}`}
       />
-      {help && !error ? <p className="text-label-md text-on-surface-variant/70">{help}</p> : null}
-      {error ? <p className="text-label-md text-error">{error}</p> : null}
+      {help && !error ? <p id={descriptionId} className="text-label-md text-on-surface-variant/70">{help}</p> : null}
+      {error ? <p id={descriptionId} className="text-label-md text-error">{error}</p> : null}
     </div>
   );
 }
-
 function ImagePreview({ src, alt, aspect = "aspect-video" }: { src: string; alt: string; aspect?: string }) {
   if (!src) return null;
   return (
@@ -918,6 +933,7 @@ export default function ClassEditForm({
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("hero");
+  const visibleTabs = offering.type === "experience" ? tabs.filter((tab) => tab.key !== "home") : tabs;
   const [title, setTitle] = useState(offering.title);
   const [slug, setSlug] = useState(offering.slug);
   const [subtitle, setSubtitle] = useState(offering.subtitle);
@@ -1317,7 +1333,7 @@ export default function ClassEditForm({
 
       <div className="mb-6 border-b border-outline-variant">
         <div className="flex gap-6 overflow-x-auto">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
