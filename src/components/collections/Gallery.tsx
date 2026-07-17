@@ -48,7 +48,7 @@ export function Gallery({
       />
       {showVideo && (videoImage || ctaHref) ? (
         ctaHref ? (
-          <a className="class-gallery__video-card" href={ctaHref} target="_blank" rel="noreferrer">
+          <a className="class-gallery__video-card" href={ctaHref} target="_blank" rel="noopener noreferrer">
             {videoImage ? <img src={assetPath(videoImage)} alt={title} /> : null}
             <span>{videoLabel || "VIDEO"}</span>
           </a>

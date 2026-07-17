@@ -25,7 +25,14 @@ function hasMeaningfulProgramItem(item: ExperienceItem["program"][number]) {
     (item.points?.some((point) => hasMeaningfulContent(point)) ?? false)
   );
 }
-export function DetailPage({ item }: { item: ExperienceItem }) {
+export function DetailPage({
+  item,
+  titleLevel = "h1",
+}: {
+  item: ExperienceItem;
+  titleLevel?: "h1" | "h2";
+}) {
+  const DetailTitle = titleLevel;
   const isGiftCard = item.kind === "gift-card";
   const consultHref = item.ctaConsultHref || item.ctaHref;
   const enrollHref = item.ctaEnrollHref || "";
@@ -90,7 +97,7 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                   className="class-gallery__video-card"
                   href={item.videoUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   {item.videoCardImage ? <img src={assetPath(item.videoCardImage)} alt={item.title} /> : null}
                   <span>{item.videoCardLabel || "VIDEO"}</span>
@@ -124,7 +131,7 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
 
           <section className="class-detail__content-column">
             <header className="class-detail__head">
-              <h1 className="class-detail__title">{item.subtitle}</h1>
+              <DetailTitle className="class-detail__title">{item.subtitle}</DetailTitle>
               <p className="class-detail__question">
                 Te apasiona la creatividad y deseas explorar el mundo de la
                 ceramica?
@@ -188,7 +195,7 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                       className="class-detail__button"
                       href={consultHref}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                     >
                       {consultLabel}
                     </a>
@@ -255,7 +262,7 @@ export function DetailPage({ item }: { item: ExperienceItem }) {
                       className="class-detail__button class-detail__button--primary"
                       href={enrollHref}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                     >
                       {enrollLabel}
                     </a>

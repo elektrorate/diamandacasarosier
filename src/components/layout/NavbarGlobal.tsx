@@ -64,7 +64,6 @@ export function NavbarGlobal({
 }) {
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
-  const staticMobileToggleRef = useRef<HTMLButtonElement>(null);
   const scrollMobileToggleRef = useRef<HTMLButtonElement>(null);
   const desktopCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -338,59 +337,11 @@ export function NavbarGlobal({
 
       <div
         className={classNames(
-          "mobile-static-nav",
-          (mobileScrolled || mobileOpen) && "is-scrolled"
-        )}
-        aria-hidden={mobileScrolled || mobileOpen}
-        inert={mobileScrolled || mobileOpen ? true : undefined}
-      >
-        <div className="mobile-static-nav__bar">
-          <Link
-            className="mobile-static-nav__logo"
-            href="/#hero"
-            aria-label="Casa Rosier"
-            onClick={() => {
-              setMobileOpen(false);
-            }}
-          >
-            {heroMenuColor ? (
-              <span className="mobile-static-nav__logo-tint" style={scrollLogoTintStyle} aria-hidden="true" />
-            ) : (
-              <img
-                className="mobile-static-nav__logo-image"
-                src={logoUrl}
-                alt="Casa Rosier"
-              />
-            )}
-          </Link>
-          <button
-            ref={staticMobileToggleRef}
-            className="mobile-static-nav__toggle"
-            type="button"
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-scroll-menu"
-            aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
-            onClick={() => {
-              setMobileOpen(true);
-              window.setTimeout(() =>
-                scrollMobileToggleRef.current?.focus()
-              );
-            }}
-          >
-            <span className="mobile-scroll-nav__icon" aria-hidden="true" />
-          </button>
-        </div>
-
-      </div>
-
-      <div
-        className={classNames(
           "mobile-scroll-nav",
-          (mobileScrolled || mobileOpen) && "is-visible",
+          "is-visible",
+          !mobileScrolled && !mobileOpen && "is-at-top",
           mobileOpen && "is-open"
         )}
-        aria-hidden={!mobileScrolled && !mobileOpen}
-        inert={!mobileScrolled && !mobileOpen ? true : undefined}
       >
         <div className="mobile-scroll-nav__bar">
           <Link
@@ -399,7 +350,9 @@ export function NavbarGlobal({
             aria-label="Casa Rosier"
             onClick={() => setMobileOpen(false)}
           >
-            {scrollMenuLogoTintEnabled ? (
+            {(mobileScrolled || mobileOpen
+              ? scrollMenuLogoTintEnabled
+              : Boolean(heroMenuColor)) ? (
               <span
                 className="mobile-scroll-nav__logo-tint"
                 style={scrollLogoTintStyle}
@@ -503,18 +456,7 @@ export function NavbarGlobal({
             aria-expanded={mobileOpen}
             aria-controls="mobile-scroll-menu"
             aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
-            onClick={() => {
-              if (mobileOpen) {
-                setMobileOpen(false);
-                if (!mobileScrolled) {
-                  window.setTimeout(() =>
-                    staticMobileToggleRef.current?.focus()
-                  );
-                }
-                return;
-              }
-              setMobileOpen(true);
-            }}
+            onClick={() => setMobileOpen((open) => !open)}
           >
             <span className="mobile-scroll-nav__icon" aria-hidden="true" />
           </button>

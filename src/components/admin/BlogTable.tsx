@@ -1,10 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { BlogPost } from "@/lib/cms/types";
-import { formatAdminDateTime } from "@/lib/admin/date-format";
 import AdminActionModal from "./AdminActionModal";
 
 type Notice = {
@@ -21,13 +21,31 @@ type ConfirmAction = {
   confirmLabel: string;
 };
 
-function statusLabel(status: BlogPost["status"]) {
-  if (status === "published") return "Publicado";
-  if (status === "draft") return "Borrador";
-  if (status === "archived") return "Archivado";
-  return status;
+function cleanListingText(value: string) {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_>#~]/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
+function listingExcerpt(post: BlogPost) {
+  const blockContent = post.blocks
+    .filter((block) => block.is_visible)
+    .map((block) => [block.title, block.text, block.custom_html].filter(Boolean).join(" "))
+    .join(" ");
+  const clean = cleanListingText(post.listing_excerpt || blockContent || post.content || post.excerpt);
+  const words = clean.split(/\s+/).filter(Boolean);
+  return `${words.slice(0, 10).join(" ")}${words.length > 10 ? "..." : ""}`;
+}
 function actionMessage(action: string) {
   if (action === "edit") return "Abriendo edición de la bitácora.";
   if (action === "duplicate") return "Duplicado exitosamente.";
@@ -98,19 +116,13 @@ export default function BlogTable({
 
   return (
     <>
-      <div className="table-card">
-        <table className="admin-table">
+      <div className="table-card blog-table-card">
+        <table className="admin-table blog-admin-table">
           <thead>
             <tr>
               <th>Título</th>
-              <th>Tipo</th>
-              <th>Estado</th>
-              <th>Destacado</th>
-              <th>Orden</th>
-              <th>Bloques</th>
-              <th>Lectura</th>
-              <th>Actualizado</th>
               <th>Acciones</th>
+              <th>Tipo</th>
             </tr>
           </thead>
           <tbody>
@@ -119,19 +131,26 @@ export default function BlogTable({
               return (
                 <tr key={post.id}>
                   <td>
-                    <strong>{post.title}</strong>
-                    <br />
-                    <span className="muted">{post.excerpt}</span>
+                    <div className="flex min-w-[280px] items-center gap-3">
+                      <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low">
+                        {post.featured_image_id ? (
+                          <Image src={post.featured_image_id} alt="" fill sizes="60px" className="object-cover" unoptimized />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-on-surface-variant" aria-hidden="true">
+                            <span className="material-symbols-outlined">image</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <Link className="font-bold text-on-surface hover:text-secondary" href={`/admin/bitacora/${post.id}/edit`} onClick={() => startEdit(post.id)}>
+                          {post.title}
+                        </Link>
+                        <p className="mt-1 line-clamp-2 max-w-[420px] text-sm leading-5 text-on-surface-variant">
+                          {listingExcerpt(post) || "Sin extracto."}
+                        </p>
+                      </div>
+                    </div>
                   </td>
-                  <td>
-                    <span className="entity-badge">{post.category}</span>
-                  </td>
-                  <td>{statusLabel(post.status)}</td>
-                  <td>{post.is_featured ? <span className="entity-badge">Sí ({post.featured_order})</span> : "No"}</td>
-                  <td>{post.sort_order}</td>
-                  <td>{post.blocks.length}</td>
-                  <td>{post.reading_time} min</td>
-                  <td>{formatAdminDateTime(post.updated_at)}</td>
                   <td>
                     <div className="row-actions">
                       <Link
@@ -179,6 +198,9 @@ export default function BlogTable({
                         {isPending(post.id, "trash") ? "Enviando..." : "Papelera"}
                       </button>
                     </div>
+                  </td>
+                  <td>
+                    <span className="entity-badge">{post.category}</span>
                   </td>
                 </tr>
               );

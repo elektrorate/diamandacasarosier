@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState, type CSSProperties, type InputHTMLAttributes } from "react";
+import { useId, useState, useSyncExternalStore, type CSSProperties, type InputHTMLAttributes } from "react";
 import { PublicHeroContent } from "@/components/hero/PublicHeroContent";
 import type { CmsHeroSettings, ClassHeroVariant } from "@/lib/cms/types";
 import ColorPickerField from "./ColorPickerField";
@@ -9,6 +9,8 @@ import MediaSelectField from "./MediaSelectField";
 import RichTextField from "./RichTextField";
 
 type DeviceKey = "phone" | "tablet" | "desktop";
+
+const subscribeToHydration = () => () => {};
 
 const devices: Array<{ key: DeviceKey; label: string; width: number; height: number }> = [
   { key: "phone", label: "Teléfono", width: 390, height: 520 },
@@ -38,7 +40,7 @@ function TextField({
         id={inputId}
         aria-describedby={helpId}
         value={props.value ?? ""}
-        className={`block min-h-11 w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary-container ${props.className ?? ""}`}
+        className={`block min-h-11 w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-secondary-container ${props.className ?? ""}`.trim()}
       />
       {help ? <p id={helpId} className="text-label-md text-on-surface-variant/70">{help}</p> : null}
     </div>
@@ -151,6 +153,7 @@ export default function SharedHeroEditor({
   onChange: (next: Partial<CmsHeroSettings>) => void;
 }) {
   const [device, setDevice] = useState<DeviceKey>("desktop");
+  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const menuScaleId = useId();
   const preset = devices.find((item) => item.key === device) ?? devices[2];
   const keys = deviceKeys(device);
@@ -226,8 +229,12 @@ export default function SharedHeroEditor({
         </div>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <TextField label="Título del hero" value={details.heroTitle} placeholder={titleFallback} onChange={(event) => onChange({ heroTitle: event.target.value })} />
-          <TextField label="Subtítulo del hero" value={details.heroSubtitle} placeholder={subtitleFallback} onChange={(event) => onChange({ heroSubtitle: event.target.value })} />
+          {details.heroVariant === "text" ? (
+            <TextField label="Título del hero tipográfico" value={details.heroTitle} placeholder={titleFallback} onChange={(event) => onChange({ heroTitle: event.target.value })} />
+          ) : null}
+          {details.heroVariant === "text" ? (
+            <TextField label="Subtítulo del hero tipográfico" value={details.heroSubtitle} placeholder={subtitleFallback} onChange={(event) => onChange({ heroSubtitle: event.target.value })} />
+          ) : null}
           {details.heroVariant === "presentation" ? (
             <div className="cms-shared-hero-image-fields md:col-span-2">
               <MediaSelectField
@@ -287,6 +294,16 @@ export default function SharedHeroEditor({
               <div className="cms-shared-hero-presentation-layout__main">
                 <RichTextField label="Texto de presentación" value={details.heroPresentationText} onChange={(heroPresentationText) => onChange({ heroPresentationText })} minHeight="220px" />
                 <ColorPickerField label="Color del texto" value={details.heroPresentationTextColor || "#FFFFFF"} onChange={(heroPresentationTextColor) => onChange({ heroPresentationTextColor })} />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <TextField label="Texto del CTA" value={details.heroPresentationCtaLabel} placeholder="Descubrir" onChange={(event) => onChange({ heroPresentationCtaLabel: event.target.value })} />
+                  <TextField label="Enlace del CTA" value={details.heroPresentationCtaHref} placeholder="/clases o https://..." onChange={(event) => onChange({ heroPresentationCtaHref: event.target.value })} />
+                  <ColorPickerField label="Fondo del CTA" value={details.heroPresentationCtaBackgroundColor || "#FFFFFF"} onChange={(heroPresentationCtaBackgroundColor) => onChange({ heroPresentationCtaBackgroundColor })} />
+                  <ColorPickerField label="Texto del CTA" value={details.heroPresentationCtaTextColor || "#3f3933"} onChange={(heroPresentationCtaTextColor) => onChange({ heroPresentationCtaTextColor })} />
+                </div>
+                <div className="flex flex-wrap gap-5">
+                  <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaEnabled} onChange={(event) => onChange({ heroPresentationCtaEnabled: event.target.checked })} /><span>Mostrar CTA</span></label>
+                  <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaNewTab} onChange={(event) => onChange({ heroPresentationCtaNewTab: event.target.checked })} /><span>Abrir en nueva pestaña</span></label>
+                </div>
               </div>
               <aside className="cms-shared-hero-presentation-layout__side">
                 <MediaSelectField
@@ -406,6 +423,11 @@ export default function SharedHeroEditor({
 
         {isPresentationHero ? (
           <div className="cms-hero-position-grid">
+            <div className="cms-hero-overlay-position__head">
+              <h4>Centrado del conjunto</h4>
+              <p>Mueve texto e imagen a una composición equilibrada en el dispositivo seleccionado.</p>
+              <button type="button" className="secondary-btn inline" onClick={() => onChange({ [keys.presentationTextX]: "30%", [keys.presentationTextY]: "50%", [keys.presentationImageX]: "70%", [keys.presentationImageY]: "50%" } as Partial<CmsHeroSettings>)}>Centrar conjunto</button>
+            </div>
             <fieldset className="cms-hero-position-fieldset">
               <legend>Texto de presentación (izquierda)</legend>
               <div className="cms-hero-position-fields">
@@ -426,7 +448,7 @@ export default function SharedHeroEditor({
         ) : null}
 
         <div className="cms-hero-position-preview" aria-label="Vista de referencia del hero">
-          <div className={`relative mx-auto overflow-hidden rounded-xl border border-outline-variant shadow-sm ${isPresentationHero ? "header-interno--presentation-hero" : ""}`} style={frameStyle}>
+          <div className={`relative mx-auto overflow-hidden rounded-xl border border-outline-variant shadow-sm ${isHydrated && isPresentationHero ? "header-interno--presentation-hero" : ""}`} style={frameStyle}>
             {device === "desktop" ? (
               <>
                 <span

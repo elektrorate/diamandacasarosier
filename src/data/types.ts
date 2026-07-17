@@ -60,6 +60,12 @@ export interface ExperienceItem {
   heroPresentationText?: string;
   heroPresentationTextColor?: string;
   heroPresentationImage?: string;
+  heroPresentationCtaEnabled?: boolean;
+  heroPresentationCtaLabel?: string;
+  heroPresentationCtaHref?: string;
+  heroPresentationCtaNewTab?: boolean;
+  heroPresentationCtaBackgroundColor?: string;
+  heroPresentationCtaTextColor?: string;
   /* Hero con imagen */
   titleImageScale?: number;
   titleImageScaleTablet?: number;

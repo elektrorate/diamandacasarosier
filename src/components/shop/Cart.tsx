@@ -128,7 +128,7 @@ export function Cart() {
             className="class-detail__button class-detail__button--primary"
             href="https://wa.me/34633788860"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
             Finalizar por WhatsApp
           </a>

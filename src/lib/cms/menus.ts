@@ -7,8 +7,8 @@ import type { Menu, MenuItem, MenuLocation } from "./types";
 import { logAction } from "./history-logs";
 
 const FILE_NAME = "menus.json";
-const SUPABASE_READ_TIMEOUT_MS = 1_500;
-const MENUS_CACHE_TTL_MS = 15_000;
+const SUPABASE_READ_TIMEOUT_MS = Number(process.env.CMS_SUPABASE_READ_TIMEOUT_MS ?? 8_000);
+const MENUS_CACHE_TTL_MS = Number(process.env.CMS_MENU_CACHE_MS ?? 0);
 
 let menusCache: { items: Menu[]; expiresAt: number } | null = null;
 const menuLocationCache = new Map<MenuLocation, { item: Menu | null; expiresAt: number }>();

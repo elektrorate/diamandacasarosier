@@ -5,7 +5,7 @@ import { getOfferings } from "./offerings";
 import type { MenuItem, Offering } from "./types";
 
 type DynamicMenuKey = "classes" | "workshops" | "privateBookings" | "giftCards";
-const PUBLIC_NAV_CACHE_TTL_MS = Number(process.env.CMS_PUBLIC_NAV_CACHE_MS ?? 15_000);
+const PUBLIC_NAV_CACHE_TTL_MS = Number(process.env.CMS_PUBLIC_NAV_CACHE_MS ?? 0);
 const publicNavigationCache = new Map<string, { items: NavigationItem[]; expiresAt: number }>();
 
 const dynamicMenuConfig: Record<DynamicMenuKey, {
@@ -117,9 +117,20 @@ function normalizePublicMenuStructure(items: NavigationItem[]) {
   return items.slice().sort((a, b) => a.order - b.order);
 }
 
+function menuTitleForOffering(offering: Offering) {
+  const details = offering.details && typeof offering.details === "object" && !Array.isArray(offering.details)
+    ? offering.details as Record<string, unknown>
+    : {};
+  const classDetails = details.class && typeof details.class === "object" && !Array.isArray(details.class)
+    ? details.class as Record<string, unknown>
+    : {};
+  const menuTitle = typeof classDetails.menuTitle === "string" ? classDetails.menuTitle.trim() : "";
+  return menuTitle || offering.title;
+}
+
 function offeringToNavigationItem(offering: Offering, order: number): NavigationItem {
   return {
-    label: offering.title,
+    label: menuTitleForOffering(offering),
     href: experienceHref(kindForOffering(offering.type), offering.slug),
     order,
     visible: true,
@@ -138,13 +149,13 @@ function mergeGeneratedChildrenWithSavedOrder(generated: NavigationItem[], saved
     .sort((a, b) => a.order - b.order)
     .forEach((child) => {
       const generatedChild = generatedByHref.get(child.href);
-      if (generatedChild) usedHrefs.add(child.href);
+      if (!generatedChild) return;
+      usedHrefs.add(child.href);
       merged.push({
-        ...(generatedChild ?? child),
-        label: child.label || generatedChild?.label || "",
-        href: child.href,
+        ...generatedChild,
+        label: generatedChild.label,
         visible: child.visible,
-        target: child.target ?? generatedChild?.target,
+        target: child.target ?? generatedChild.target,
       });
     });
 

@@ -92,7 +92,7 @@ export function renderInlineMarkdown(value: string): ReactNode[] {
         const href = safeHref(linkMatch[2]);
         const external = /^https?:\/\//i.test(href);
         nodes.push(
-          <a key={key} href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+          <a key={key} href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined}>
             {renderInlineMarkdown(linkMatch[1])}
           </a>
         );

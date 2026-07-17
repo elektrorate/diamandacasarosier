@@ -90,6 +90,12 @@ export interface CmsHeroSettings {
   heroPresentationText: string;
   heroPresentationTextColor: string;
   heroPresentationImage: string;
+  heroPresentationCtaEnabled: boolean;
+  heroPresentationCtaLabel: string;
+  heroPresentationCtaHref: string;
+  heroPresentationCtaNewTab: boolean;
+  heroPresentationCtaBackgroundColor: string;
+  heroPresentationCtaTextColor: string;
   heroMenuTone: "light" | "dark";
   heroMenuColor: string;
   heroMenuScale: number;
@@ -160,12 +166,19 @@ export interface CmsHeroSettings {
 }
 
 export interface ClassOfferingDetails {
+  menuTitle: string;
   heroVariant: ClassHeroVariant;
   heroTitle: string;
   heroSubtitle: string;
   heroPresentationText: string;
   heroPresentationTextColor: string;
   heroPresentationImage: string;
+  heroPresentationCtaEnabled: boolean;
+  heroPresentationCtaLabel: string;
+  heroPresentationCtaHref: string;
+  heroPresentationCtaNewTab: boolean;
+  heroPresentationCtaBackgroundColor: string;
+  heroPresentationCtaTextColor: string;
   heroMenuTone: "light" | "dark";
   heroMenuColor: string;
   heroMenuScale: number;
@@ -915,6 +928,7 @@ export interface BlogPost {
   slug: string;
   status: BlogPostStatus;
   excerpt: string;
+  listing_excerpt: string;
   content: string;
   featured_image_id: string;
   author_id: string;

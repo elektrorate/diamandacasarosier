@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -153,8 +154,13 @@ export default function ColorPickerField({
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const spectrumRef = useRef<HTMLDivElement | null>(null);
   const hueRef = useRef<HTMLDivElement | null>(null);
+  const liveColorRef = useRef({ hsv, onChange });
 
   const hexInput = hexState.source === normalizedValue ? hexState.input : normalizedValue;
+
+  useEffect(() => {
+    liveColorRef.current = { hsv, onChange };
+  }, [hsv, onChange]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -177,31 +183,31 @@ export default function ColorPickerField({
     };
   }, [isOpen]);
 
-  function commitColor(nextValue: string) {
+  const commitColor = useCallback((nextValue: string) => {
     const nextHex = normalizeHex(nextValue) ?? normalizeColor(nextValue);
     setHexState({ source: nextHex, input: nextHex });
-    onChange(nextHex);
-  }
+    liveColorRef.current.onChange(nextHex);
+  }, []);
 
-  function commitHsv(h: number, s: number, v: number) {
+  const commitHsv = useCallback((h: number, s: number, v: number) => {
     const nextRgb = hsvToRgb(h, s, v);
     commitColor(rgbToHex(nextRgb.r, nextRgb.g, nextRgb.b));
-  }
+  }, [commitColor]);
 
-  function updateFromSpectrum(clientX: number, clientY: number) {
+  const updateFromSpectrum = useCallback((clientX: number, clientY: number) => {
     const rect = spectrumRef.current?.getBoundingClientRect();
     if (!rect) return;
     const nextSaturation = clamp((clientX - rect.left) / rect.width, 0, 1);
     const nextValue = 1 - clamp((clientY - rect.top) / rect.height, 0, 1);
-    commitHsv(hsv.h, nextSaturation, nextValue);
-  }
+    commitHsv(liveColorRef.current.hsv.h, nextSaturation, nextValue);
+  }, [commitHsv]);
 
-  function updateFromHue(clientX: number) {
+  const updateFromHue = useCallback((clientX: number) => {
     const rect = hueRef.current?.getBoundingClientRect();
     if (!rect) return;
     const nextHue = clamp((clientX - rect.left) / rect.width, 0, 1) * 360;
-    commitHsv(nextHue, hsv.s, hsv.v);
-  }
+    commitHsv(nextHue, liveColorRef.current.hsv.s, liveColorRef.current.hsv.v);
+  }, [commitHsv]);
 
   useEffect(() => {
     if (!dragTarget) return;
@@ -221,7 +227,7 @@ export default function ColorPickerField({
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [dragTarget, hsv.h, hsv.s, hsv.v]);
+  }, [dragTarget, updateFromHue, updateFromSpectrum]);
 
   function handleTriggerClick(event: ReactMouseEvent<HTMLButtonElement>) {
     if (disabled) return;
@@ -311,7 +317,7 @@ export default function ColorPickerField({
   );
 
   return (
-    <div className={`field cms-color-picker-field ${className}`}>
+    <div className={`field cms-color-picker-field ${className}`.trim()}>
       <span>{label}</span>
       <button
         ref={triggerRef}

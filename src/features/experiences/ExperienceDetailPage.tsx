@@ -17,6 +17,12 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
     heroPresentationText: item.heroPresentationText ?? "",
     heroPresentationTextColor: item.heroPresentationTextColor ?? "#FFFFFF",
     heroPresentationImage: item.heroPresentationImage ?? "",
+    heroPresentationCtaEnabled: item.heroPresentationCtaEnabled ?? false,
+    heroPresentationCtaLabel: item.heroPresentationCtaLabel ?? "Descubrir",
+    heroPresentationCtaHref: item.heroPresentationCtaHref ?? "",
+    heroPresentationCtaNewTab: item.heroPresentationCtaNewTab ?? false,
+    heroPresentationCtaBackgroundColor: item.heroPresentationCtaBackgroundColor ?? "#FFFFFF",
+    heroPresentationCtaTextColor: item.heroPresentationCtaTextColor ?? "#3f3933",
     heroMenuTone: item.heroMenuTone,
     heroMenuColor: item.heroMenuColor,
     heroMenuScale: item.heroMenuScale ?? 1,
@@ -89,6 +95,7 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
       bodyData={promoPage ? { promoPage } : undefined}
       header={
         <HeaderInterno
+          className="experience-detail-hero"
           variant={hero.heroVariant}
           image={hero.heroImage || item.heroImage}
           mobileImage={hero.heroImageMobile || undefined}
@@ -156,7 +163,7 @@ export function ExperienceDetailPage({ item }: { item: ExperienceItem }) {
         />
       }
     >
-      <DetailPage item={item} />
+      <DetailPage item={item} titleLevel={hero.heroVariant === "text" ? "h2" : "h1"} />
       {item.showIdeaPromptSection ?? true ? <IdeaPromptSection context="experience-detail" /> : null}
     </SitePage>
   );
