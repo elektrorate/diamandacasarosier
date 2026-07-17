@@ -57,7 +57,7 @@
     transform: translateY(-50%);
   }
 
-  .site-nav-shell--home .mobile-static-nav__toggle {
+  .site-nav-shell--home .mobile-scroll-nav.is-at-top .mobile-scroll-nav__toggle {
     transform: translateY(-24px);
   }
 }
@@ -72,5 +72,26 @@
   .testimonial__avatar {
     width: 64px;
     height: 64px;
+  }
+}
+/* Browser-requested blog spacing and internal mobile bar height. */
+.blog-post-nav--article {
+  margin-top: 600px;
+}
+
+@media (max-width: 1024px) {
+  .site-nav-shell--internal .mobile-scroll-nav__bar {
+    height: 110px;
+    min-height: 110px;
+  }
+
+  .blog-hero .mobile-scroll-nav__logo {
+    top: 55px !important;
+    transform: translate(-50%, -50%);
+  }
+
+  .blog-hero .mobile-scroll-nav__toggle {
+    top: 55px !important;
+    transform: translateY(-50%);
   }
 }

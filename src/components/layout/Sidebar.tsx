@@ -100,7 +100,7 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
                 <Link
                   key={section.label}
                   href={section.href}
-                  className={`admin-sidebar__item ${active ? "admin-sidebar__item--active" : ""}`}
+                  className={`admin-sidebar__item ${active ? "admin-sidebar__item--active" : ""}`.trim()}
                   aria-current={active ? "page" : undefined}
                 >
                   <span className="material-symbols-outlined">{section.icon}</span>
@@ -114,7 +114,7 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
                 <button
                   type="button"
                   onClick={() => toggleGroup(section.label)}
-                  className={`admin-sidebar__item admin-sidebar__item--button ${childActive ? "admin-sidebar__item--active" : ""}`}
+                  className={`admin-sidebar__item admin-sidebar__item--button ${childActive ? "admin-sidebar__item--active" : ""}`.trim()}
                   aria-expanded={isOpen}
                 >
                   <div className="admin-sidebar__item-label">
@@ -128,7 +128,7 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
                     expand_more
                   </span>
                 </button>
-                <div className={`admin-sidebar__submenu-wrap ${isOpen ? "admin-sidebar__submenu-wrap--open" : ""}`}>
+                <div className={`admin-sidebar__submenu-wrap ${isOpen ? "admin-sidebar__submenu-wrap--open" : ""}`.trim()}>
                   <div className="admin-sidebar__submenu">
                     {children.map((child) => {
                       const active = activeChild?.href === child.href;
@@ -136,7 +136,7 @@ export default function Sidebar({ userName, userEmail }: SidebarProps) {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className={`admin-sidebar__submenu-link ${active ? "admin-sidebar__submenu-link--active" : ""}`}
+                          className={`admin-sidebar__submenu-link ${active ? "admin-sidebar__submenu-link--active" : ""}`.trim()}
                           aria-current={active ? "page" : undefined}
                         >
                           {child.label}

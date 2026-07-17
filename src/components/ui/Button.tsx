@@ -43,7 +43,7 @@ export default function Button({
     </>
   );
 
-  const classes = `${base} ${variants[variant]} ${sizes[size]} ${className}`;
+  const classes = `${base} ${variants[variant]} ${sizes[size]} ${className}`.trim();
 
   if (href) {
     return (

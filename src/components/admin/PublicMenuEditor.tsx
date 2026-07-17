@@ -122,9 +122,10 @@ function mergeChildrenWithSavedOrder(available: EditableMenuChild[], saved: Edit
     .sort((a, b) => a.sort_order - b.sort_order)
     .forEach((child) => {
       const availableChild = availableByUrl.get(child.url);
-      if (availableChild) usedUrls.add(child.url);
+      if (!availableChild) return;
+      usedUrls.add(child.url);
       merged.push({
-        ...(availableChild ?? child),
+        ...availableChild,
         ...child,
         key: child.key,
       });

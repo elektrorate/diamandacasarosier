@@ -122,7 +122,7 @@ export default function MediaGrid({
               <div className="media-info">
                 <strong className="media-name">{asset.original_name}</strong>
                 <p className="muted">{asset.folder} · {formatSize(asset.size)}</p>
-                <a className="media-url" href={asset.file_url} target="_blank" rel="noreferrer">
+                <a className="media-url" href={asset.file_url} target="_blank" rel="noopener noreferrer">
                   {asset.file_url}
                 </a>
               </div>

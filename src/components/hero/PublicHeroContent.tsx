@@ -47,6 +47,17 @@ export function PublicHeroContent({ hero }: { hero: CmsHeroSettings }) {
         <div className="page-hero__presentation-stage">
           <div className="page-hero__presentation-text" style={{ color: hero.heroPresentationTextColor || "#FFFFFF" }}>
             <MarkdownContent source={hero.heroPresentationText || hero.heroTitle} className="page-hero__presentation-copy" />
+            {hero.heroPresentationCtaEnabled && hero.heroPresentationCtaHref ? (
+              <a
+                className="page-hero__presentation-cta"
+                href={hero.heroPresentationCtaHref}
+                target={hero.heroPresentationCtaNewTab ? "_blank" : undefined}
+                rel={hero.heroPresentationCtaNewTab ? "noopener noreferrer" : undefined}
+                style={{ backgroundColor: hero.heroPresentationCtaBackgroundColor, color: hero.heroPresentationCtaTextColor }}
+              >
+                {hero.heroPresentationCtaLabel || "Descubrir"}
+              </a>
+            ) : null}
           </div>
           {hero.heroPresentationImage ? (
             <div className="page-hero__presentation-image">

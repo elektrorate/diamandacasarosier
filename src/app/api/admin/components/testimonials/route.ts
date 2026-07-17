@@ -7,6 +7,7 @@ import { type NextRequest, NextResponse } from "next/server";
 function refreshTestimonialViews() {
   invalidatePublicContentCache();
   revalidatePath("/", "layout");
+  revalidatePath("/el-estudio");
   revalidatePath("/admin/components/testimonials");
 }
 

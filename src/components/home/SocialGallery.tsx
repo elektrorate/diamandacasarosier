@@ -203,7 +203,7 @@ export function SocialGallery({
                   className="ig-modal__link"
                   href={currentLink}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   aria-label="Ver post en Instagram"
                 >
                   <img src="/img/icon-instagram.svg" alt="" aria-hidden="true" loading="lazy" decoding="async" />

@@ -164,7 +164,7 @@ Resultado actual:
 
 Los dos errores están en:
 
-- `scripts/check-shop.js`
+- `scripts/check-shop.mjs`
 
 El script utiliza importaciones mediante `require()`, prohibidas por la configuración actual de ESLint.
 
@@ -241,3 +241,20 @@ Estos valores son editables desde el CMS y no representan un fallo de conexión 
 - No hay 404 inesperados ni desplazamiento horizontal.
 - Los textos públicos definitivos están publicados.
 
+
+## Reauditoría final de producción
+
+Comprobación realizada sobre `https://diamandacasarosier.vercel.app` después del despliegue de producción `dpl_FuhQBCP5D8pCe9Gdz7ZPdwt8RSEZ`.
+
+- Compilación de producción y TypeScript completados correctamente en Vercel.
+- ESLint finaliza con 0 errores y 57 advertencias no bloqueantes.
+- Se revisaron las rutas públicas principales en móvil (390 px), tablet (768 px y 1024 px) y escritorio (1440 px).
+- Se revisaron páginas de detalle de clases, workshops, experiencias, Gift Cards, Shop y Bitácora.
+- No se detectaron errores ni advertencias de consola durante la navegación auditada.
+- La ruta inexistente `/ruta-que-no-existe-auditoria` devuelve estado HTTP 404.
+- No se detectó desplazamiento horizontal del documento en ninguna resolución comprobada.
+- Los elementos fuera del viewport pertenecen exclusivamente a carruseles y permanecen recortados por sus contenedores, sin ampliar el ancho del documento.
+- Los enlaces externos con `target="_blank"` utilizan `rel="noopener noreferrer"`.
+- No quedan coincidencias de textos provisionales en contenidos publicados.
+
+**Resultado:** auditoría responsive y técnica cerrada sin incidencias bloqueantes reproducibles.

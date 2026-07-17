@@ -328,7 +328,7 @@ export default function MarketingSettingsForm() {
               href={button.url}
               eventName={button.eventName}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center rounded-lg bg-surface-container-high px-4 py-2 text-label-md font-semibold text-on-surface transition hover:bg-surface-container-high/80 focus:outline-none focus:ring-2 focus:ring-primary-container"
               tracking={{ source: "admin_preview", medium: "settings_form" }}
             >

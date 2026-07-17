@@ -42,7 +42,7 @@ export function BlogDetail({
           </Link>
         </div>
       </section>
-      <section className="blog-post-nav">
+      <section className="blog-post-nav blog-post-nav--article">
         <div className="container blog-post-nav__container">
           <Link href="/blog">Volver al blog</Link>
           {adjacent.previous && (

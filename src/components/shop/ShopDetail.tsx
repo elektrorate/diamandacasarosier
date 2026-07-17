@@ -87,7 +87,7 @@ export function ShopDetail({ item }: { item: ShopItem }) {
                 className="shop-detail__button shop-detail__button--primary"
                 href="https://wa.me/34633788860"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 Comprar
               </a>

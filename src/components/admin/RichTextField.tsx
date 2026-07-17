@@ -791,7 +791,7 @@ export default function RichTextField({
             emitChange();
             updateToolbarState();
           })}
-          className={`rich-text-field__editor block w-full bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none ${className ?? ""}`}
+          className={`rich-text-field__editor block w-full bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none ${className ?? ""}`.trim()}
           style={{ minHeight }}
           suppressContentEditableWarning
           {...props}

@@ -27,3 +27,6 @@ Thumbs.db
 # local tooling metadata
 .playwright-cli/
 supabase/.temp/
+
+.vercel
+.env*

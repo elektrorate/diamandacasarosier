@@ -54,7 +54,7 @@ export function PublicFooterContent({
               className="footer-social__item"
               href="https://www.facebook.com/casarosier"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               tabIndex={isDuplicate || realIndex > 3 ? -1 : undefined}
             >
               <img
@@ -91,7 +91,7 @@ export function PublicFooterContent({
                   href={link.url}
                   aria-label={link.label || link.platform || `Red social ${index + 1}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   style={{
                     "--contact-social-bg": footer?.social_button_color || "#2f2723",
                     "--contact-social-icon": footer?.social_icon_color || "#ffffff",

@@ -7,7 +7,7 @@ import {
   getBlogPostRouteItem
 } from "@/features/blog/blogRouting";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export async function generateStaticParams() {
   return generateBlogStaticParams();

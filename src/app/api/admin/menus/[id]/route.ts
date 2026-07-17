@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { deleteMenuPermanently, duplicateMenu, getMenuById, moveMenuToTrash, restoreMenu, updateMenu } from "@/lib/cms/menus";
 import { invalidatePublicNavigationCache } from "@/lib/cms/navigation-public";
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
 
 function refreshPublicMenu() {
   invalidatePublicNavigationCache();
+  revalidatePath("/");
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {

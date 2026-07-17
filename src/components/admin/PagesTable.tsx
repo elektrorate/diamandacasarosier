@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { Page, PageType } from "@/lib/cms/types";
+import type { Page } from "@/lib/cms/types";
 import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const typeLabels: Record<string, string> = {
@@ -22,28 +22,23 @@ export default function PagesTable({ pages }: { pages: Page[] }) {
   }
 
   return (
-    <div className="table-card">
-      <table className="admin-table">
+    <div className="table-card pages-table-card">
+      <table className="admin-table pages-admin-table">
         <thead>
           <tr>
             <th>Título</th>
+            <th>Acciones</th>
             <th>Tipo</th>
             <th>Estado</th>
             <th>Header</th>
             <th>Slug</th>
             <th>Actualizado</th>
-            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {pages.map((page) => (
             <tr key={page.id}>
               <td><strong>{page.title}</strong></td>
-              <td><span className="entity-badge">{typeLabels[page.type] || page.type}</span></td>
-              <td>{page.status}</td>
-              <td>{page.header_id ? "Sí" : "—"}</td>
-              <td>/{page.slug}</td>
-              <td>{formatAdminDateTime(page.updated_at)}</td>
               <td>
                 <div className="row-actions">
                   <a className="link-btn" href={`/admin/pages/${page.id}/edit`}>Editar</a>
@@ -57,6 +52,11 @@ export default function PagesTable({ pages }: { pages: Page[] }) {
                   <button className="danger-btn" onClick={() => runAction(page.id, "trash")}>Papelera</button>
                 </div>
               </td>
+              <td><span className="entity-badge">{typeLabels[page.type] || page.type}</span></td>
+              <td>{page.status}</td>
+              <td>{page.header_id ? "Sí" : "—"}</td>
+              <td>/{page.slug}</td>
+              <td>{formatAdminDateTime(page.updated_at)}</td>
             </tr>
           ))}
         </tbody>

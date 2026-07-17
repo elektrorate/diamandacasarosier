@@ -7,8 +7,7 @@ import { useMemo, useState } from "react";
 import { BlogDetail } from "@/components/blog/BlogDetail";
 import { SocialGallery } from "@/components/home/SocialGallery";
 import type { BlogContentBlock, BlogPost as PublicBlogPost, NavigationItem } from "@/data/types";
-import type { BlogPost as CmsBlogPost, BlogPostBlock, BlogPostBlockType, BlogPostStatus } from "@/lib/cms/types";
-import { BLOG_BLOCK_TYPES } from "@/lib/cms/types";
+import type { BlogPost as CmsBlogPost, BlogPostBlock, BlogPostStatus } from "@/lib/cms/types";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import Switch from "@/components/ui/Switch";
 import AdminActionModal from "./AdminActionModal";
@@ -23,39 +22,6 @@ import { formatDate } from "@/lib/utils";
 type StepKey = "hero" | "structure" | "preview";
 
 const categoryOptions = ["Procesos", "Esmaltes", "Taller"] as const;
-const blockLabels: Record<string, string> = {
-  text: "Texto",
-  heading: "Subtítulo",
-  image: "Imagen",
-  quote: "Frase destacada",
-  gallery: "Galería",
-  list: "Lista",
-  video: "Video",
-  cta: "CTA",
-  faq: "FAQ",
-  custom_html: "HTML",
-};
-const blockTypes = BLOG_BLOCK_TYPES.filter((type) =>
-  ["text", "heading", "image", "quote", "list", "cta"].includes(type),
-);
-
-function newBlock(type: BlogPostBlockType, index: number): BlogPostBlock {
-  const now = new Date().toISOString();
-  return {
-    id: `new_${Date.now()}_${index}`,
-    type,
-    title: "",
-    text: "",
-    image_id: "",
-    source_url: "",
-    is_visible: true,
-    sort_order: index,
-    custom_html: type === "heading" ? "3" : "",
-    created_at: now,
-    updated_at: now,
-  };
-}
-
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -322,12 +288,13 @@ export default function BlogForm({
   const [slug, setSlug] = useState(item?.slug ?? "");
   const [status, setStatus] = useState<BlogPostStatus>(item?.status ?? "draft");
   const [excerpt, setExcerpt] = useState(item?.excerpt ?? "");
+  const [listingExcerpt, setListingExcerpt] = useState(item?.listing_excerpt ?? "");
   const [featuredImageId, setFeaturedImageId] = useState(item?.featured_image_id ?? "");
   const [categoryMode, setCategoryMode] = useState(hasKnownCategory ? itemCategory : "custom");
   const [customCategory, setCustomCategory] = useState(hasKnownCategory ? "" : itemCategory);
-  const [isFeatured, setIsFeatured] = useState(item?.is_featured ?? false);
-  const [featuredOrder, setFeaturedOrder] = useState(item?.featured_order ?? 0);
-  const [featuredExcerpt, setFeaturedExcerpt] = useState(item?.featured_excerpt ?? "");
+  const [isFeatured] = useState(item?.is_featured ?? false);
+  const [featuredOrder] = useState(item?.featured_order ?? 0);
+  const [featuredExcerpt] = useState(item?.featured_excerpt ?? "");
   const [visibleInListing, setVisibleInListing] = useState(item?.visible_in_listing ?? true);
   const [sortOrder, setSortOrder] = useState(item?.sort_order ?? 0);
   const [tagsInput, setTagsInput] = useState(item?.tags?.join(", ") ?? "");
@@ -339,7 +306,7 @@ export default function BlogForm({
     heroSubtitle: item?.category ?? "Bitácora",
     heroImage: item?.featured_image_id ?? item?.seo_image ?? "/img/hero-bg.jpg",
   }));
-  const [blocks, setBlocks] = useState<BlogPostBlock[]>(item?.blocks ?? []);
+  const [blocks] = useState<BlogPostBlock[]>(item?.blocks ?? []);
   const [modal, setModal] = useState<{ type: "success" | "error"; title: string; message?: string; redirectToList?: boolean } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -351,33 +318,6 @@ export default function BlogForm({
   const visibleBlockCount = blocks.filter((block) => block.is_visible).length;
   const currentCategory = categoryMode === "custom" ? customCategory.trim() : categoryMode;
   const previewPublishedAt = item?.published_at || item?.updated_at || item?.created_at || "2026-01-01T00:00:00.000Z";
-
-  function addBlock(type: BlogPostBlockType = "text") {
-    setBlocks((current) => [...current, newBlock(type, current.length)]);
-  }
-
-  function updateBlock(idx: number, key: keyof BlogPostBlock, value: BlogPostBlock[keyof BlogPostBlock]) {
-    const copy = [...blocks];
-    copy[idx] = { ...copy[idx], [key]: value };
-    setBlocks(copy);
-  }
-
-  function removeBlock(idx: number) {
-    setBlocks(blocks.filter((_, i) => i !== idx));
-  }
-
-  function duplicateBlock(idx: number) {
-    const copy = { ...blocks[idx], id: `new_${Date.now()}_${idx}` };
-    setBlocks([...blocks.slice(0, idx + 1), copy, ...blocks.slice(idx + 1)]);
-  }
-
-  function moveBlock(idx: number, dir: "up" | "down") {
-    if ((dir === "up" && idx === 0) || (dir === "down" && idx === blocks.length - 1)) return;
-    const next = [...blocks];
-    const target = dir === "up" ? idx - 1 : idx + 1;
-    [next[idx], next[target]] = [next[target], next[idx]];
-    setBlocks(next);
-  }
 
   async function save(nextStatus = status) {
     setIsLoading(true);
@@ -400,6 +340,7 @@ export default function BlogForm({
         slug,
         status: nextStatus,
         excerpt,
+        listing_excerpt: listingExcerpt.trim(),
         content: "",
         featured_image_id: featuredImageId,
         author_id: "Casa Rosier",
@@ -508,6 +449,16 @@ export default function BlogForm({
                 <TextField label="Título" required value={title} onChange={(event) => setTitle(event.target.value)} onBlur={() => { if (!slug.trim()) setSlug(slugify(title)); }} />
                 <TextField label="Slug" value={slug} help="Se genera automáticamente si lo dejas vacío." onChange={(event) => setSlug(slugify(event.target.value))} />
                 <div className="md:col-span-2">
+                  <TextField
+                    label="Extracto"
+                    value={listingExcerpt}
+                    maxLength={240}
+                    placeholder="Resumen breve para el listado"
+                    help={`${listingExcerpt.trim().split(/\s+/).filter(Boolean).length}/10 palabras. Si queda vacío, se generará desde el contenido.`}
+                    onChange={(event) => setListingExcerpt(event.target.value.trimStart().split(/\s+/).slice(0, 10).join(" "))}
+                  />
+                </div>
+                <div className="md:col-span-2">
                   <RichTextField label="Texto introductorio" required value={excerpt} onChange={setExcerpt} minHeight="170px" />
                 </div>
                 <SelectField label="Estado" value={status} onChange={(event) => setStatus(event.target.value as BlogPostStatus)}>
@@ -526,102 +477,6 @@ export default function BlogForm({
                   <MediaSelectField label="Imagen principal" value={featuredImageId} onChange={setFeaturedImageId} />
                 </div>
                 <SwitchField checked={visibleInListing} onChange={setVisibleInListing} label="Visible en listado" description="Controla si aparece en el grid principal de /blog." />
-              </div>
-            </section>
-
-            <section className="form-block cms-editor-card">
-              <div className="cms-editor-card__head">
-                <div>
-                  <p className="auth-kicker">Destacados</p>
-                  <h3>Componente superior de /blog</h3>
-                </div>
-              </div>
-              <div className="cms-featured-editor">
-                <div className="cms-featured-editor__controls">
-                  <SwitchField checked={isFeatured} onChange={setIsFeatured} label="Mostrar en destacados" description="Aparecerá en el carrusel superior de /blog." />
-                  <TextField label="Orden destacado" type="number" value={featuredOrder} onChange={(event) => setFeaturedOrder(Number(event.target.value))} />
-                  <div className="cms-featured-editor__state" data-active={isFeatured ? "true" : "false"}>
-                    <span>{isFeatured ? "Visible en destacados" : "Oculto en destacados"}</span>
-                    <strong>{featuredOrder || 0}</strong>
-                  </div>
-                </div>
-                <div className="cms-featured-editor__copy">
-                  <RichTextField label="Texto para destacado" value={featuredExcerpt} onChange={setFeaturedExcerpt} placeholder={excerpt} minHeight="170px" />
-                </div>
-              </div>
-            </section>
-
-            <section className="form-block cms-editor-card">
-              <div className="cms-editor-card__head">
-                <div>
-                  <p className="auth-kicker">Cuerpo</p>
-                  <h3>Bloques de contenido</h3>
-                </div>
-                <div className="row-actions">
-                  {blockTypes.map((type) => (
-                    <button key={type} type="button" className="secondary-btn" onClick={() => addBlock(type)}>{blockLabels[type]}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4">
-                {blocks.length === 0 ? (
-                  <div className="empty-inline">
-                    <strong>No hay bloques todavía.</strong>
-                    <span>Agrega texto, subtítulos, frases o imágenes para construir la página.</span>
-                  </div>
-                ) : blocks.map((block, idx) => (
-                  <article key={block.id} className="cms-block-card">
-                    <header className="cms-block-card__head">
-                      <div>
-                        <span className="entity-badge">{blockLabels[block.type]}</span>
-                        <strong>{block.title || block.text.slice(0, 70) || `Bloque ${idx + 1}`}</strong>
-                      </div>
-                      <div className="row-actions">
-                        <button type="button" className="secondary-btn icon-btn" onClick={() => moveBlock(idx, "up")} disabled={idx === 0} aria-label="Subir bloque"><span className="material-symbols-outlined">arrow_upward</span></button>
-                        <button type="button" className="secondary-btn icon-btn" onClick={() => moveBlock(idx, "down")} disabled={idx === blocks.length - 1} aria-label="Bajar bloque"><span className="material-symbols-outlined">arrow_downward</span></button>
-                        <button type="button" className="secondary-btn" onClick={() => duplicateBlock(idx)}>Duplicar</button>
-                        <button type="button" className="danger-btn" onClick={() => removeBlock(idx)}>Eliminar</button>
-                      </div>
-                    </header>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <SelectField label="Tipo de bloque" value={block.type} onChange={(event) => updateBlock(idx, "type", event.target.value as BlogPostBlockType)}>
-                        {blockTypes.map((type) => <option key={type} value={type}>{blockLabels[type]}</option>)}
-                      </SelectField>
-                      <SwitchField checked={block.is_visible} onChange={(checked) => updateBlock(idx, "is_visible", checked)} label="Visible" />
-                      {block.type === "heading" ? (
-                        <>
-                          <SelectField label="Nivel" value={block.custom_html || "3"} onChange={(event) => updateBlock(idx, "custom_html", event.target.value)}>
-                            <option value="2">H2</option>
-                            <option value="3">H3</option>
-                          </SelectField>
-                          <TextField label="Subtítulo" value={block.title} onChange={(event) => updateBlock(idx, "title", event.target.value)} />
-                        </>
-                      ) : null}
-                      {block.type === "text" || block.type === "quote" || block.type === "list" ? (
-                        <RichTextField
-                          label={block.type === "quote" ? "Frase" : block.type === "list" ? "Elementos" : "Texto"}
-                          value={block.text}
-                          placeholder={block.type === "list" ? "Un elemento por línea." : undefined}
-                          onChange={(value) => updateBlock(idx, "text", value)}
-                          className="md:col-span-2"
-                          minHeight={block.type === "text" ? "220px" : "150px"}
-                        />
-                      ) : null}
-                      {block.type === "image" ? (
-                        <>
-                          <div className="md:col-span-2"><MediaSelectField label="Imagen" value={block.image_id} onChange={(url) => updateBlock(idx, "image_id", url)} /></div>
-                          <TextField label="Alt / título de imagen" value={block.title} onChange={(event) => updateBlock(idx, "title", event.target.value)} className="md:col-span-2" />
-                        </>
-                      ) : null}
-                      {block.type === "cta" ? (
-                        <>
-                          <TextField label="Texto del botón" value={block.title} onChange={(event) => updateBlock(idx, "title", event.target.value)} />
-                          <TextField label="URL" value={block.source_url} onChange={(event) => updateBlock(idx, "source_url", event.target.value)} />
-                        </>
-                      ) : null}
-                    </div>
-                  </article>
-                ))}
               </div>
             </section>
 

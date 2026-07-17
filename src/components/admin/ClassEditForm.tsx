@@ -30,7 +30,7 @@ import type {
   OfferingPriceOption,
 } from "@/lib/cms/types";
 
-type TabKey = "hero" | "home" | "basic" | "schedule" | "content" | "seo" | "additions" | "preview";
+type TabKey = "hero" | "home" | "basic" | "schedule" | "seo" | "additions" | "preview";
 type PickerTarget = "hero" | "home" | "presentation" | "title" | "titleSecondary" | "gallery" | `gallery:${number}` | "seo" | "videoPoster" | null;
 type UploadTarget = Exclude<PickerTarget, "gallery" | null> | "gallery:new";
 type SaveIntent = "draft" | "publish";
@@ -60,19 +60,25 @@ const tabs: { key: TabKey; label: string }[] = [
   { key: "home", label: "Tarjeta para Home" },
   { key: "basic", label: "Página detallada" },
   { key: "schedule", label: "Horario" },
-  { key: "content", label: "Contenido" },
   { key: "seo", label: "SEO" },
   { key: "additions", label: "Adiciones" },
   { key: "preview", label: "Vista previa" },
 ];
 
 const defaultClassDetails: ClassOfferingDetails = {
+  menuTitle: "",
   heroVariant: "text",
   heroTitle: "",
   heroSubtitle: "",
   heroPresentationText: "",
   heroPresentationTextColor: "#FFFFFF",
   heroPresentationImage: "",
+  heroPresentationCtaEnabled: false,
+  heroPresentationCtaLabel: "Descubrir",
+  heroPresentationCtaHref: "",
+  heroPresentationCtaNewTab: false,
+  heroPresentationCtaBackgroundColor: "#FFFFFF",
+  heroPresentationCtaTextColor: "#3f3933",
   heroMenuTone: "dark",
   heroMenuColor: "#3f3933",
   heroMenuScale: 1,
@@ -347,6 +353,7 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
   return {
     ...defaultClassDetails,
     ...fromDetails,
+    menuTitle: firstText(fromDetails.menuTitle, offering.title),
     heroVariant,
     heroMenuTone: fromDetails.heroMenuTone === "light" || fromDetails.heroMenuTone === "dark"
       ? fromDetails.heroMenuTone
@@ -377,6 +384,12 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
     heroPresentationText: firstText(fromDetails.heroPresentationText),
     heroPresentationTextColor: firstText(fromDetails.heroPresentationTextColor, defaultClassDetails.heroPresentationTextColor),
     heroPresentationImage: firstText(fromDetails.heroPresentationImage),
+    heroPresentationCtaEnabled: Boolean(fromDetails.heroPresentationCtaEnabled),
+    heroPresentationCtaLabel: firstText(fromDetails.heroPresentationCtaLabel, defaultClassDetails.heroPresentationCtaLabel),
+    heroPresentationCtaHref: firstText(fromDetails.heroPresentationCtaHref),
+    heroPresentationCtaNewTab: Boolean(fromDetails.heroPresentationCtaNewTab),
+    heroPresentationCtaBackgroundColor: firstText(fromDetails.heroPresentationCtaBackgroundColor, defaultClassDetails.heroPresentationCtaBackgroundColor),
+    heroPresentationCtaTextColor: firstText(fromDetails.heroPresentationCtaTextColor, defaultClassDetails.heroPresentationCtaTextColor),
     highlightDescription: firstText(fromDetails.highlightDescription, fromDetails.introHighlight, offering.excerpt),
     homeCard: {
       image: firstText(persistedHomeCard.image),
@@ -684,6 +697,12 @@ function buildPreviewItem({
     heroPresentationText: details.heroPresentationText,
     heroPresentationTextColor: details.heroPresentationTextColor,
     heroPresentationImage: details.heroPresentationImage,
+    heroPresentationCtaEnabled: details.heroPresentationCtaEnabled,
+    heroPresentationCtaLabel: details.heroPresentationCtaLabel,
+    heroPresentationCtaHref: details.heroPresentationCtaHref,
+    heroPresentationCtaNewTab: details.heroPresentationCtaNewTab,
+    heroPresentationCtaBackgroundColor: details.heroPresentationCtaBackgroundColor,
+    heroPresentationCtaTextColor: details.heroPresentationCtaTextColor,
     heroTitle: details.heroTitle || title || "Título del hero",
     listingTitle: title || "Título del producto",
     listingSubtitle: details.heroSubtitle || "",
@@ -1088,8 +1107,8 @@ export default function ClassEditForm({
   function errorTab(errorKey: string): TabKey {
     if (errorKey === "heroTitle") return "hero";
     if (errorKey.startsWith("schedule-")) return "schedule";
-    if (errorKey.startsWith("pricing-") || errorKey === "title" || errorKey === "slug" || errorKey === "whatsappNumber") return "basic";
-    if (errorKey.startsWith("gallery-")) return "content";
+    if (errorKey.startsWith("pricing-") || errorKey === "menuTitle" || errorKey === "title" || errorKey === "slug" || errorKey === "whatsappNumber") return "basic";
+    if (errorKey.startsWith("gallery-")) return "basic";
     return "basic";
   }
 
@@ -1107,8 +1126,9 @@ export default function ClassEditForm({
   }
 
   function errorLabel(errorKey: string) {
-    if (errorKey === "title") return "Información básica - Título interno";
-    if (errorKey === "slug") return "Información básica - Slug (URL)";
+    if (errorKey === "title") return "Información básica - Etiqueta interna";
+    if (errorKey === "menuTitle") return "Información básica - Título del menú";
+    if (errorKey === "slug") return "Información básica - Slug";
     if (errorKey === "heroTitle") return "Hero - Título del hero";
     if (errorKey === "whatsappNumber") return "Información básica - WhatsApp";
 
@@ -1116,7 +1136,7 @@ export default function ClassEditForm({
     if (pricing) return `Información básica - Precio ${Number(pricing[1]) + 1}`;
 
     const gallery = errorKey.match(/^gallery-(\d+)$/);
-    if (gallery) return `Adiciones - Imagen de galería ${Number(gallery[1]) + 1}`;
+    if (gallery) return `Página detallada - Imagen de galería ${Number(gallery[1]) + 1}`;
 
     const schedule = errorKey.match(/^schedule-(date|end|seats)-(\d+)$/);
     if (schedule) return `Horario - Día ${Number(schedule[2]) + 1}`;
@@ -1130,7 +1150,8 @@ export default function ClassEditForm({
 
   function validate() {
     const nextErrors: Record<string, string> = {};
-    if (!title.trim()) nextErrors.title = "El título es obligatorio.";
+    if (!details.menuTitle.trim()) nextErrors.menuTitle = "El título del menú es obligatorio.";
+    if (!title.trim()) nextErrors.title = "La etiqueta interna es obligatoria.";
     if (!slug.trim()) nextErrors.slug = "El slug es obligatorio.";
     if (details.heroVariant === "text" && !details.heroTitle.trim()) nextErrors.heroTitle = "Agrega el título del hero.";
     if (details.heroVariant === "presentation" && !details.heroPresentationText.trim()) nextErrors.heroTitle = "Agrega el texto de presentación.";
@@ -1485,16 +1506,16 @@ export default function ClassEditForm({
               <h2 className="text-headline-sm text-on-surface">Información básica</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 <TextField
-                  label="Título interno"
+                  label="Título del menú"
                   required
-                  value={title}
-                  error={errors.title}
-                  validationKey="title"
-                  onChange={(event) => { setTitle(event.target.value); setIsDirty(true); }}
-                  onBlur={() => { if (!slug.trim()) setSlug(slugify(title)); }}
+                  value={details.menuTitle}
+                  error={errors.menuTitle}
+                  validationKey="menuTitle"
+                  help="Nombre visible de esta página dentro del menú público."
+                  onChange={(event) => updateDetails({ menuTitle: event.target.value })}
                 />
                 <TextField
-                  label="Slug (URL)"
+                  label="Slug"
                   required
                   value={slug}
                   error={errors.slug}
@@ -1502,9 +1523,24 @@ export default function ClassEditForm({
                   help="Si el slug ya existe, se agregará automáticamente un número al final."
                   onChange={(event) => { setSlug(slugify(event.target.value)); setIsDirty(true); }}
                 />
+                <TextField
+                  label="Etiqueta interna"
+                  required
+                  value={title}
+                  error={errors.title}
+                  validationKey="title"
+                  help="Nombre administrativo de la página."
+                  onChange={(event) => { setTitle(event.target.value); setIsDirty(true); }}
+                  onBlur={() => { if (!slug.trim()) setSlug(slugify(title)); }}
+                />
+                <TextField
+                  label="Título de página"
+                  value={subtitle}
+                  help="Título grande (H1) que se muestra en la página pública."
+                  onChange={(event) => { setSubtitle(event.target.value); setIsDirty(true); }}
+                />
               </div>
-              <TextField label="Título del producto en página" value={subtitle} onChange={(event) => { setSubtitle(event.target.value); setIsDirty(true); }} />
-              <RichTextField label="Texto remarcado café" value={details.highlightDescription} onChange={(value) => updateDetails({ highlightDescription: value })} minHeight="150px" />
+              <RichTextField label="Texto remarcado (café)" value={details.highlightDescription} onChange={(value) => updateDetails({ highlightDescription: value })} minHeight="150px" />
               <RichTextField label="Texto normal / descripción" value={description} onChange={(value) => { setDescription(value); setIsDirty(true); }} minHeight="220px" />
               <div className="grid gap-4 md:grid-cols-2">
                 <TextField label="Duración" value={details.durationText} placeholder="Sesiones de 2 h." onChange={(event) => updateDetails({ durationText: event.target.value })} />
@@ -1622,7 +1658,7 @@ export default function ClassEditForm({
           </>
         ) : null}
 
-        {activeTab === "content" ? (
+        {activeTab === "basic" ? (
           <>
             <Card padding="lg" className="space-y-5 rounded-2xl">
               <h2 className="text-headline-sm text-on-surface">Galería, video e incluye</h2>
@@ -1640,7 +1676,7 @@ export default function ClassEditForm({
                 onCheckedChange={(checked) => updateDetails({ showIncludedSection: checked })}
               />
               <div className="grid gap-4 md:grid-cols-[1fr_260px]">
-                <TextField label="Video URL" value={details.videoUrl} placeholder="https://..." onChange={(event) => updateDetails({ videoUrl: event.target.value })} />
+                <TextField label="URL / Fuente del video" value={details.videoUrl} placeholder="https://..." onChange={(event) => updateDetails({ videoUrl: event.target.value })} />
                 <div>
                   <FieldLabel>Poster del video</FieldLabel>
                   <ImagePreview src={details.videoPoster} alt="Poster de video" />
