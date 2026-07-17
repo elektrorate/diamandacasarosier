@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Política de privacidad de Casa Rosier."
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export default function PrivacyPage() {
   return <PrivacyPolicyPage />;
