@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createMenu, getMenus } from "@/lib/cms/menus";
+import { invalidatePublicNavigationCache } from "@/lib/cms/navigation-public";
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
 
 export async function GET(request: NextRequest) {
@@ -20,6 +22,8 @@ export async function POST(request: NextRequest) {
   if (!body?.name) return NextResponse.json({ error: "El nombre es obligatorio." }, { status: 400 });
   try {
     const menu = await createMenu(body);
+    invalidatePublicNavigationCache();
+    revalidatePath("/");
     return NextResponse.json({ menu });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al crear menú" }, { status: 400 });

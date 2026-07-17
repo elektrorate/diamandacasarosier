@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { addMenuItem, deleteMenuItem, reorderMenuItems, updateMenuItem } from "@/lib/cms/menus";
 import { invalidatePublicNavigationCache } from "@/lib/cms/navigation-public";
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     const item = await addMenuItem((await context.params).id, body);
     if (!item) return NextResponse.json({ error: "Menú no encontrado" }, { status: 404 });
     invalidatePublicNavigationCache();
+    revalidatePath("/");
     return NextResponse.json({ item });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al crear item" }, { status: 400 });
@@ -26,6 +28,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     const items = await reorderMenuItems((await context.params).id, body.orderedItemIds);
     if (!items) return NextResponse.json({ error: "Menú no encontrado" }, { status: 404 });
     invalidatePublicNavigationCache();
+    revalidatePath("/");
     return NextResponse.json({ items });
   }
   const { itemId, ...data } = body;
@@ -34,6 +37,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     const updated = await updateMenuItem((await context.params).id, itemId, data);
     if (!updated) return NextResponse.json({ error: "Item no encontrado" }, { status: 404 });
     invalidatePublicNavigationCache();
+    revalidatePath("/");
     return NextResponse.json({ item: updated });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al actualizar item" }, { status: 400 });
@@ -49,6 +53,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     const deleted = await deleteMenuItem((await context.params).id, itemId);
     if (!deleted) return NextResponse.json({ error: "Item no encontrado" }, { status: 404 });
     invalidatePublicNavigationCache();
+    revalidatePath("/");
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al eliminar item" }, { status: 400 });

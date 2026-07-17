@@ -6,8 +6,7 @@ export const metadata: Metadata = {
   description: "Studio de ceramica en Barcelona"
 };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 900;
 
 export default function HomePage() {
   return <HomeScreen />;
