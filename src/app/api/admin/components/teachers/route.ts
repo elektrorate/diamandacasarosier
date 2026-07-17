@@ -1,6 +1,13 @@
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
 import { createTeacher, getTeachers } from "@/lib/cms/teachers";
+import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+
+function refreshTeacherViews() {
+  revalidatePath("/el-estudio");
+  revalidatePath("/admin/estudio");
+  revalidatePath("/admin/components/teachers");
+}
 
 export async function GET(request: NextRequest) {
   if (!(await requireAdminApi())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -11,6 +18,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   if (!(await requireAdminApi())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await request.json(); if (!body?.name) return NextResponse.json({ error: "El nombre es obligatorio." }, { status: 400 });
-  try { const item = await createTeacher(body); return NextResponse.json({ teacher: item }); }
+  try { const item = await createTeacher(body); refreshTeacherViews(); return NextResponse.json({ teacher: item }); }
   catch (err) { return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 400 }); }
 }
