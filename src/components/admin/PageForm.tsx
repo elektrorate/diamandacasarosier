@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { FooterComponent, Header, Page, PageFaqSection, SocialGallery, Testimonial } from "@/lib/cms/types";
 import { PAGE_TYPES } from "@/lib/cms/types";
 import MediaSelectField from "./MediaSelectField";
@@ -12,7 +12,25 @@ const typeLabels: Record<string, string> = {
   privacy: "Privacidad", cookies: "Cookies", legal: "Legal", custom: "Custom",
 };
 
-export default function PageForm({ mode, page, faqSection }: { mode: "create" | "edit"; page?: Page; faqSection?: PageFaqSection | null }) {
+type PageFormProps = {
+  mode: "create" | "edit";
+  page?: Page;
+  faqSection?: PageFaqSection | null;
+  headers?: Header[];
+  socialGalleries?: SocialGallery[];
+  testimonials?: Testimonial[];
+  footers?: FooterComponent[];
+};
+
+export default function PageForm({
+  mode,
+  page,
+  faqSection,
+  headers = [],
+  socialGalleries = [],
+  testimonials = [],
+  footers = [],
+}: PageFormProps) {
   const router = useRouter();
   const [form, setForm] = useState({
     title: page?.title ?? "",
@@ -27,32 +45,10 @@ export default function PageForm({ mode, page, faqSection }: { mode: "create" | 
     seo_description: page?.seo_description ?? "",
     seo_image: page?.seo_image ?? "",
   });
-  const [headers, setHeaders] = useState<Header[]>([]);
-  const [socialGalleries, setSocialGalleries] = useState<SocialGallery[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [footers, setFooters] = useState<FooterComponent[]>([]);
   const [faqDraft, setFaqDraft] = useState(() => createPageFaqDraft(faqSection));
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/admin/headers")
-      .then((r) => r.json())
-      .then((data) => setHeaders(data.headers ?? []))
-      .catch(() => {});
-    fetch("/api/admin/components/social-galleries")
-      .then((r) => r.json())
-      .then((data) => setSocialGalleries(data.items ?? data.galleries ?? []))
-      .catch(() => {});
-    fetch("/api/admin/components/testimonials")
-      .then((r) => r.json())
-      .then((data) => setTestimonials(data.items ?? data.testimonials ?? []))
-      .catch(() => {});
-    fetch("/api/admin/components/footers")
-      .then((r) => r.json())
-      .then((data) => setFooters(data.items ?? data.footers ?? []))
-      .catch(() => {});
-  }, []);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));

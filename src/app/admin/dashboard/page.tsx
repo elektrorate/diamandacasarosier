@@ -4,22 +4,20 @@ import AdminShell from "@/components/admin/AdminShell";
 import TopBar from "@/components/layout/TopBar";
 import MetricCard from "@/components/ui/MetricCard";
 import Card from "@/components/ui/Card";
-import { getOfferings } from "@/lib/cms/offerings";
-import { getPages } from "@/lib/cms/pages";
-import { getFormSubmissions } from "@/lib/cms/form-submissions";
+import { getDashboardMetrics } from "@/lib/cms/dashboard-metrics";
 import { getRecentHistoryLogs } from "@/lib/cms/history-logs";
 import { requireAdminProfile } from "@/lib/auth/supabase-auth";
 import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const activityLabels: Record<string, string> = {
-  create: "Creacion",
-  update: "Actualizacion",
-  publish: "Publicacion",
+  create: "Creaci?n",
+  update: "Actualizaci?n",
+  publish: "Publicaci?n",
   unpublish: "Cambio a borrador",
   archive: "Archivo",
   trash: "Papelera",
-  restore: "Restauracion",
-  delete_permanently: "Eliminacion",
+  restore: "Restauraci?n",
+  delete_permanently: "Eliminaci?n",
   duplicate: "Duplicado",
 };
 
@@ -27,25 +25,18 @@ export default async function DashboardPage() {
   const session = await requireAdminProfile();
   if (!session) redirect("/auth");
 
-  const [offerings, pages, messages, historyLogs] = await Promise.all([
-    getOfferings(),
-    getPages(),
-    getFormSubmissions(),
+  const [metrics, historyLogs] = await Promise.all([
+    getDashboardMetrics(),
     getRecentHistoryLogs(5),
   ]);
 
-  const activePages = pages.filter((p) => p.status !== "deleted");
-  const classes = offerings.filter((o) => o.type === "class" && o.status !== "deleted");
-  const workshops = offerings.filter((o) => o.type === "workshop" && o.status !== "deleted");
-  const activeMessages = messages.filter((m) => m.status !== "deleted");
-  const unreadMessages = activeMessages.filter((m) => m.status === "new");
   const recentActivity = historyLogs;
 
   return (
     <AdminShell>
       <TopBar
         title="Dashboard"
-        subtitle="Bienvenido al panel de administración de Casa Rosier"
+        subtitle="Bienvenido al panel de administraci?n de Casa Rosier"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-section-gap">
@@ -53,48 +44,48 @@ export default async function DashboardPage() {
           icon="web"
           iconBg="bg-surface-container-high"
           iconClassName="text-primary"
-          value={activePages.length}
-          label="Páginas"
+          value={metrics.activePages}
+          label="P?ginas"
           footer={
             <>
               <span className="material-symbols-outlined text-xs mr-1">public</span>
-              {activePages.filter((p) => p.status === "published").length} publicadas
+              {metrics.publishedPages} publicadas
             </>
           }
         />
         <MetricCard
           icon="school"
           iconBg="bg-primary-container"
-          value={classes.length}
+          value={metrics.activeClasses}
           label="Clases"
           footer={
             <>
               <span className="material-symbols-outlined text-xs mr-1">check_circle</span>
-              {classes.filter((o) => o.status === "published").length} visibles
+              {metrics.publishedClasses} visibles
             </>
           }
         />
         <MetricCard
           icon="description"
           iconBg="bg-tertiary-container"
-          value={workshops.length}
+          value={metrics.activeWorkshops}
           label="Workshops"
           footer={
             <>
               <span className="material-symbols-outlined text-xs mr-1">check_circle</span>
-              {workshops.filter((o) => o.status === "published").length} visibles
+              {metrics.publishedWorkshops} visibles
             </>
           }
         />
         <MetricCard
           icon="mail"
           iconBg="bg-secondary-container"
-          value={activeMessages.length}
+          value={metrics.activeMessages}
           label="Mensajes"
           footer={
             <>
               <span className="material-symbols-outlined text-xs mr-1">mark_email_unread</span>
-              {unreadMessages.length} nuevos
+              {metrics.unreadMessages} nuevos
             </>
           }
         />
@@ -126,7 +117,7 @@ export default async function DashboardPage() {
                     <div className="font-semibold text-on-surface truncate">{item.entity_title}</div>
                     <div className="flex flex-wrap items-center gap-2 text-label-md text-on-surface-variant mt-0.5">
                       <span>{activityLabels[item.action] ?? item.action}</span>
-                      <span aria-hidden="true">·</span>
+                      <span aria-hidden="true">?</span>
                       <span>{formatAdminDateTime(item.created_at)}</span>
                     </div>
                   </div>
@@ -135,7 +126,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="p-8 text-center text-on-surface-variant">
-              No hay actividad reciente registrada todavía.
+              No hay actividad reciente registrada todav?a.
             </div>
           )}
         </Card>

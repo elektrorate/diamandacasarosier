@@ -74,7 +74,9 @@ function mediaAssetToRow(a: MediaAsset): Record<string, unknown> {
 async function readAllFromSupabase(): Promise<MediaAsset[] | null> {
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.from(TABLE).select("*");
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("id,file_name,original_name,file_url,file_type,mime_type,size,alt_text,title,description,folder,tags,status,created_at,updated_at,deleted_at");
     if (error) throw error;
     if (!data || data.length === 0) return null;
     return (data as Array<Record<string, unknown>>).map(rowToMediaAsset);
@@ -236,12 +238,20 @@ async function deleteFileFromStorage(filePath: string): Promise<boolean> {
 
 // ── Public API ──
 
-export async function getMediaAssets() {
+export async function getMediaAssets(options: { includeStorage?: boolean } = {}) {
   const fromSupabase = await readAllFromSupabase();
   const registeredAssets = fromSupabase ?? await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const storageAssets = await listStorageFiles();
 
+  if (!options.includeStorage) {
+    return uniqueAssets(registeredAssets);
+  }
+
+  const storageAssets = await listStorageFiles();
   return uniqueAssets([...registeredAssets, ...storageAssets]);
+}
+
+export async function getMediaAssetsWithStorageScan() {
+  return getMediaAssets({ includeStorage: true });
 }
 
 export async function getMediaAssetById(id: string) {
