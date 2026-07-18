@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { MediaAsset } from "@/lib/cms/types";
 
@@ -33,11 +32,12 @@ function isAbsoluteUrl(url: string) {
 export default function MediaGrid({
   assets,
   onSelect,
+  onDeleted,
 }: {
   assets: MediaAsset[];
   onSelect?: (url: string) => void;
+  onDeleted?: (asset: MediaAsset) => void;
 }) {
-  const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -67,7 +67,7 @@ export default function MediaGrid({
 
       if (response.ok) {
         showToast({ type: "success", message: "Foto eliminada correctamente." });
-        router.refresh();
+        onDeleted?.(asset);
         return;
       }
 
@@ -106,7 +106,7 @@ export default function MediaGrid({
               <div className="media-preview relative">
                 {isPhoto ? (
                   isAbsoluteUrl(asset.file_url) ? (
-                    <img src={asset.file_url} alt={asset.alt_text || asset.original_name} className="media-img-preview" />
+                    <img src={asset.file_url} alt={asset.alt_text || asset.original_name} className="media-img-preview" loading="lazy" decoding="async" />
                   ) : (
                     <Image src={asset.file_url} alt={asset.alt_text || asset.original_name} fill sizes="220px" className="object-cover" unoptimized />
                   )

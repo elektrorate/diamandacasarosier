@@ -1,14 +1,12 @@
 import { randomUUID } from "crypto";
 import { createAdminClient } from "../supabase/admin";
 import { addTrashItem, getCurrentUserEmail, getTrashItemByEntity, removeTrashItem } from "./trash";
-import { readJsonFile, writeJsonFile } from "./local-storage";
 import { isMediaFolder, isMediaStatus } from "./types";
 import type { MediaAsset } from "./types";
 import { logAction } from "./history-logs";
 
 const TABLE = "media_assets";
 const STORAGE_BUCKET = "media";
-const FILE_NAME = "media.json";
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "avif"]);
 const MEDIA_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "mp4", "webm", "mov", "m4v", "pdf"]);
 
@@ -23,6 +21,30 @@ function storagePathFromAssetId(id: string) {
 type MediaInput = Partial<Omit<MediaAsset, "id" | "created_at" | "updated_at" | "deleted_at">> & {
   id?: string;
 };
+
+export type MediaTypeFilter = "all" | "image" | "video" | "document";
+export type MediaSort = "newest" | "oldest" | "name";
+
+export interface MediaListOptions {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  folder?: string;
+  status?: MediaAsset["status"];
+  type?: MediaTypeFilter;
+  sort?: MediaSort;
+}
+
+export interface MediaListResult {
+  assets: MediaAsset[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+const MEDIA_LIST_PAGE_SIZE = 24;
+const MEDIA_LIST_MAX_PAGE_SIZE = 48;
 
 function normalizeAsset(input: MediaInput, existing?: MediaAsset) {
   const now = new Date().toISOString();
@@ -207,12 +229,6 @@ async function getStorageAssetByPath(filePath: string): Promise<MediaAsset | nul
   }
 }
 
-async function upsertMediaAsset(a: MediaAsset): Promise<void> {
-  try {
-    const supabase = createAdminClient();
-    await supabase.from(TABLE).upsert(mediaAssetToRow(a), { onConflict: "id" });
-  } catch { /* best-effort */ }
-}
 
 async function deleteAssetFromDb(id: string, fileName?: string): Promise<void> {
   try {
@@ -236,12 +252,66 @@ async function deleteFileFromStorage(filePath: string): Promise<boolean> {
 
 // ── Public API ──
 
+export async function listMediaAssets(options: MediaListOptions = {}): Promise<MediaListResult> {
+  const requestedPage = Number.isFinite(options.page) ? Math.trunc(options.page ?? 1) : 1;
+  const requestedPageSize = Number.isFinite(options.pageSize) ? Math.trunc(options.pageSize ?? MEDIA_LIST_PAGE_SIZE) : MEDIA_LIST_PAGE_SIZE;
+  const page = Math.max(1, requestedPage);
+  const pageSize = Math.min(MEDIA_LIST_MAX_PAGE_SIZE, Math.max(1, requestedPageSize));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const search = options.search?.trim().slice(0, 120) ?? "";
+  const sort = options.sort ?? "newest";
+  const supabase = createAdminClient();
+
+  let query = supabase
+    .from(TABLE)
+    .select("*", { count: "exact" })
+    .eq("status", options.status ?? "active");
+
+  if (options.folder) query = query.eq("folder", options.folder);
+  if (search) query = query.ilike("original_name", `%${search}%`);
+
+  if (options.type === "image") {
+    query = query.in("file_type", Array.from(IMAGE_EXTENSIONS));
+  } else if (options.type === "video") {
+    query = query.in("file_type", ["mp4", "webm", "mov", "m4v"]);
+  } else if (options.type === "document") {
+    query = query.eq("file_type", "pdf");
+  }
+
+  if (sort === "oldest") {
+    query = query.order("created_at", { ascending: true }).order("id", { ascending: true });
+  } else if (sort === "name") {
+    query = query.order("original_name", { ascending: true }).order("id", { ascending: true });
+  } else {
+    query = query.order("created_at", { ascending: false }).order("id", { ascending: false });
+  }
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw error;
+
+  const total = count ?? 0;
+  return {
+    assets: ((data ?? []) as Array<Record<string, unknown>>).map(rowToMediaAsset),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}
+
 export async function getMediaAssets() {
   const fromSupabase = await readAllFromSupabase();
-  const registeredAssets = fromSupabase ?? await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const storageAssets = await listStorageFiles();
+  return uniqueAssets(fromSupabase ?? []);
+}
 
-  return uniqueAssets([...registeredAssets, ...storageAssets]);
+export async function getUnregisteredStorageAssets() {
+  const [registeredAssets, storageAssets] = await Promise.all([
+    readAllFromSupabase(),
+    listStorageFiles(),
+  ]);
+  const registeredNames = new Set((registeredAssets ?? []).map((asset) => asset.file_name));
+  return storageAssets.filter((asset) => !registeredNames.has(asset.file_name));
 }
 
 export async function getMediaAssetById(id: string) {
@@ -262,76 +332,55 @@ export async function getMediaAssetById(id: string) {
     return data as Record<string, unknown> | null;
   });
   if (result) return result;
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  return assets.find((a) => a.id === id) ?? null;
+  return null;
+
 }
 
 export async function createMediaAsset(data: MediaInput) {
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
   const next = normalizeAsset(data);
-  await writeJsonFile(FILE_NAME, [next, ...assets]);
-  await upsertMediaAsset(next);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from(TABLE).insert(mediaAssetToRow(next));
+  if (error) throw error;
   await logAction({ action: "create", entity_type: "media", entity_id: next.id, entity_title: next.original_name || next.file_name, new_data: next });
   return next;
 }
 
 export async function updateMediaAsset(id: string, data: MediaInput) {
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const index = assets.findIndex((a) => a.id === id);
-  if (index === -1) return null;
-  const old = assets[index];
-  const next = normalizeAsset(data, old);
-  assets[index] = next;
-  await writeJsonFile(FILE_NAME, assets);
-  await upsertMediaAsset(next);
-  await logAction({ action: "update", entity_type: "media", entity_id: next.id, entity_title: next.original_name || next.file_name, old_data: old, new_data: next });
+  const current = await getMediaAssetById(id);
+  if (!current) return null;
+  const next = normalizeAsset(data, current);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from(TABLE).update(mediaAssetToRow(next)).eq("id", current.id);
+  if (error) throw error;
+  await logAction({ action: "update", entity_type: "media", entity_id: next.id, entity_title: next.original_name || next.file_name, old_data: current, new_data: next });
   return next;
 }
 
 export async function deleteMediaAsset(id: string) {
-  const storagePath = storagePathFromAssetId(id);
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const localItem = assets.find((a) => a.id === id || (storagePath ? a.file_name === storagePath : false));
-  const asset = localItem ?? await getMediaAssetById(id);
-
+  const asset = await getMediaAssetById(id);
   if (!asset) return false;
 
   const storageDeleted = await deleteFileFromStorage(asset.file_name);
   if (!storageDeleted) return false;
 
-  const next = assets.filter((a) => a.id !== asset.id && a.id !== id && a.file_name !== asset.file_name);
-  if (next.length !== assets.length) {
-    await writeJsonFile(FILE_NAME, next);
-  }
-
   await deleteAssetFromDb(asset.id, asset.file_name);
-
   const trashItem = await getTrashItemByEntity(asset.id);
-  if (trashItem) {
-    await removeTrashItem(trashItem.id);
-  }
+  if (trashItem) await removeTrashItem(trashItem.id);
 
   await logAction({ action: "delete_permanently", entity_type: "media", entity_id: asset.id, entity_title: asset.original_name || asset.file_name, old_data: asset });
   return true;
 }
 
 export async function moveMediaToTrash(id: string, deletedBy?: string) {
-  const dBy = deletedBy ?? await getCurrentUserEmail();
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const index = assets.findIndex((a) => a.id === id);
-  if (index === -1) return null;
+  const current = await getMediaAssetById(id);
+  if (!current) return null;
 
-  const current = assets[index];
+  const dBy = deletedBy ?? await getCurrentUserEmail();
   const deletedAt = new Date().toISOString();
-  const trashed: MediaAsset = {
-    ...current,
-    status: "deleted",
-    deleted_at: deletedAt,
-    updated_at: deletedAt,
-  };
-  assets[index] = trashed;
-  await writeJsonFile(FILE_NAME, assets);
-  await upsertMediaAsset(trashed);
+  const trashed: MediaAsset = { ...current, status: "deleted", deleted_at: deletedAt, updated_at: deletedAt };
+  const supabase = createAdminClient();
+  const { error } = await supabase.from(TABLE).update(mediaAssetToRow(trashed)).eq("id", current.id);
+  if (error) throw error;
 
   await addTrashItem({
     id: randomUUID(),
@@ -347,33 +396,24 @@ export async function moveMediaToTrash(id: string, deletedBy?: string) {
 }
 
 export async function restoreMediaAsset(id: string) {
-  const assets = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-  const index = assets.findIndex((a) => a.id === id);
-  const trashItem = await getTrashItemByEntity(id);
+  const [current, trashItem] = await Promise.all([
+    getMediaAssetById(id),
+    getTrashItemByEntity(id),
+  ]);
+  if (!current && !trashItem) return null;
 
-  if (index === -1 && !trashItem) return null;
+  const source = trashItem?.restore_data && typeof trashItem.restore_data === "object"
+    ? trashItem.restore_data as MediaAsset
+    : current as MediaAsset;
+  const restored: MediaAsset = { ...source, status: "active", deleted_at: null, updated_at: new Date().toISOString() };
+  const supabase = createAdminClient();
+  const { error } = await supabase.from(TABLE).upsert(mediaAssetToRow(restored), { onConflict: "id" });
+  if (error) throw error;
 
-  const restored = trashItem?.restore_data && typeof trashItem.restore_data === "object"
-    ? ({ ...(trashItem.restore_data as MediaAsset), status: "active", deleted_at: null, updated_at: new Date().toISOString() } as MediaAsset)
-    : ({ ...assets[index], status: "active", deleted_at: null, updated_at: new Date().toISOString() } as MediaAsset);
-
-  if (index === -1) {
-    const all = await readJsonFile<MediaAsset[]>(FILE_NAME, []);
-    all.unshift(restored);
-    await writeJsonFile(FILE_NAME, all);
-  } else {
-    assets[index] = restored;
-    await writeJsonFile(FILE_NAME, assets);
-  }
-  await upsertMediaAsset(restored);
-
-  if (trashItem) {
-    await removeTrashItem(trashItem.id);
-  }
+  if (trashItem) await removeTrashItem(trashItem.id);
   await logAction({ action: "restore", entity_type: "media", entity_id: restored.id, entity_title: restored.original_name || restored.file_name });
   return restored;
 }
-
 export async function getMediaByFolder(folder: string) {
   const items = await getMediaAssets();
   return items.filter((a) => a.folder === folder && a.status !== "deleted");
