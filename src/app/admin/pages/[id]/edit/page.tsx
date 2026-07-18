@@ -1,10 +1,12 @@
-import AdminShell from "@/components/admin/AdminShell";
+﻿import AdminShell from "@/components/admin/AdminShell";
 import PageForm from "@/components/admin/PageForm";
 import SectionEmptyState from "@/components/admin/SectionEmptyState";
 import { getPageById } from "@/lib/cms/pages";
+import { getPageFaqSection } from "@/lib/cms/page-faqs";
 
 export default async function EditPagePage({ params }: { params: Promise<{ id: string }> }) {
-  const page = await getPageById((await params).id);
+  const pageId = (await params).id;
+  const [page, faqSection] = await Promise.all([getPageById(pageId), getPageFaqSection(pageId)]);
   if (!page) {
     return (
       <AdminShell>
@@ -20,7 +22,7 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
           <h2>Editar página</h2>
         </div>
       </div>
-      <PageForm mode="edit" page={page} />
+      <PageForm mode="edit" page={page} faqSection={faqSection} />
     </AdminShell>
   );
 }

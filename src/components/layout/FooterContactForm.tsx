@@ -34,9 +34,13 @@ export default function FooterContactForm({ preview = false }: { preview?: boole
       }),
     });
 
-    const data = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
+    const data = (await response.json().catch(() => ({}))) as { message?: string; error?: string; redirect_url?: string };
     if (response.ok) {
       form.reset();
+      if (typeof data.redirect_url === "string" && data.redirect_url.trim()) {
+        window.location.href = data.redirect_url;
+        return;
+      }
       setState("success");
       setMessage(data.message || "Gracias, recibimos tu mensaje.");
       return;

@@ -20,6 +20,8 @@ export const defaultBlogPageSettings: BlogPageSettings = {
     heroPresentationText: "# Bitacora ceramica\n\nProcesos, tecnicas y reflexiones alrededor de la ceramica contemporanea.",
   }),
   showIdeaPromptSection: true,
+  showFaqSection: false,
+  faqGroupId: "",
   seo_title: "Blog | Casa Rosier Ceramica",
   seo_description: "Articulos, procesos y reflexiones sobre ceramica, talleres, tecnicas y creacion en Casa Rosier Ceramica Barcelona.",
   seo_image: "",
@@ -29,6 +31,9 @@ export const defaultBlogPageSettings: BlogPageSettings = {
 function normalizeBlogPageSettings(input: Partial<BlogPageSettings> | null | undefined): BlogPageSettings {
   const rowInput = input as Partial<BlogPageSettings> & {
     show_idea_prompt_section?: boolean;
+    show_faq_section?: boolean;
+    faq_group_id?: string | null;
+    faq_category?: string;
   } | null | undefined;
 
   return {
@@ -42,6 +47,8 @@ function normalizeBlogPageSettings(input: Partial<BlogPageSettings> | null | und
       heroImage: "/img/hero-bg.jpg",
     }),
     showIdeaPromptSection: (input?.showIdeaPromptSection ?? rowInput?.show_idea_prompt_section) !== false,
+    showFaqSection: (input?.showFaqSection ?? rowInput?.show_faq_section) === true,
+    faqGroupId: String(input?.faqGroupId ?? rowInput?.faq_group_id ?? ""),
     seo_title: String(input?.seo_title ?? defaultBlogPageSettings.seo_title),
     seo_description: String(input?.seo_description ?? defaultBlogPageSettings.seo_description),
     seo_image: String(input?.seo_image ?? ""),
@@ -55,6 +62,8 @@ function toRow(settings: BlogPageSettings) {
     status: settings.status,
     hero: settings.hero,
     show_idea_prompt_section: settings.showIdeaPromptSection,
+    show_faq_section: settings.showFaqSection,
+    faq_group_id: settings.faqGroupId || null,
     seo_title: settings.seo_title,
     seo_description: settings.seo_description,
     seo_image: settings.seo_image,

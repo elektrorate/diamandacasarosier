@@ -7,6 +7,7 @@ import type { HomeIntroSlide, HomePageSettings } from "./types";
 const TABLE = "home_page_settings";
 const FILE_PATH = path.join(process.cwd(), "data", "home-page-settings.json");
 const SETTINGS_ID = "home-page";
+const USE_LOCAL_DATA = process.env.CMS_USE_LOCAL_DATA === "true";
 
 export const defaultHomeIntroSlides: HomeIntroSlide[] = [
   {
@@ -154,6 +155,8 @@ async function writeToFile(settings: HomePageSettings) {
 }
 
 export async function getHomePageSettings() {
+  if (USE_LOCAL_DATA) return (await readFromFile()) ?? defaultHomePageSettings;
+
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase.from(TABLE).select("*").eq("id", SETTINGS_ID).maybeSingle();

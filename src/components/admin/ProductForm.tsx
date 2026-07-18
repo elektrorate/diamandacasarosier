@@ -69,6 +69,8 @@ export default function ProductForm({ mode, item }: { mode: "create" | "edit"; i
   const [characteristics, setCharacteristics] = useState(item?.characteristics ?? "");
   const [weight, setWeight] = useState(item?.weight ?? "");
   const [dimensions, setDimensions] = useState(item?.dimensions ?? "");
+  const [ctaLabel, setCtaLabel] = useState(item?.cta_label ?? "Comprar");
+  const [ctaUrl, setCtaUrl] = useState(item?.cta_url ?? "https://wa.me/34633788860");
   const [seoTitle, setSeoTitle] = useState(item?.seo_title ?? "");
   const [seoDescription, setSeoDescription] = useState(item?.seo_description ?? "");
   const [seoImage, setSeoImage] = useState(item?.seo_image ?? "");
@@ -103,6 +105,9 @@ export default function ProductForm({ mode, item }: { mode: "create" | "edit"; i
     if (price !== null && (!Number.isFinite(price) || price < 0)) details.push("Precio debe ser un número mayor o igual a 0.");
     if (stock !== null && (!Number.isInteger(stock) || stock < 0)) details.push("Stock debe ser un número entero mayor o igual a 0.");
     if (!Number.isInteger(lowStockThreshold) || lowStockThreshold < 0) details.push("Stock mínimo debe ser un número entero mayor o igual a 0.");
+    if (ctaUrl.trim() && !/^(https?:\/\/|\/|mailto:|tel:)/.test(ctaUrl.trim())) details.push("Link del CTA debe empezar con https://, /, mailto: o tel:.");
+    if (ctaLabel.trim() && !ctaUrl.trim()) details.push("Si el CTA tiene texto, también necesita un link destino.");
+    if (ctaUrl.trim() && !ctaLabel.trim()) details.push("Si el CTA tiene link, también necesita texto de botón.");
 
     if (intent === "publish") {
       if (price === null) details.push("Precio es obligatorio para publicar.");
@@ -154,6 +159,8 @@ export default function ProductForm({ mode, item }: { mode: "create" | "edit"; i
         characteristics,
         weight,
         dimensions,
+        cta_label: ctaLabel.trim(),
+        cta_url: ctaUrl.trim(),
         seo_title: seoTitle,
         seo_description: seoDescription,
         seo_image: seoImage,
@@ -256,6 +263,15 @@ export default function ProductForm({ mode, item }: { mode: "create" | "edit"; i
           <section className="form-block shop-product-editor__section shop-product-editor__media-card">
             <SectionHead icon="image" title="Imagen principal" description="Fotografía base para la tienda y ficha del producto." />
             <MediaSelectField label="Imagen principal" value={mainImageId} onChange={setMainImageId} previewClassName="shop-product-editor__image-preview" />
+          </section>
+
+
+          <section className="form-block shop-product-editor__section">
+            <SectionHead icon="ads_click" title="CTA" description="Botón principal visible en la ficha pública del producto." />
+            <div className="grid-2">
+              <label className="field span-2"><span>Texto del botón</span><input value={ctaLabel} onChange={(event) => setCtaLabel(event.target.value)} placeholder="Comprar" /></label>
+              <label className="field span-2"><span>Link destino</span><input value={ctaUrl} onChange={(event) => setCtaUrl(event.target.value)} placeholder="https://wa.me/..." /></label>
+            </div>
           </section>
 
           <section className="form-block shop-product-editor__section">

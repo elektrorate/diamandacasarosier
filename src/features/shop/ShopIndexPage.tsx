@@ -1,9 +1,11 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { HeaderInterno } from "@/components/layout/HeaderInterno";
 import { ShopGrid } from "@/components/shop/ShopGrid";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { SitePage } from "@/features/shared/layout/SitePage";
+import PublicFaqSection from "@/features/shared/contextual-sections/PublicFaqSection";
 import { getShopPageSettings } from "@/lib/cms/shop-page";
+import { getPublicPageFaqSectionBySlug } from "@/lib/cms/page-faqs";
 import { getPublicShopData } from "@/lib/cms/shop-public";
 import type { CmsHeroSettings } from "@/lib/cms/types";
 
@@ -47,9 +49,10 @@ function ShopHeroContent({ hero }: { hero: CmsHeroSettings }) {
 }
 
 export async function ShopIndexPage() {
-  const [{ published, shopCategories }, page] = await Promise.all([
+  const [{ published, shopCategories }, page, faqSection] = await Promise.all([
     getPublicShopData(),
     getShopPageSettings(),
+    getPublicPageFaqSectionBySlug("shop"),
   ]);
   const hero = page.hero;
   const heroVariant = hero.heroVariant ?? "text";
@@ -128,6 +131,7 @@ export async function ShopIndexPage() {
       )}
     >
       <ShopGrid published={published} shopCategories={shopCategories} />
+      <PublicFaqSection pageSection={faqSection} eyebrow="" />
     </SitePage>
   );
 }

@@ -23,7 +23,7 @@ const DEFAULT_MENU_ITEMS: EditableMenuItem[] = [
   { key: "workshops", label: "Workshops", href: "/workshops", order: 2 },
   { key: "experiencias", label: "Experiencias", href: "/experiencias", order: 3 },
   { key: "gift-cards", label: "Gift Cards", href: "/gift-cards", order: 4 },
-  { key: "estudio", label: "El Estudio", href: "/el-estudio", order: 5 },
+  { key: "estudio", label: "Comunidad", href: "/el-estudio", order: 5 },
   { key: "shop", label: "Shop", href: "/shop", order: 6 },
 ];
 

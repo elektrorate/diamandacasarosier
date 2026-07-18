@@ -39,9 +39,10 @@ const DEFAULT_POINTS: EditableMenuItem[] = [
   menuPoint("workshops", "Workshops", "/workshops", 2),
   menuPoint("experiencias", "Experiencias", "/experiencias", 3),
   menuPoint("giftcards", "GiftCards", "/gift-cards", 4),
-  menuPoint("estudio", "El estudio", "/el-estudio", 5, {
+  menuPoint("estudio", "Comunidad", "/el-estudio", 5, {
     children: [
-      menuChild("estudio-bitacora", "Bitácora", "/blog", 0),
+      menuChild("estudio-detalle", "El estudio", "/el-estudio", 0),
+      menuChild("estudio-bitacora", "Bitácora", "/blog", 1),
     ],
   }),
   menuPoint("shop", "Shop", "/shop", 6),
@@ -99,7 +100,7 @@ function keyForItem(item: Pick<MenuItem, "label" | "url">) {
   if (item.url === "/workshops" || label === "workshops") return "workshops";
   if (item.url === "/experiencias" || item.url === "/reservas-privadas" || label === "experiencias" || label === "reservas privadas") return "experiencias";
   if (item.url === "/gift-cards" || item.url === "/gift-card" || label === "gift cards" || label === "giftcards" || label.includes("regalo")) return "giftcards";
-  if (item.url === "/el-estudio" || label === "el estudio") return "estudio";
+  if (item.url === "/el-estudio" || label === "el estudio" || label === "comunidad") return "estudio";
   if (item.url === "/shop" || label === "shop") return "shop";
   return `item-${item.url || label}`;
 }
@@ -172,7 +173,6 @@ function itemToEditable(item: MenuItem, children: MenuItem[]): EditableMenuItem 
   const key = keyForItem(item);
   const defaultPoint = DEFAULT_POINTS.find((point) => point.key === key);
   const normalizedChildren = children
-    .filter((child) => child.url !== item.url)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((child) => ({
       id: child.id,

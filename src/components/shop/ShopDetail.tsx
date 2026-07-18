@@ -1,12 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import type { ShopItem } from "@/data/types";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { assetPath } from "@/lib/assets";
 import { classNames } from "@/lib/utils";
 import { ThumbnailGallery } from "@/components/ui/Carousel";
 
+function isExternalHref(href: string) {
+  return /^https?:\/\//.test(href) || href.startsWith("mailto:") || href.startsWith("tel:");
+}
+
 export function ShopDetail({ item }: { item: ShopItem }) {
+  const ctaLabel = item.ctaLabel || "Comprar";
+  const ctaUrl = item.ctaUrl || "https://wa.me/34633788860";
+  const externalCta = isExternalHref(ctaUrl);
+
   return (
     <section className="shop-detail section">
       <div className="container shop-detail__container">
@@ -83,14 +92,20 @@ export function ShopDetail({ item }: { item: ShopItem }) {
               <MarkdownContent source={item.description} />
             </section>
             <section className="shop-detail__cta">
-              <a
-                className="shop-detail__button shop-detail__button--primary"
-                href="https://wa.me/34633788860"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Comprar
-              </a>
+              {externalCta ? (
+                <a
+                  className="shop-detail__button shop-detail__button--primary"
+                  href={ctaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {ctaLabel}
+                </a>
+              ) : (
+                <Link className="shop-detail__button shop-detail__button--primary" href={ctaUrl}>
+                  {ctaLabel}
+                </Link>
+              )}
             </section>
           </section>
         </div>

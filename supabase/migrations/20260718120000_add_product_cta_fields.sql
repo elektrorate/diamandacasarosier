@@ -1,0 +1,1 @@
+alter table public.products\n  add column if not exists cta_label text,\n  add column if not exists cta_url text;\n

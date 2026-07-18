@@ -1,8 +1,8 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { Product, ProductCategory } from "@/lib/cms/types";
+import type { Product, ProductCategory, ProductStatus } from "@/lib/cms/types";
 import { formatAdminDateTime } from "@/lib/admin/date-format";
 import AdminActionModal from "./AdminActionModal";
 
@@ -20,25 +20,62 @@ type ConfirmAction = {
   confirmLabel: string;
 };
 
+const statusLabels: Record<ProductStatus, string> = {
+  draft: "Borrador",
+  published: "Publicado",
+  archived: "Archivado",
+  deleted: "Papelera",
+};
+
+function money(value: number | null) {
+  return value !== null ? `${value} €` : "—";
+}
+
+function stockLabel(product: Product) {
+  return product.stock !== null ? String(product.stock) : "∞";
+}
+
+function statusClass(status: ProductStatus) {
+  return `shop-product-status is-${status}`;
+}
+
 export default function ProductsTable({ items, categories }: { items: Product[]; categories: ProductCategory[] }) {
   const router = useRouter();
   const [notice, setNotice] = useState<Notice | null>(null);
   const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
 
-  function catName(id: string) { return categories.find((c) => c.id === id)?.name ?? id; }
+  function catName(id: string) {
+    return categories.find((c) => c.id === id)?.name ?? id;
+  }
+
+  const visibleItems = useMemo(() => {
+    if (!normalizedQuery) return items;
+    return items.filter((item) => {
+      const haystack = `${item.name} ${item.sku ?? ""} ${catName(item.category_id)}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [items, categories, normalizedQuery]);
+
   function message(action: string) {
     if (action === "publish") return "Publicado exitosamente.";
     if (action === "draft") return "Borrador guardado correctamente.";
     if (action === "trash") return "Movido a papelera exitosamente.";
     return "Acción completada correctamente.";
   }
+
   async function run(id: string, action: string) {
     if (pendingAction) return;
     setNotice(null);
     setPendingAction(`${id}:${action}`);
     try {
-      const r = await fetch(`/api/admin/shop/products/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) });
+      const r = await fetch(`/api/admin/shop/products/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
       if (r.ok) {
         setNotice({ type: "success", title: "Acción completada", message: message(action) });
         router.refresh();
@@ -52,68 +89,121 @@ export default function ProductsTable({ items, categories }: { items: Product[];
       setPendingAction(null);
     }
   }
+
+  function requestTrash(product: Product) {
+    setConfirm({
+      id: product.id,
+      action: "trash",
+      title: "Mover a papelera",
+      message: `Se moverá "${product.name}" a la papelera. Puedes restaurarlo después desde Papelera.`,
+      confirmLabel: "Papelera",
+    });
+  }
+
+  function renderMenu(product: Product) {
+    const rowPending = pendingAction?.startsWith(`${product.id}:`);
+    const isPublished = product.status === "published";
+    const nextAction = isPublished ? "draft" : "publish";
+    const nextLabel = isPublished ? "Pasar a borrador" : "Publicar";
+    const pendingLabel = isPublished ? "Guardando..." : "Publicando...";
+
+    return (
+      <details className="shop-product-menu">
+        <summary aria-label={`Más acciones para ${product.name}`}>...</summary>
+        <div className="shop-product-menu__panel">
+          <button className="shop-product-menu__item" type="button" disabled={rowPending} onClick={() => run(product.id, nextAction)}>
+            {pendingAction === `${product.id}:${nextAction}` ? pendingLabel : nextLabel}
+          </button>
+          <button className="shop-product-menu__item is-danger" type="button" disabled={rowPending} onClick={() => requestTrash(product)}>Papelera</button>
+        </div>
+      </details>
+    );
+  }
+
   return (
     <>
-      <div className="table-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>SKU</th>
-              <th>Categoría</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Actualizado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((p) => {
-              const rowPending = pendingAction?.startsWith(`${p.id}:`);
-              const isPublished = p.status === "published";
-              return (
-                <tr key={p.id}>
-                  <td><strong>{p.name}</strong></td>
-                  <td className="muted">{p.sku || "—"}</td>
-                  <td><span className="entity-badge">{catName(p.category_id) || "—"}</span></td>
-                  <td>{p.price !== null ? `${p.price} €` : "—"}</td>
-                  <td style={p.stock !== null && p.stock <= p.low_stock_threshold ? { color: "var(--danger)", fontWeight: 600 } : undefined}>
-                    {p.stock !== null ? p.stock : "∞"}
-                  </td>
-                  <td>{formatAdminDateTime(p.updated_at)}</td>
-                  <td>
-                    <div className="row-actions">
-                      <a className="link-btn" href={`/admin/shop/products/${p.id}/edit`}>Editar</a>
-                      {isPublished ? (
-                        <button className="secondary-btn" disabled={rowPending} onClick={() => run(p.id, "draft")}>
-                          {pendingAction === `${p.id}:draft` ? "Guardando..." : "Borrador"}
-                        </button>
-                      ) : (
-                        <button className="primary-btn shop-products-table__publish" disabled={rowPending} onClick={() => run(p.id, "publish")}>
-                          {pendingAction === `${p.id}:publish` ? "Publicando..." : "Publicar"}
-                        </button>
-                      )}
-                      <button
-                        className="danger-btn"
-                        disabled={rowPending}
-                        onClick={() => setConfirm({
-                          id: p.id,
-                          action: "trash",
-                          title: "Mover a papelera",
-                          message: `Se moverá "${p.name}" a la papelera. Puedes restaurarlo después desde Papelera.`,
-                          confirmLabel: "Papelera",
-                        })}
-                      >
-                        Papelera
-                      </button>
+      <div className="shop-products-panel">
+        <div className="shop-products-toolbar">
+          <label className="shop-products-search">
+            <span>Buscar</span>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, SKU o categoría" />
+          </label>
+          <p>{visibleItems.length} de {items.length} artículos</p>
+        </div>
+
+        {visibleItems.length ? (
+          <>
+            <div className="table-card shop-products-table-card shop-products-desktop-table">
+              <table className="admin-table shop-products-table">
+                <thead>
+                  <tr>
+                    <th>Artículo</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Actualizado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleItems.map((product) => {
+                    const lowStock = product.stock !== null && product.stock <= product.low_stock_threshold;
+                    return (
+                      <tr key={product.id}>
+                        <td>
+                          <strong className="shop-product-title">{product.name}</strong>
+                          <span className="shop-product-sku">{product.sku || "Sin SKU"}</span>
+                        </td>
+                        <td><span className="entity-badge">{catName(product.category_id) || "—"}</span></td>
+                        <td className="shop-product-price">{money(product.price)}</td>
+                        <td><span className={lowStock ? "shop-product-stock is-low" : "shop-product-stock"}>{stockLabel(product)}</span></td>
+                        <td><span className={statusClass(product.status)}>{statusLabels[product.status]}</span></td>
+                        <td className="shop-product-updated">{formatAdminDateTime(product.updated_at)}</td>
+                        <td>
+                          <div className="shop-product-actions">
+                            <a className="shop-product-edit" href={`/admin/shop/products/${product.id}/edit`}>Editar</a>
+                            {renderMenu(product)}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="shop-products-mobile-list">
+              {visibleItems.map((product) => {
+                const lowStock = product.stock !== null && product.stock <= product.low_stock_threshold;
+                return (
+                  <article className="shop-product-card" key={product.id}>
+                    <div className="shop-product-card__head">
+                      <div>
+                        <h3>{product.name}</h3>
+                        <p>{catName(product.category_id)} · {product.sku || "Sin SKU"}</p>
+                      </div>
+                      <span className={statusClass(product.status)}>{statusLabels[product.status]}</span>
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <div className="shop-product-card__meta">
+                      <span>{money(product.price)}</span>
+                      <span className={lowStock ? "shop-product-stock is-low" : "shop-product-stock"}>Stock {stockLabel(product)}</span>
+                      <span>{formatAdminDateTime(product.updated_at)}</span>
+                    </div>
+                    <div className="shop-product-card__actions">
+                      <a className="shop-product-edit" href={`/admin/shop/products/${product.id}/edit`}>Editar</a>
+                      {renderMenu(product)}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <p className="muted">No hay artículos con ese filtro.</p>
+        )}
       </div>
+
       <AdminActionModal
         open={Boolean(notice)}
         type={notice?.type}

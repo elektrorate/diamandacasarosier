@@ -14,10 +14,35 @@ type SubmissionInput = Partial<Omit<FormSubmission, "id" | "created_at" | "updat
   deleted_at?: string | null;
 };
 
+type LegacyNotificationMeta = {
+  status?: FormSubmission["notification_status"];
+  provider?: FormSubmission["notification_provider"];
+  to?: string;
+  from?: string;
+  message_id?: string;
+  error?: string;
+  attempted_at?: string | null;
+  notification_status?: FormSubmission["notification_status"];
+  notification_provider?: FormSubmission["notification_provider"];
+  notification_to?: string;
+  notification_from?: string;
+  notification_message_id?: string;
+  notification_error?: string;
+  notification_attempted_at?: string | null;
+};
+
+function notificationFromData(data: unknown) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const meta = (data as Record<string, unknown>).__notification;
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
+  return meta as LegacyNotificationMeta;
+}
+
 function normalizeSubmission(input: SubmissionInput, existing?: FormSubmission) {
   const now = new Date().toISOString();
   const status = input.status ?? existing?.status ?? "new";
   if (!isFormSubmissionStatus(status)) throw new Error("Estado no válido.");
+  const notification = notificationFromData(input.data ?? existing?.data);
   return {
     id: existing?.id ?? input.id ?? randomUUID(),
     form_id: input.form_id ?? existing?.form_id ?? "",
@@ -32,6 +57,13 @@ function normalizeSubmission(input: SubmissionInput, existing?: FormSubmission) 
     source_page: String(input.source_page ?? existing?.source_page ?? "").trim(),
     status,
     internal_notes: String(input.internal_notes ?? existing?.internal_notes ?? "").trim(),
+    notification_status: input.notification_status ?? existing?.notification_status ?? notification?.notification_status ?? notification?.status ?? null,
+    notification_provider: input.notification_provider ?? existing?.notification_provider ?? notification?.notification_provider ?? notification?.provider ?? null,
+    notification_to: String(input.notification_to ?? existing?.notification_to ?? notification?.notification_to ?? notification?.to ?? "").trim(),
+    notification_from: String(input.notification_from ?? existing?.notification_from ?? notification?.notification_from ?? notification?.from ?? "").trim(),
+    notification_message_id: String(input.notification_message_id ?? existing?.notification_message_id ?? notification?.notification_message_id ?? notification?.message_id ?? "").trim(),
+    notification_error: String(input.notification_error ?? existing?.notification_error ?? notification?.notification_error ?? notification?.error ?? "").trim(),
+    notification_attempted_at: input.notification_attempted_at ?? existing?.notification_attempted_at ?? notification?.notification_attempted_at ?? notification?.attempted_at ?? null,
     created_at: existing?.created_at ?? now,
     updated_at: now,
     deleted_at: input.status === "deleted" ? existing?.deleted_at ?? now : null,

@@ -1,4 +1,4 @@
-export interface AdminNavLink {
+﻿export interface AdminNavLink {
   label: string;
   href: string;
   activePaths?: string[];
@@ -77,10 +77,16 @@ export const adminSections: AdminNavSection[] = [
     icon: "description",
     children: [
       { label: "Home", href: adminRoutes.home },
+      // Páginas se mantiene como ruta interna editable, pero se oculta del menú porque no es una sección de uso directo para el CMS diario.
+      { label: "Mensajes", href: adminRoutes.messages },
+    ],
+  },
+  {
+    label: "Comunidad",
+    icon: "groups",
+    children: [
       { label: "El estudio", href: adminRoutes.studio },
       { label: "Bitácora", href: adminRoutes.blog },
-      { label: "Páginas", href: adminRoutes.pages },
-      { label: "Mensajes", href: adminRoutes.messages },
     ],
   },
   {
@@ -90,7 +96,7 @@ export const adminSections: AdminNavSection[] = [
       { label: "Headers", href: adminRoutes.headers },
       { label: "Footer", href: adminRoutes.footers },
       { label: "Formularios", href: adminRoutes.forms },
-      { label: "FAQs", href: adminRoutes.faqs },
+      // FAQs global se conserva como ruta interna legacy, pero se oculta del menú: ahora cada página gestiona su FAQ personalizado desde Adiciones.
       { label: "Galerías sociales", href: adminRoutes.socialGalleries },
       { label: "Testimonios", href: adminRoutes.testimonials },
       { label: "Banners promocionales", href: adminRoutes.promoBanners },

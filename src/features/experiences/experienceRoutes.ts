@@ -1,4 +1,4 @@
-import type { ExperienceItem, ExperienceKind } from "@/data/types";
+﻿import type { ExperienceItem, ExperienceKind } from "@/data/types";
 import { getPublicExperienceItems } from "./experienceDetailRouting";
 
 export interface ExperienceCollectionConfig {
@@ -8,6 +8,7 @@ export interface ExperienceCollectionConfig {
   title: string;
   lede: string;
   items: readonly ExperienceItem[];
+  pageSlug: string;
 }
 
 export const experienceCollections = {
@@ -17,7 +18,8 @@ export const experienceCollections = {
     eyebrow: "En Barcelona",
     title: "Cursos y talleres de ceramica",
     lede: "Un espacio para aprender ceramica con calma, explorar tecnicas, tocar la materia y encontrar una practica guiada que acompana cada proceso desde el primer gesto.",
-    items: []
+    items: [],
+    pageSlug: "clases"
   },
   workshops: {
     kind: "workshop",
@@ -25,7 +27,8 @@ export const experienceCollections = {
     eyebrow: "En Barcelona",
     title: "Workshops de ceramica",
     lede: "Un espacio para aprender ceramica con calma, explorar tecnicas, tocar la materia y encontrar una practica guiada que acompana cada proceso desde el primer gesto.",
-    items: []
+    items: [],
+    pageSlug: "workshops"
   },
   privateBookings: {
     kind: "private-booking",
@@ -33,7 +36,8 @@ export const experienceCollections = {
     eyebrow: "Experiencias en Barcelona",
     title: "Experiencias",
     lede: "Sesiones privadas y encuentros de taller pensados para compartir la ceramica con calma, acompanamiento cercano y una experiencia cuidada desde el primer momento.",
-    items: []
+    items: [],
+    pageSlug: "reservas-privadas"
   },
   giftCards: {
     kind: "gift-card",
@@ -41,7 +45,8 @@ export const experienceCollections = {
     eyebrow: "Experiencias regalo",
     title: "Tarjetas de regalo",
     lede: "Gift cards para regalar tiempo de taller, materia y una experiencia ceramica serena, pensada para compartir algo manual, sensible y verdaderamente memorable.",
-    items: []
+    items: [],
+    pageSlug: "gift-card"
   }
 } satisfies Record<string, ExperienceCollectionConfig>;
 

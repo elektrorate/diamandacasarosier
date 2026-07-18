@@ -1,11 +1,13 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { TestimonialSlider } from "@/components/home/TestimonialSlider";
 import { HeaderInterno } from "@/components/layout/HeaderInterno";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { IdeaPromptSection } from "@/features/shared/contextual-sections/IdeaPromptSection";
+import PublicFaqSection from "@/features/shared/contextual-sections/PublicFaqSection";
 import { SitePage } from "@/features/shared/layout/SitePage";
 import { StudioProfileBlock } from "@/features/studio/StudioProfileBlock";
 import { getPublicTestimonials } from "@/lib/cms/public-content";
+import { getPublicPageFaqSectionBySlug } from "@/lib/cms/page-faqs";
 import { getStudioPageSettings } from "@/lib/cms/studio-page";
 import { getTeachers } from "@/lib/cms/teachers";
 import { assetPath } from "@/lib/assets";
@@ -16,6 +18,7 @@ export async function StudioPage() {
     getTeachers(),
     getStudioPageSettings(),
   ]);
+  const faqSection = await getPublicPageFaqSectionBySlug("el-estudio");
   const testimonials = cmsTestimonials
     .map((item) => ({
       image: item.avatar_id || "/img/avatar-1.jpg",
@@ -122,6 +125,7 @@ export async function StudioPage() {
           ))}
         </div>
       </section>
+      <PublicFaqSection pageSection={faqSection} eyebrow="" />
       {pageSettings.showIdeaPromptSection ? <IdeaPromptSection context="studio" /> : null}
       <TestimonialSlider testimonials={testimonials} />
     </SitePage>

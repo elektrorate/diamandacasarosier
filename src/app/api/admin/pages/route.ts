@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+﻿import { NextResponse, type NextRequest } from "next/server";
 import { createPage, getPages } from "@/lib/cms/pages";
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
+import { savePageFaqSection } from "@/lib/cms/page-faqs";
 
 export async function GET(request: NextRequest) {
   const session = await requireAdminApi();
@@ -19,7 +20,9 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   if (!body?.title) return NextResponse.json({ error: "El título es obligatorio." }, { status: 400 });
   try {
-    const page = await createPage(body);
+    const { faq_section: faqSection, ...pageInput } = body;
+    const page = await createPage(pageInput);
+    if (faqSection) await savePageFaqSection(page.id, faqSection);
     return NextResponse.json({ page });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error al crear página" }, { status: 400 });

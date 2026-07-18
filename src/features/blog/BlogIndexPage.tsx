@@ -1,11 +1,13 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { BlogGrid } from "@/components/blog/BlogGrid";
 import { FeaturedCarousel } from "@/components/blog/FeaturedCarousel";
 import { HeaderInterno } from "@/components/layout/HeaderInterno";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import { IdeaPromptSection } from "@/features/shared/contextual-sections/IdeaPromptSection";
+import PublicFaqSection from "@/features/shared/contextual-sections/PublicFaqSection";
 import { SitePage } from "@/features/shared/layout/SitePage";
 import { getBlogPageSettings } from "@/lib/cms/blog-page";
+import { getPublicPageFaqSectionBySlug } from "@/lib/cms/page-faqs";
 import { getPublicBlogData } from "@/lib/cms/blog-public";
 import type { CmsHeroSettings } from "@/lib/cms/types";
 
@@ -53,6 +55,7 @@ export async function BlogIndexPage() {
     getBlogPageSettings(),
     getPublicBlogData(),
   ]);
+  const faqSection = await getPublicPageFaqSectionBySlug("blog");
   const { categories, featured, published } = blogData;
   const hero = page.hero;
   const heroVariant = hero.heroVariant ?? "text";
@@ -148,6 +151,7 @@ export async function BlogIndexPage() {
           <BlogGrid posts={published} categories={categories} />
         </div>
       </section>
+      <PublicFaqSection pageSection={faqSection} eyebrow="" />
       {page.showIdeaPromptSection ? <IdeaPromptSection context="blog" /> : null}
     </SitePage>
   );

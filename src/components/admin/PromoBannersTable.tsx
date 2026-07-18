@@ -52,13 +52,56 @@ function getVisibilityState(banner: PromoBanner) {
   };
 }
 
-export default function PromoBannersTable({ items }: { items: PromoBanner[] }) {
+export default function PromoBannersTable({
+  items,
+  activeBanner,
+}: {
+  items: PromoBanner[];
+  activeBanner: PromoBanner | null;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
 
+  async function disableModal() {
+    setPending("modal:disable");
+    setNotice(null);
+
+    try {
+      const response = await fetch("/api/admin/components/promo-banners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "disable_modal" }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setNotice({
+          type: "error",
+          title: "No se pudo desactivar",
+          message: typeof data.error === "string" ? data.error : "Intenta nuevamente.",
+        });
+        return;
+      }
+
+      setNotice({
+        type: "success",
+        title: "Modal desactivado",
+        message: typeof data.message === "string" ? data.message : "No se mostrará ningún banner al entrar al home.",
+      });
+      router.refresh();
+    } catch {
+      setNotice({
+        type: "error",
+        title: "No se pudo conectar",
+        message: "Revisa la conexión y vuelve a intentarlo.",
+      });
+    } finally {
+      setPending(null);
+    }
+  }
   async function run(id: string, action: string) {
     const pendingKey = `${id}:${action}`;
     const shouldHideOptimistically = action === "trash";
@@ -126,6 +169,28 @@ export default function PromoBannersTable({ items }: { items: PromoBanner[] }) {
 
   return (
     <>
+      <section className={`promo-modal-control ${activeBanner ? "is-active" : "is-disabled"}`}>
+        <div>
+          <p className="auth-kicker">Modal de inicio</p>
+          <h3>{activeBanner ? "Activo" : "Desactivado"}</h3>
+          <p>
+            {activeBanner
+              ? `Mostrando: ${activeBanner.title}`
+              : "No se muestra ningún banner al entrar al home."}
+          </p>
+        </div>
+        {activeBanner ? (
+          <button className="secondary-btn" type="button" onClick={disableModal} disabled={Boolean(pending)}>
+            <span className="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+            {pending === "modal:disable" ? "Desactivando..." : "Desactivar modal"}
+          </button>
+        ) : (
+          <span className="promo-visibility-pill promo-visibility-pill--idle">
+            <span className="material-symbols-outlined" aria-hidden="true">visibility_off</span>
+            Sin banner visible
+          </span>
+        )}
+      </section>
       <div className="admin-card-list promo-card-list">
         {items.map((banner) => {
           const visibility = getVisibilityState(banner);

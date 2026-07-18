@@ -1,10 +1,10 @@
-import AdminShell from "@/components/admin/AdminShell";
+﻿import AdminShell from "@/components/admin/AdminShell";
 
 const sections = [
   { name: "Galería social", href: "/admin/components/social-galleries", desc: "Fotos, textos y links del componente social", ready: true },
   { name: "Testimonios", href: "/admin/components/testimonials", desc: "Testimonios y reseñas", ready: true },
   { name: "Banners promocionales", href: "/admin/components/promo-banners", desc: "Banners promocionales", ready: true },
-  { name: "FAQs", href: "/admin/components/faqs", desc: "Preguntas frecuentes", ready: true },
+  // FAQ global legacy oculto: la gestión nueva vive en Páginas > Editar página > Adiciones > FAQ personalizado.
 ];
 
 export default function ComponentsPage() {

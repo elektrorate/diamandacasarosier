@@ -50,6 +50,8 @@ function productToShopItem(product: Product, categories: ProductCategory[]): Sho
     description: product.description || product.excerpt,
     details: detailsFromProduct(product),
     availabilityNote: product.excerpt || (product.stock === null ? "" : `${product.stock} disponible(s)`),
+    ctaLabel: product.cta_label || "Comprar",
+    ctaUrl: product.cta_url || "https://wa.me/34633788860",
     seoTitle: product.seo_title || `${product.name} | Casa Rosier`,
     seoDescription: product.seo_description || product.excerpt || product.description,
     order: orderFromProduct(product),

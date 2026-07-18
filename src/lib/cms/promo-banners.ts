@@ -333,6 +333,48 @@ export async function duplicatePromoBanner(id: string) {
   return copy;
 }
 
+export async function deactivatePromoBannerModal() {
+  const now = new Date().toISOString();
+  let changedCount = 0;
+
+  try {
+    const supabase = createAdminClient();
+    const { count, error } = await supabase
+      .from(TABLE)
+      .update({ status: "draft", updated_at: now }, { count: "exact" })
+      .eq("status", "published")
+      .select("id");
+    if (error) throw error;
+    changedCount = count ?? 0;
+  } catch { /* fall back to local storage below */ }
+
+  const all = await readJsonFile<PromoBanner[]>(FILE_NAME, []);
+  let localChangedCount = 0;
+  const nextItems = all.map((item) => {
+    if (item.status !== "published") return item;
+    localChangedCount += 1;
+    return { ...item, status: "draft" as const, updated_at: now };
+  });
+
+  if (localChangedCount > 0) {
+    await writeJsonFile(FILE_NAME, nextItems);
+  }
+
+  const totalChanged = Math.max(changedCount, localChangedCount);
+  if (totalChanged > 0) {
+    await logAction({
+      action: "unpublish",
+      entity_type: "promo_banner",
+      entity_id: "all",
+      entity_title: "Modal de inicio",
+      old_data: { published_count: totalChanged },
+      new_data: { status: "draft" },
+    });
+  }
+
+  return { changedCount: totalChanged };
+}
+
 export async function activatePromoBannerNow(id: string) {
   const old = await getPromoBannerById(id);
   if (!old) return null;

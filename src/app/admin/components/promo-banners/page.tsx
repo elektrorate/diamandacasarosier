@@ -20,6 +20,7 @@ export default async function Page({
   const status = rawStatus === "draft" || rawStatus === "published" ? rawStatus : "all";
   const visibleItems = items.filter((item) => !item.deleted_at && item.status !== "deleted");
   const filtered = visibleItems.filter((item) => status === "all" || item.status === status);
+  const activeBanner = visibleItems.find((item) => item.status === "published") ?? null;
   const counts = {
     all: visibleItems.length,
     draft: visibleItems.filter((item) => item.status === "draft").length,
@@ -32,7 +33,7 @@ export default async function Page({
         <div>
           <p className="auth-kicker">CMS</p>
           <h2>Banners promocionales</h2>
-          <p className="muted">Activa un solo banner visible en el home. Al activar uno, el anterior pasa a borrador automáticamente.</p>
+          <p className="muted">Puedes dejar el modal desactivado o activar un solo banner visible en el home.</p>
         </div>
         <Link className="primary-btn inline" href="/admin/components/promo-banners/new">
           <span className="material-symbols-outlined" aria-hidden="true">add</span>
@@ -55,7 +56,7 @@ export default async function Page({
       </div>
 
       {filtered.length ? (
-        <PromoBannersTable items={filtered} />
+        <PromoBannersTable items={filtered} activeBanner={activeBanner} />
       ) : (
         <SectionEmptyState
           title="Aún no hay banners"

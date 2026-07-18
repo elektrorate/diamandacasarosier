@@ -4,7 +4,7 @@ import AdminActionModal from "./AdminActionModal";
 import Link from "@/components/admin/AdminLink";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { FormSubmission } from "@/lib/cms/types";
+import type { FormNotificationMeta, FormSubmission } from "@/lib/cms/types";
 import { formatAdminDateTime } from "@/lib/admin/date-format";
 
 const stLabels: Record<string, string> = { new: "Nuevo", read: "Leído", replied: "Respondido", archived: "Archivado", spam: "Spam", deleted: "Eliminado" };
@@ -90,7 +90,7 @@ export default function MessageDetail({ item }: { item: FormSubmission }) {
           {item.message ? <div className="form-block"><h3>Mensaje</h3><div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{item.message}</div></div> : null}
 
           {Object.keys(item.data).length > 0 ? (
-            <div className="form-block"><h3>Datos adicionales</h3><table className="admin-table"><tbody>{Object.entries(item.data).filter(([k]) => !["name","email","phone","subject","message","source_page"].includes(k)).map(([k, v]) => (<tr key={k}><td style={{ fontWeight: 500, width: "30%" }}>{k}</td><td>{String(v)}</td></tr>))}</tbody></table></div>
+            <div className="form-block"><h3>Datos adicionales</h3><table className="admin-table"><tbody>{Object.entries(item.data).filter(([k]) => !["__notification","name","email","phone","subject","message","source_page"].includes(k)).map(([k, v]) => (<tr key={k}><td style={{ fontWeight: 500, width: "30%" }}>{k}</td><td>{String(v)}</td></tr>))}</tbody></table></div>
           ) : null}
 
           <div style={{ display: "flex", gap: "0.5rem", marginTop: "1.5rem" }}>

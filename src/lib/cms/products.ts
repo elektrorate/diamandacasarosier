@@ -63,6 +63,8 @@ function normalizeProduct(input: ProductInput, existing?: Product, allItems: Pro
     characteristics: String(input.characteristics ?? existing?.characteristics ?? "").trim(),
     weight: String(input.weight ?? existing?.weight ?? "").trim(),
     dimensions: String(input.dimensions ?? existing?.dimensions ?? "").trim(),
+    cta_label: String(input.cta_label ?? existing?.cta_label ?? "").trim(),
+    cta_url: String(input.cta_url ?? existing?.cta_url ?? "").trim(),
     seo_title: String(input.seo_title ?? existing?.seo_title ?? "").trim(),
     seo_description: String(input.seo_description ?? existing?.seo_description ?? "").trim(),
     seo_image: String(input.seo_image ?? existing?.seo_image ?? "").trim(),
@@ -82,6 +84,8 @@ function rowToProduct(row: Record<string, unknown>): Product {
     compare_at_price: row.compare_at_price ?? null,
     stock: row.stock ?? null,
     low_stock_threshold: row.low_stock_threshold ?? 5,
+    cta_label: typeof row.cta_label === "string" ? row.cta_label : "",
+    cta_url: typeof row.cta_url === "string" ? row.cta_url : "",
   } as unknown as Product;
 }
 

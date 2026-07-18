@@ -89,6 +89,10 @@ async function cachedAdminFetch(input: RequestInfo | URL, init?: RequestInit) {
 }
 
 export function createAdminClient() {
+  if (process.env.CMS_USE_LOCAL_DATA === "true") {
+    throw new Error("Supabase admin client disabled while CMS_USE_LOCAL_DATA=true.");
+  }
+
   if (adminClient) return adminClient;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

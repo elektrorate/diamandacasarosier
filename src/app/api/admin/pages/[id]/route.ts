@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+﻿import { NextResponse, type NextRequest } from "next/server";
 import { deletePagePermanently, duplicatePage, getPageById, movePageToTrash, restorePage, updatePage } from "@/lib/cms/pages";
 import { requireAdminApi } from "@/lib/auth/supabase-auth";
+import { savePageFaqSection } from "@/lib/cms/page-faqs";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await requireAdminApi();
@@ -15,7 +16,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await request.json();
   try {
-    const page = await updatePage((await context.params).id, body);
+    const { faq_section: faqSection, ...pageInput } = body;
+    const pageId = (await context.params).id;
+    const page = await updatePage(pageId, pageInput);
+    if (page && faqSection) await savePageFaqSection(pageId, faqSection);
     if (!page) return NextResponse.json({ error: "Página no encontrada" }, { status: 404 });
     return NextResponse.json({ page });
   } catch (err) {

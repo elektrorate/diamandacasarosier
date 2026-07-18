@@ -7,12 +7,13 @@ import { FeaturedCarousel } from "@/components/blog/FeaturedCarousel";
 import { NavbarGlobal } from "@/components/layout/NavbarGlobal";
 import { PublicHeroContent, PublicHeroTitle } from "@/components/hero/PublicHeroContent";
 import { SocialGallery } from "@/components/home/SocialGallery";
+import PublicFaqSection from "@/features/shared/contextual-sections/PublicFaqSection";
 import Switch from "@/components/ui/Switch";
 import type { BlogPost as PublicBlogPost, NavigationItem } from "@/data/types";
 import { getIdeaPromptContent } from "@/features/shared/contextual-sections/ideaPromptContent";
 import { normalizeHeroSettings } from "@/lib/cms/hero-settings";
 import type { SiteSettings } from "@/lib/cms/settings";
-import type { BlogPageSettings, BlogPost, CmsHeroSettings, SocialGallery as CmsSocialGallery } from "@/lib/cms/types";
+import type { BlogPageSettings, BlogPost, CmsHeroSettings, Faq, FaqGroup, SocialGallery as CmsSocialGallery } from "@/lib/cms/types";
 import AdminActionModal from "./AdminActionModal";
 import BlogTable from "./BlogTable";
 import SharedHeroEditor from "./SharedHeroEditor";
@@ -60,12 +61,16 @@ export default function BlogPageEditor({
   navigationItems,
   menuSettings,
   socialGallery,
+  faqs,
+  faqGroups,
 }: {
   page: BlogPageSettings;
   posts: BlogPost[];
   navigationItems: NavigationItem[];
   menuSettings: SiteSettings["menu"];
   socialGallery: CmsSocialGallery | null;
+  faqs: Faq[];
+  faqGroups: FaqGroup[];
 }) {
   const [tab, setTab] = useState<TabKey>("hero");
   const [status, setStatus] = useState(page.status);
@@ -74,6 +79,8 @@ export default function BlogPageEditor({
     heroSubtitle: "Casa Rosier",
   }));
   const [showIdeaPromptSection, setShowIdeaPromptSection] = useState(page.showIdeaPromptSection);
+  const [showFaqSection, setShowFaqSection] = useState(page.showFaqSection);
+  const [faqGroupId, setFaqGroupId] = useState(page.faqGroupId);
   const [seoTitle] = useState(page.seo_title);
   const [seoDescription] = useState(page.seo_description);
   const [seoImage] = useState(page.seo_image);
@@ -86,6 +93,7 @@ export default function BlogPageEditor({
   const publishedPosts = visiblePosts.filter((post) => post.status === "published");
   const featuredPosts = publishedPosts.filter((post) => post.is_featured);
   const socialGalleryProps = getBlogSocialGalleryProps(socialGallery);
+  const selectedFaqBlock = getSelectedFaqBlock(faqs, faqGroups, faqGroupId);
 
   async function save(nextStatus = status) {
     setIsLoading(true);
@@ -98,6 +106,10 @@ export default function BlogPageEditor({
         status: nextStatus,
         hero,
         showIdeaPromptSection,
+
+        showFaqSection,
+
+        faqGroupId,
         seo_title: seoTitle,
         seo_description: seoDescription,
         seo_image: seoImage,
@@ -140,6 +152,7 @@ export default function BlogPageEditor({
             <span>{publishedPosts.length} artículos publicados</span>
             <span>{featuredPosts.length} destacados</span>
             <span>{showIdeaPromptSection ? "Idea activa" : "Idea oculta"}</span>
+            <span>{showFaqSection ? "FAQ activo" : "FAQ oculto"}</span>
           </div>
         </div>
         <div className="cms-page-editor-actions">
@@ -198,10 +211,27 @@ export default function BlogPageEditor({
               </div>
               <div className="cms-studio-additions__toggle-row">
                 <Switch
+                  checked={showFaqSection}
+                  onCheckedChange={setShowFaqSection}
+                  label="Incluir FAQ al final de la pagina"
+                  description="Muestra preguntas frecuentes publicadas antes de la galeria social y del footer."
+                />
+                <label className="field cms-studio-additions__select">
+                  <span>FAQ a mostrar</span>
+                  <select value={faqGroupId} onChange={(event) => setFaqGroupId(event.target.value)} disabled={!showFaqSection}>
+                    <option value="">Seleccionar FAQ</option>
+                    {faqGroups.filter((group) => group.status === "published" && group.deleted_at === null).map((group) => (
+                      <option key={group.id} value={group.id}>{group.title}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="cms-studio-additions__toggle-row">
+                <Switch
                   checked={showIdeaPromptSection}
                   onCheckedChange={setShowIdeaPromptSection}
-                  label="Incluir galería social al final de la página"
-                  description="Muestra la sección “Y tu, cuando tuviste tu última idea?” con la galería social pública antes del footer."
+                  label="Incluir galeria social al final de la pagina"
+                  description="Muestra la seccion de galeria social publica antes del footer."
                 />
               </div>
             </section>
@@ -209,17 +239,28 @@ export default function BlogPageEditor({
             <section className="form-block cms-editor-card cms-studio-additions__card">
               <div className="cms-studio-additions__head">
                 <h3>Vista del componente</h3>
-                <p>Referencia real de la sección que se insertará al final de la página pública.</p>
+                <p>Referencia real de las adiciones que se insertaran al final de la pagina publica.</p>
               </div>
-              <div className="cms-studio-additions__preview" aria-label="Vista previa de la galería social">
+              <div className="cms-studio-additions__preview" aria-label="Vista previa de adiciones publicas">
+                {showFaqSection ? (
+                  selectedFaqBlock ? (
+                    <PublicFaqSection block={selectedFaqBlock} />
+                  ) : (
+                    <div className="empty-inline">
+                      <strong>No hay una FAQ publicada seleccionada.</strong>
+                      <span>Selecciona un grupo FAQ publicado para mostrarlo en el frontend.</span>
+                    </div>
+                  )
+                ) : null}
                 {showIdeaPromptSection ? (
                   <SocialGallery {...socialGalleryProps} />
-                ) : (
+                ) : null}
+                {!showFaqSection && !showIdeaPromptSection ? (
                   <div className="empty-inline">
-                    <strong>Galería desactivada.</strong>
-                    <span>Activa la adición para ver el componente público.</span>
+                    <strong>Adiciones desactivadas.</strong>
+                    <span>Activa al menos una adicion para ver el componente publico.</span>
                   </div>
-                )}
+                ) : null}
               </div>
             </section>
           </div>
@@ -230,6 +271,13 @@ export default function BlogPageEditor({
             hero={hero}
             posts={publishedPosts}
             showIdeaPromptSection={showIdeaPromptSection}
+
+            showFaqSection={showFaqSection}
+
+            faqGroupId={faqGroupId}
+
+            faqs={faqs}
+            faqGroups={faqGroups}
             navigationItems={navigationItems}
             menuSettings={menuSettings}
             socialGallery={socialGallery}
@@ -238,7 +286,7 @@ export default function BlogPageEditor({
       </div>
 
       <div className="admin-sticky-actionbar">
-        <span className="admin-sticky-actionbar__meta">{publishedPosts.length} artículos publicados · {featuredPosts.length} destacados · {showIdeaPromptSection ? "Idea activa" : "Idea oculta"}</span>
+        <span className="admin-sticky-actionbar__meta">{publishedPosts.length} articulos publicados · {featuredPosts.length} destacados · {showIdeaPromptSection ? "Idea activa" : "Idea oculta"} · {showFaqSection ? "FAQ activo" : "FAQ oculto"}</span>
         <button type="button" className="secondary-btn" onClick={() => setTab("preview")}>Vista previa</button>
         <button type="button" className="secondary-btn" onClick={() => save("draft")} disabled={isLoading}>{isLoading ? "Guardando..." : "Borrador"}</button>
         <button type="button" className="primary-btn" onClick={() => save("published")} disabled={isLoading}>{isLoading ? "Publicando..." : "Publicar"}</button>
@@ -251,6 +299,13 @@ function BlogPagePreview({
   hero,
   posts,
   showIdeaPromptSection,
+
+  showFaqSection,
+
+  faqGroupId,
+
+  faqs,
+  faqGroups,
   navigationItems,
   menuSettings,
   socialGallery,
@@ -258,6 +313,13 @@ function BlogPagePreview({
   hero: CmsHeroSettings;
   posts: BlogPost[];
   showIdeaPromptSection: boolean;
+
+  showFaqSection: boolean;
+
+  faqGroupId: string;
+
+  faqs: Faq[];
+  faqGroups: FaqGroup[];
   navigationItems: NavigationItem[];
   menuSettings: SiteSettings["menu"];
   socialGallery: CmsSocialGallery | null;
@@ -269,6 +331,7 @@ function BlogPagePreview({
     .sort((a, b) => (a.featuredOrder ?? 999) - (b.featuredOrder ?? 999) || +new Date(b.publishedAt) - +new Date(a.publishedAt));
   const categories = Array.from(new Set(visiblePosts.map((post) => post.category)));
   const socialGalleryProps = getBlogSocialGalleryProps(socialGallery);
+  const selectedFaqBlock = getSelectedFaqBlock(faqs, faqGroups, faqGroupId);
   const heroVariant = hero.heroVariant ?? "text";
   const isImageLikeHero = heroVariant === "image" || heroVariant === "presentation";
   const heroStyle: Record<string, string> = {
@@ -358,11 +421,24 @@ function BlogPagePreview({
               <BlogGrid posts={visiblePosts} categories={categories} />
             </div>
           </section>
+          {showFaqSection && selectedFaqBlock ? <PublicFaqSection block={selectedFaqBlock} /> : null}
           {showIdeaPromptSection ? <SocialGallery {...socialGalleryProps} /> : null}
         </div>
       </div>
     </div>
   );
+}
+
+
+function getSelectedFaqBlock(faqs: Faq[], groups: FaqGroup[], groupId: string) {
+  if (!groupId) return null;
+  const group = groups.find((item) => item.id === groupId && item.status === "published" && item.deleted_at === null);
+  if (!group) return null;
+  const selectedFaqs = faqs
+    .filter((faq) => faq.status === "published" && faq.deleted_at === null && faq.faq_group_id === groupId)
+    .sort((a, b) => (a.topic_title || "").localeCompare(b.topic_title || "") || a.sort_order - b.sort_order || a.question.localeCompare(b.question));
+  if (!selectedFaqs.length) return null;
+  return { group, faqs: selectedFaqs };
 }
 
 function getBlogSocialGalleryProps(gallery: CmsSocialGallery | null) {
@@ -386,3 +462,5 @@ function getBlogSocialGalleryProps(gallery: CmsSocialGallery | null) {
     sourceHref: gallery?.cta_url || fallback.sourceHref,
   };
 }
+
+

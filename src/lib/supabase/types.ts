@@ -10,6 +10,7 @@ export interface Database {
       blog_post_blocks: { Row: BlogPostBlockRow; Insert: BlogPostBlockInsert; Update: BlogPostBlockUpdate; };
       blog_posts: { Row: BlogPostRow; Insert: BlogPostInsert; Update: BlogPostUpdate; };
       coupons: { Row: CouponRow; Insert: CouponInsert; Update: CouponUpdate; };
+      faq_groups: { Row: FaqGroupRow; Insert: FaqGroupInsert; Update: FaqGroupUpdate; };
       faqs: { Row: FaqRow; Insert: FaqInsert; Update: FaqUpdate; };
       footers: { Row: FooterRow; Insert: FooterInsert; Update: FooterUpdate; };
       form_fields: { Row: FormFieldRow; Insert: FormFieldInsert; Update: FormFieldUpdate; };
@@ -256,11 +257,46 @@ export interface CouponUpdate {
   deleted_at?: string | null;
 }
 
+export interface FaqGroupRow {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface FaqGroupInsert {
+  id?: string;
+  title: string;
+  description?: string;
+  status?: string;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+}
+
+export interface FaqGroupUpdate {
+  id?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+}
+
 export interface FaqRow {
   id: string;
   question: string;
   answer: string | null;
   category: string;
+  faq_group_id: string | null;
+  topic_title: string;
   sort_order: number;
   status: string;
   created_at: string;
@@ -273,6 +309,8 @@ export interface FaqInsert {
   question: string;
   answer?: string | null;
   category?: string;
+  faq_group_id?: string | null;
+  topic_title?: string;
   sort_order?: number;
   status?: string;
   created_at?: string;
@@ -285,6 +323,8 @@ export interface FaqUpdate {
   question?: string;
   answer?: string | null;
   category?: string;
+  faq_group_id?: string | null;
+  topic_title?: string;
   sort_order?: number;
   status?: string;
   created_at?: string;
@@ -405,6 +445,13 @@ export interface FormSubmissionRow {
   source_page: string | null;
   status: string;
   internal_notes: string | null;
+  notification_status: string | null;
+  notification_provider: string | null;
+  notification_to: string | null;
+  notification_from: string | null;
+  notification_message_id: string | null;
+  notification_error: string | null;
+  notification_attempted_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -424,6 +471,13 @@ export interface FormSubmissionInsert {
   source_page?: string | null;
   status?: string;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -443,6 +497,13 @@ export interface FormSubmissionUpdate {
   source_page?: string | null;
   status?: string;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -1248,6 +1309,13 @@ export interface OrderRow {
   payment_method: string | null;
   payment_id: string | null;
   internal_notes: string | null;
+  notification_status: string | null;
+  notification_provider: string | null;
+  notification_to: string | null;
+  notification_from: string | null;
+  notification_message_id: string | null;
+  notification_error: string | null;
+  notification_attempted_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -1270,6 +1338,13 @@ export interface OrderInsert {
   payment_method?: string | null;
   payment_id?: string | null;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -1292,6 +1367,13 @@ export interface OrderUpdate {
   payment_method?: string | null;
   payment_id?: string | null;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -1452,6 +1534,8 @@ export interface ProductRow {
   characteristics: string | null;
   weight: string | null;
   dimensions: string | null;
+  cta_label: string | null;
+  cta_url: string | null;
   seo_title: string | null;
   seo_description: string | null;
   seo_image: string | null;
@@ -1478,6 +1562,8 @@ export interface ProductInsert {
   characteristics?: string | null;
   weight?: string | null;
   dimensions?: string | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
   seo_title?: string | null;
   seo_description?: string | null;
   seo_image?: string | null;
@@ -1504,6 +1590,8 @@ export interface ProductUpdate {
   characteristics?: string | null;
   weight?: string | null;
   dimensions?: string | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
   seo_title?: string | null;
   seo_description?: string | null;
   seo_image?: string | null;
@@ -1656,6 +1744,13 @@ export interface ReservationRow {
   currency: string;
   notes: string | null;
   internal_notes: string | null;
+  notification_status: string | null;
+  notification_provider: string | null;
+  notification_to: string | null;
+  notification_from: string | null;
+  notification_message_id: string | null;
+  notification_error: string | null;
+  notification_attempted_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -1678,6 +1773,13 @@ export interface ReservationInsert {
   currency?: string;
   notes?: string | null;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -1700,6 +1802,13 @@ export interface ReservationUpdate {
   currency?: string;
   notes?: string | null;
   internal_notes?: string | null;
+  notification_status?: string | null;
+  notification_provider?: string | null;
+  notification_to?: string | null;
+  notification_from?: string | null;
+  notification_message_id?: string | null;
+  notification_error?: string | null;
+  notification_attempted_at?: string | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;

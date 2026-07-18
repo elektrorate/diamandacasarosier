@@ -17,12 +17,14 @@ export const defaultStudioPageSettings: StudioPageSettings = {
     heroTitle: "El Estudio",
     heroSubtitle: "Casa Rosier",
     heroImage: "/img/hero-bg.jpg",
-    heroPresentationText: "# El Estudio\n\nUn espacio para aprender cerámica con calma, explorar técnicas y tocar la materia.",
+    heroPresentationText: "# El Estudio\n\nUn espacio para aprender ceramica con calma, explorar tecnicas y tocar la materia.",
   }),
   introContent: "Somos lo que somos y aqui estamos.\n\nEn Barcelona, un espacio para aprender ceramica con calma, explorar tecnicas, tocar la materia y encontrar una practica guiada que acompana cada primer gesto.",
   showIdeaPromptSection: true,
+  showFaqSection: false,
+  faqGroupId: "",
   seo_title: "El Estudio | Casa Rosier",
-  seo_description: "Conoce el estudio, sus especialistas y la forma de trabajar la cerámica en Casa Rosier.",
+  seo_description: "Conoce el estudio, sus especialistas y la forma de trabajar la ceramica en Casa Rosier.",
   seo_image: "",
   updated_at: "",
 };
@@ -31,7 +33,11 @@ function normalizeStudioPageSettings(input: Partial<StudioPageSettings> | null |
   const rowInput = input as Partial<StudioPageSettings> & {
     intro_content?: string;
     show_idea_prompt_section?: boolean;
+    show_faq_section?: boolean;
+    faq_group_id?: string | null;
+    faq_category?: string;
   } | null | undefined;
+
   return {
     ...defaultStudioPageSettings,
     ...input,
@@ -44,6 +50,8 @@ function normalizeStudioPageSettings(input: Partial<StudioPageSettings> | null |
     }),
     introContent: String(input?.introContent ?? rowInput?.intro_content ?? defaultStudioPageSettings.introContent),
     showIdeaPromptSection: (input?.showIdeaPromptSection ?? rowInput?.show_idea_prompt_section) !== false,
+    showFaqSection: (input?.showFaqSection ?? rowInput?.show_faq_section) === true,
+    faqGroupId: String(input?.faqGroupId ?? rowInput?.faq_group_id ?? ""),
     seo_title: String(input?.seo_title ?? defaultStudioPageSettings.seo_title),
     seo_description: String(input?.seo_description ?? defaultStudioPageSettings.seo_description),
     seo_image: String(input?.seo_image ?? ""),
@@ -58,6 +66,8 @@ function toRow(settings: StudioPageSettings) {
     hero: settings.hero,
     intro_content: settings.introContent,
     show_idea_prompt_section: settings.showIdeaPromptSection,
+    show_faq_section: settings.showFaqSection,
+    faq_group_id: settings.faqGroupId || null,
     seo_title: settings.seo_title,
     seo_description: settings.seo_description,
     seo_image: settings.seo_image,
@@ -89,8 +99,7 @@ export async function getStudioPageSettings() {
     return readFromFile();
   }
 
-  const fallback = await readFromFile();
-  return fallback;
+  return readFromFile();
 }
 
 export async function updateStudioPageSettings(input: Partial<StudioPageSettings>) {

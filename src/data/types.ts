@@ -179,6 +179,8 @@ export interface ShopItem {
   description: string;
   details: Record<string, string>;
   availabilityNote: string;
+  ctaLabel: string;
+  ctaUrl: string;
   seoTitle: string;
   seoDescription: string;
   order: number;

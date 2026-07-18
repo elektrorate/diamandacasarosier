@@ -162,8 +162,8 @@ export default function ShopPageEditor({
         ) : null}
 
         {tab === "items" ? (
-          <section className="form-block cms-editor-card">
-            <div className="cms-editor-card__head">
+          <section className="form-block cms-editor-card shop-admin-card">
+            <div className="cms-editor-card__head shop-admin-card__head">
               <div>
                 <p className="auth-kicker">Catalogo</p>
                 <h3>Articulos</h3>

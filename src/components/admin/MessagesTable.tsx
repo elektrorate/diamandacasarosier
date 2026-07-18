@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import AdminActionModal from "./AdminActionModal";
-import type { FormSubmission, FormSubmissionStatus } from "@/lib/cms/types";
+import type { FormNotificationMeta, FormSubmission, FormSubmissionStatus } from "@/lib/cms/types";
 import { formatAdminDateTime, formatAdminShortDate } from "@/lib/admin/date-format";
 
 const statusLabels: Record<FormSubmissionStatus, string> = {
@@ -27,7 +27,30 @@ const inboxTabs: Array<{ value: InboxFilter; label: string }> = [
   { value: "all", label: "Todos" },
   { value: "new", label: "No leídos" },
 ];
+const notificationLabels: Record<FormNotificationMeta["status"], string> = {
+  disabled: "Email off",
+  missing_recipient: "Sin destino",
+  missing_api_key: "Falta API key",
+  sent: "Email enviado",
+  failed: "Email fallido",
+};
 
+function notificationMeta(item: FormSubmission) {
+  if (item.notification_status) {
+    return {
+      status: item.notification_status,
+      provider: item.notification_provider ?? "resend",
+      attempted_at: item.notification_attempted_at ?? "",
+      to: item.notification_to || undefined,
+      from: item.notification_from || undefined,
+      message_id: item.notification_message_id || undefined,
+      error: item.notification_error || undefined,
+    } satisfies FormNotificationMeta;
+  }
+  const meta = item.data?.__notification;
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
+  return meta as FormNotificationMeta;
+}
 
 function previewText(item: FormSubmission) {
   const text = item.message || item.subject || item.form_name;
@@ -35,7 +58,7 @@ function previewText(item: FormSubmission) {
 }
 
 function extraData(item: FormSubmission) {
-  const hiddenKeys = new Set(["name", "email", "phone", "subject", "message", "source_page"]);
+  const hiddenKeys = new Set(["__notification", "name", "email", "phone", "subject", "message", "source_page"]);
   return Object.entries(item.data).filter(([key]) => !hiddenKeys.has(key));
 }
 
@@ -223,6 +246,11 @@ export default function MessagesTable({ items }: { items: FormSubmission[] }) {
               <span className="message-list-item__subject">{originTitle(item)}</span>
               <span className="message-list-item__preview">{previewText(item)}</span>
               <span className={`message-status-pill message-status-pill--${item.status}`}>{statusLabels[item.status]}</span>
+              {notificationMeta(item) ? (
+                <span className={`message-status-pill message-status-pill--${notificationMeta(item)?.status === "sent" ? "read" : "spam"}`}>
+                  {notificationLabels[notificationMeta(item)!.status]}
+                </span>
+              ) : null}
             </button>
           ))}
           {filteredItems.length === 0 ? (

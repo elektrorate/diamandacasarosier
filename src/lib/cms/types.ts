@@ -542,6 +542,28 @@ export interface Page {
   deleted_at: string | null;
 }
 
+export interface PageFaqItem {
+  id: string;
+  faq_section_id: string;
+  question: string;
+  answer: string;
+  position: number;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageFaqSection {
+  id: string;
+  page_id: string;
+  title: string;
+  is_enabled: boolean;
+  items: PageFaqItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+
 /* ── Social Gallery ── */
 export const SOCIAL_GALLERY_STATUSES = ["draft", "published", "archived", "deleted"] as const;
 export type SocialGalleryStatus = (typeof SOCIAL_GALLERY_STATUSES)[number];
@@ -673,12 +695,26 @@ export const FAQ_STATUSES = ["draft", "published", "archived", "deleted"] as con
 export const FAQ_CATEGORIES = ["general", "classes", "shop", "booking"] as const;
 export type FaqStatus = (typeof FAQ_STATUSES)[number];
 export type FaqCategory = (typeof FAQ_CATEGORIES)[number];
+export type PageFaqCategory = FaqCategory | "all";
+
+export interface FaqGroup {
+  id: string;
+  title: string;
+  description: string;
+  status: FaqStatus;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
 
 export interface Faq {
   id: string;
   question: string;
   answer: string;
   category: FaqCategory;
+  faq_group_id: string | null;
+  topic_title: string;
   sort_order: number;
   status: FaqStatus;
   created_at: string;
@@ -688,6 +724,11 @@ export interface Faq {
 
 export function isFaqStatus(value: unknown): value is FaqStatus {
   return typeof value === "string" && (FAQ_STATUSES as readonly string[]).includes(value);
+}
+
+export interface PublicFaqBlock {
+  group: FaqGroup;
+  faqs: Faq[];
 }
 
 /* ── Teacher ── */
@@ -870,6 +911,17 @@ export function isFormSubmissionStatus(value: unknown): value is FormSubmissionS
   return typeof value === "string" && (SUBMISSION_STATUSES as readonly string[]).includes(value);
 }
 
+export type FormNotificationStatus = "disabled" | "missing_recipient" | "missing_api_key" | "sent" | "failed";
+
+export interface FormNotificationMeta {
+  status: FormNotificationStatus;
+  provider: "resend";
+  attempted_at: string;
+  to?: string;
+  from?: string;
+  message_id?: string;
+  error?: string;
+}
 export interface FormSubmission {
   id: string;
   form_id: string;
@@ -884,6 +936,13 @@ export interface FormSubmission {
   source_page: string;
   status: FormSubmissionStatus;
   internal_notes: string;
+  notification_status: FormNotificationStatus | null;
+  notification_provider: "resend" | null;
+  notification_to: string;
+  notification_from: string;
+  notification_message_id: string;
+  notification_error: string;
+  notification_attempted_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -957,6 +1016,8 @@ export interface StudioPageSettings {
   hero: CmsHeroSettings;
   introContent: string;
   showIdeaPromptSection: boolean;
+  showFaqSection: boolean;
+  faqGroupId: string;
   seo_title: string;
   seo_description: string;
   seo_image: string;
@@ -968,6 +1029,8 @@ export interface BlogPageSettings {
   status: "draft" | "published";
   hero: CmsHeroSettings;
   showIdeaPromptSection: boolean;
+  showFaqSection: boolean;
+  faqGroupId: string;
   seo_title: string;
   seo_description: string;
   seo_image: string;
@@ -1039,6 +1102,8 @@ export interface Product {
   characteristics: string;
   weight: string;
   dimensions: string;
+  cta_label: string;
+  cta_url: string;
   seo_title: string;
   seo_description: string;
   seo_image: string;

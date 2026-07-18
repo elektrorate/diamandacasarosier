@@ -1,17 +1,18 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import type { Page, Header, PageType } from "@/lib/cms/types";
+import type { FooterComponent, Header, Page, PageFaqSection, SocialGallery, Testimonial } from "@/lib/cms/types";
 import { PAGE_TYPES } from "@/lib/cms/types";
 import MediaSelectField from "./MediaSelectField";
+import PageFaqEditor, { createPageFaqDraft } from "./PageFaqEditor";
 
 const typeLabels: Record<string, string> = {
   home: "Home", studio: "Estudio", contact: "Contacto", faq: "FAQ",
   privacy: "Privacidad", cookies: "Cookies", legal: "Legal", custom: "Custom",
 };
 
-export default function PageForm({ mode, page }: { mode: "create" | "edit"; page?: Page }) {
+export default function PageForm({ mode, page, faqSection }: { mode: "create" | "edit"; page?: Page; faqSection?: PageFaqSection | null }) {
   const router = useRouter();
   const [form, setForm] = useState({
     title: page?.title ?? "",
@@ -27,6 +28,10 @@ export default function PageForm({ mode, page }: { mode: "create" | "edit"; page
     seo_image: page?.seo_image ?? "",
   });
   const [headers, setHeaders] = useState<Header[]>([]);
+  const [socialGalleries, setSocialGalleries] = useState<SocialGallery[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [footers, setFooters] = useState<FooterComponent[]>([]);
+  const [faqDraft, setFaqDraft] = useState(() => createPageFaqDraft(faqSection));
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,6 +39,18 @@ export default function PageForm({ mode, page }: { mode: "create" | "edit"; page
     fetch("/api/admin/headers")
       .then((r) => r.json())
       .then((data) => setHeaders(data.headers ?? []))
+      .catch(() => {});
+    fetch("/api/admin/components/social-galleries")
+      .then((r) => r.json())
+      .then((data) => setSocialGalleries(data.items ?? data.galleries ?? []))
+      .catch(() => {});
+    fetch("/api/admin/components/testimonials")
+      .then((r) => r.json())
+      .then((data) => setTestimonials(data.items ?? data.testimonials ?? []))
+      .catch(() => {});
+    fetch("/api/admin/components/footers")
+      .then((r) => r.json())
+      .then((data) => setFooters(data.items ?? data.footers ?? []))
       .catch(() => {});
   }, []);
 
@@ -61,6 +78,7 @@ export default function PageForm({ mode, page }: { mode: "create" | "edit"; page
         social_gallery_id: form.social_gallery_id || null,
         testimonials_id: form.testimonials_id || null,
         footer_id: form.footer_id || null,
+        faq_section: faqDraft,
       }),
     });
 
@@ -113,6 +131,41 @@ export default function PageForm({ mode, page }: { mode: "create" | "edit"; page
           </label>
         </div>
       </section>
+
+      <section className="form-block">
+        <h3>Adiciones</h3>
+        <div className="grid-2">
+          <label className="field">
+            <span>Galería social</span>
+            <select value={form.social_gallery_id} onChange={(e) => update("social_gallery_id", e.target.value)}>
+              <option value="">Sin galería</option>
+              {socialGalleries.filter((item) => item.status === "published").map((item) => (
+                <option key={item.id} value={item.id}>{item.title || item.name || "Galería social"}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Testimonios</span>
+            <select value={form.testimonials_id} onChange={(e) => update("testimonials_id", e.target.value)}>
+              <option value="">Sin testimonios</option>
+              {testimonials.filter((item) => item.status === "published").map((item) => (
+                <option key={item.id} value={item.id}>{item.name || "Testimonios"}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Footer</span>
+            <select value={form.footer_id} onChange={(e) => update("footer_id", e.target.value)}>
+              <option value="">Footer por defecto</option>
+              {footers.filter((item) => item.status === "published").map((item) => (
+                <option key={item.id} value={item.id}>{item.name || "Footer"}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <PageFaqEditor value={faqDraft} onChange={setFaqDraft} />
 
       <section className="form-block">
         <h3>SEO</h3>

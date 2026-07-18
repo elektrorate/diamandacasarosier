@@ -30,12 +30,13 @@ const staticFallbackItems: NavigationItem[] = [
     children: [],
   })),
   {
-    label: "El Estudio",
+    label: "Comunidad",
     href: "/el-estudio",
     order: 5,
     visible: true,
     children: [
-      { label: "Bitácora", href: "/blog", order: 0, visible: true },
+      { label: "El estudio", href: "/el-estudio", order: 0, visible: true },
+      { label: "Bitácora", href: "/blog", order: 1, visible: true },
     ],
   },
   { label: "Shop", href: "/shop", order: 6, visible: true },
@@ -71,7 +72,6 @@ function toNavigationItem(item: MenuItem, children: MenuItem[]): NavigationItem 
     visible: item.is_visible,
     target: item.open_in_new_tab ? "_blank" : undefined,
     children: children
-      .filter((child) => child.url !== item.url)
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((child) => toNavigationItem(child, [])),
   };

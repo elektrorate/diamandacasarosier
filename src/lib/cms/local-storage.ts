@@ -1,4 +1,6 @@
 import { createAdminClient } from "../supabase/admin";
+import { promises as fs } from "fs";
+import path from "path";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -29,6 +31,7 @@ const SINGLETON_IDS = {
 };
 
 const READ_CACHE_TTL_MS = 10_000;
+const USE_LOCAL_DATA = process.env.CMS_USE_LOCAL_DATA === "true";
 const readCache = new Map<string, { value: unknown; expiresAt: number }>();
 
 function getCachedRead<T>(filename: string) {

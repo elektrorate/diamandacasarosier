@@ -1,19 +1,19 @@
-import Link from "@/components/admin/AdminLink";
+﻿import Link from "@/components/admin/AdminLink";
 import AdminShell from "@/components/admin/AdminShell";
 import FaqsTable from "@/components/admin/FaqsTable";
 import SectionEmptyState from "@/components/admin/SectionEmptyState";
-import { getFaqs } from "@/lib/cms/faqs";
+import { getFaqGroups, getFaqs } from "@/lib/cms/faqs";
 
-type FaqSearchParams = { status?: string; category?: string };
+type FaqSearchParams = { status?: string; group?: string };
 
 export default async function Page({ searchParams }: { searchParams?: Promise<FaqSearchParams> }) {
   const params = await searchParams;
-  const items = await getFaqs();
+  const [items, groups] = await Promise.all([getFaqs(), getFaqGroups()]);
   const status = params?.status || "all";
-  const category = params?.category || "all";
+  const group = params?.group || "all";
   const filtered = items.filter((item) =>
     (status === "all" || item.status === status)
-    && (category === "all" || item.category === category)
+    && (group === "all" || item.faq_group_id === group)
     && item.status !== "deleted",
   );
 
@@ -26,21 +26,22 @@ export default async function Page({ searchParams }: { searchParams?: Promise<Fa
       <div className="filters">
         <div className="filter-group">
           {["all", "draft", "published", "archived"].map((item) => (
-            <Link key={item} className={item === status ? "chip active" : "chip"} href={`/admin/components/faqs?status=${item}&category=${category}`}>
+            <Link key={item} className={item === status ? "chip active" : "chip"} href={"/admin/components/faqs?status=" + item + "&group=" + group}>
               {item === "all" ? "Todas" : item === "draft" ? "Borrador" : item === "published" ? "Publicado" : "Archivado"}
             </Link>
           ))}
         </div>
         <div className="filter-group">
-          {["all", "general", "classes", "shop", "booking"].map((item) => (
-            <Link key={item} className={item === category ? "chip active" : "chip"} href={`/admin/components/faqs?status=${status}&category=${item}`}>
-              {item === "all" ? "Todas" : item === "general" ? "General" : item === "classes" ? "Clases" : item === "shop" ? "Shop" : "Reservas"}
+          <Link className={group === "all" ? "chip active" : "chip"} href={"/admin/components/faqs?status=" + status + "&group=all"}>Todos los grupos</Link>
+          {groups.filter((item) => item.status !== "deleted").map((item) => (
+            <Link key={item.id} className={item.id === group ? "chip active" : "chip"} href={"/admin/components/faqs?status=" + status + "&group=" + item.id}>
+              {item.title}
             </Link>
           ))}
         </div>
       </div>
-      {filtered.length ? <FaqsTable items={filtered} /> : (
-        <SectionEmptyState title="Aún no hay FAQs" description="Crea la primera FAQ." actionHref="/admin/components/faqs/new" actionLabel="Crear FAQ" />
+      {filtered.length ? <FaqsTable items={filtered} groups={groups} /> : (
+        <SectionEmptyState title="Aún no hay FAQs" description="Crea la primera pregunta dentro de un grupo FAQ." actionHref="/admin/components/faqs/new" actionLabel="Crear FAQ" />
       )}
     </AdminShell>
   );
