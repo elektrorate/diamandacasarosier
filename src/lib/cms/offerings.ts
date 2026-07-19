@@ -3,7 +3,7 @@ import { createAdminClient } from "../supabase/admin";
 import { addTrashItem, getCurrentUserEmail, getTrashItemByEntity, removeTrashItem } from "./trash";
 import { readJsonFile, writeJsonFile } from "./local-storage";
 import { isOfferingStatus, isOfferingType } from "./types";
-import type { ClassOfferingDetails, Offering } from "./types";
+import type { ClassOfferingDetails, Offering, OfferingStatus, OfferingType } from "./types";
 import type { Json } from "../supabase/types";
 import { logAction } from "./history-logs";
 
@@ -19,6 +19,41 @@ type OfferingInput = Partial<Omit<Offering, "id" | "created_at" | "updated_at" |
   id?: string;
   deleted_at?: string | null;
 };
+
+export type OfferingsPageOptions = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  sort?: "recent" | "old";
+  type?: "all" | OfferingType;
+  status?: "all" | OfferingStatus | OfferingStatus[];
+};
+
+export type OfferingsPageResult = {
+  items: Offering[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+const OFFERING_LIST_SELECT = [
+  "id",
+  "type",
+  "title",
+  "slug",
+  "subtitle",
+  "excerpt",
+  "price",
+  "currency",
+  "status",
+  "featured",
+  "duration",
+  "cover_image_url",
+  "created_at",
+  "updated_at",
+  "deleted_at",
+].join(",");
 
 function getCachedOfferings() {
   if (!offeringsCache || offeringsCache.expiresAt <= Date.now()) return null;
@@ -91,8 +126,8 @@ function normalizeOffering(input: OfferingInput, existing?: Offering, allItems: 
   const type = input.type ?? existing?.type;
   const status = input.status ?? existing?.status ?? "draft";
 
-  if (!isOfferingType(type)) throw new Error("Tipo de offering no válido.");
-  if (!isOfferingStatus(status)) throw new Error("Estado de offering no válido.");
+  if (!isOfferingType(type)) throw new Error("Tipo de offering no vÃ¡lido.");
+  if (!isOfferingStatus(status)) throw new Error("Estado de offering no vÃ¡lido.");
 
   return {
     id: existing?.id ?? input.id ?? randomUUID(),
@@ -331,6 +366,108 @@ async function syncHeroSettingsToSupabase(item: Offering): Promise<void> {
   } catch { /* best-effort until the migration exists in every environment */ }
 }
 
+function emptyOfferingFields(row: Offering): Offering {
+  return {
+    ...row,
+    description: row.description ?? "",
+    header_id: row.header_id ?? null,
+    schedule: Array.isArray(row.schedule) ? row.schedule : [],
+    teacher: row.teacher ?? "",
+    capacity: row.capacity ?? null,
+    gallery: Array.isArray(row.gallery) ? row.gallery : [],
+    details: row.details ?? {},
+    seo_title: row.seo_title ?? "",
+    seo_description: row.seo_description ?? "",
+  };
+}
+
+function normalizeOfferingsPageOptions(options: OfferingsPageOptions = {}) {
+  const pageSize = Math.min(Math.max(Number(options.pageSize) || 8, 1), 100);
+  const page = Math.max(Number(options.page) || 1, 1);
+  return {
+    page,
+    pageSize,
+    q: (options.q ?? "").trim(),
+    sort: options.sort ?? "recent",
+    type: options.type ?? "all",
+    status: options.status ?? "all",
+  };
+}
+
+function matchesOfferingStatus(item: Offering, status: OfferingsPageOptions["status"]) {
+  if (!status || status === "all") return item.status !== "deleted";
+  return Array.isArray(status) ? status.includes(item.status) : item.status === status;
+}
+
+function paginateOfferings(items: Offering[], options: OfferingsPageOptions = {}): OfferingsPageResult {
+  const normalized = normalizeOfferingsPageOptions(options);
+  const query = normalized.q.toLowerCase();
+  const filtered = items
+    .filter((item) => matchesOfferingStatus(item, normalized.status))
+    .filter((item) => normalized.type === "all" || item.type === normalized.type)
+    .filter((item) => {
+      if (!query) return true;
+      return [item.title, item.slug, item.excerpt, item.type].join(" ").toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      const first = +new Date(a.updated_at || a.created_at);
+      const second = +new Date(b.updated_at || b.created_at);
+      return normalized.sort === "old" ? first - second : second - first;
+    });
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / normalized.pageSize));
+  const page = Math.min(normalized.page, totalPages);
+  const start = (page - 1) * normalized.pageSize;
+  return {
+    items: filtered.slice(start, start + normalized.pageSize).map(emptyOfferingFields),
+    total,
+    page,
+    pageSize: normalized.pageSize,
+    totalPages,
+  };
+}
+
+async function readOfferingsPageFromSupabase(options: OfferingsPageOptions = {}): Promise<OfferingsPageResult | null> {
+  const normalized = normalizeOfferingsPageOptions(options);
+  const from = (normalized.page - 1) * normalized.pageSize;
+  const to = from + normalized.pageSize - 1;
+
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from(TABLE)
+      .select(OFFERING_LIST_SELECT, { count: "exact" });
+
+    if (normalized.status === "all") query = query.neq("status", "deleted");
+    else if (Array.isArray(normalized.status)) query = query.in("status", normalized.status);
+    else query = query.eq("status", normalized.status);
+
+    if (normalized.type !== "all") query = query.eq("type", normalized.type);
+    if (normalized.q) {
+      const term = normalized.q.replace(/[%]/g, "");
+      query = query.or("title.ilike.%" + term + "%,slug.ilike.%" + term + "%,excerpt.ilike.%" + term + "%");
+    }
+
+    const { data, error, count } = await query
+      .order("updated_at", { ascending: normalized.sort === "old" })
+      .range(from, to);
+
+    if (error) throw error;
+    const total = count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / normalized.pageSize));
+    return {
+      items: ((data ?? []) as unknown as Array<Record<string, unknown>>).map((row) => emptyOfferingFields(rowToOffering(row))),
+      total,
+      page: Math.min(normalized.page, totalPages),
+      pageSize: normalized.pageSize,
+      totalPages,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function readAllFromSupabase(): Promise<Offering[] | null> {
   try {
     const supabase = createAdminClient();
@@ -388,6 +525,13 @@ async function deleteFromSupabase(id: string): Promise<void> {
   } catch { /* best-effort */ }
 }
 
+export async function getOfferingsPage(options: OfferingsPageOptions = {}) {
+  const fromSupabase = await withTimeout(readOfferingsPageFromSupabase(options), SUPABASE_READ_TIMEOUT_MS, null);
+  if (fromSupabase) return fromSupabase;
+  const localOfferings = await readJsonFile<Offering[]>(FILE_NAME, []);
+  return paginateOfferings(localOfferings, options);
+}
+
 export async function getOfferings() {
   const cached = getCachedOfferings();
   if (cached) return cached;
@@ -431,7 +575,7 @@ export async function createOffering(data: OfferingInput) {
   const next = normalizeOffering(data, undefined, offerings);
 
   if (!next.title || !next.type) {
-    throw new Error("El título y el tipo son obligatorios.");
+    throw new Error("El tÃ­tulo y el tipo son obligatorios.");
   }
 
   const nextItems = [next, ...offerings];

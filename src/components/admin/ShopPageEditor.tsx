@@ -61,6 +61,7 @@ function buildHeroStyle(hero: CmsHeroSettings): Record<string, string> {
 export default function ShopPageEditor({
   page,
   products,
+  productsPage,
   categories,
   published,
   shopCategories,
@@ -70,6 +71,7 @@ export default function ShopPageEditor({
 }: {
   page: ShopPageSettings;
   products: Product[];
+  productsPage: { page: number; total: number; totalPages: number; prevHref?: string; nextHref?: string; q: string };
   categories: ProductCategory[];
   published: ShopItem[];
   shopCategories: ShopCategory[];
@@ -170,7 +172,20 @@ export default function ShopPageEditor({
               </div>
               <Link className="primary-btn" href="/admin/shop/products/new">Nuevo articulo</Link>
             </div>
-            {products.length ? <ProductsTable items={products} categories={categories} /> : <p className="muted">No hay articulos todavia.</p>}
+            {products.length || productsPage.q ? (
+              <>
+                <ProductsTable items={products} categories={categories} pagination={productsPage} />
+                {productsPage.totalPages > 1 ? (
+                  <div className="flex items-center justify-between gap-4 mt-6">
+                    <span className="text-label-md text-on-surface-variant">Pagina {productsPage.page} de {productsPage.totalPages}</span>
+                    <div className="flex items-center gap-2">
+                      <Link className={productsPage.prevHref ? "secondary-btn" : "secondary-btn pointer-events-none opacity-40"} href={productsPage.prevHref ?? "#"}>Anterior</Link>
+                      <Link className={productsPage.nextHref ? "secondary-btn" : "secondary-btn pointer-events-none opacity-40"} href={productsPage.nextHref ?? "#"}>Siguiente</Link>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            ) : <p className="muted">No hay articulos todavia.</p>}
           </section>
         ) : null}
 

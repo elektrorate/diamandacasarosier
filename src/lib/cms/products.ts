@@ -5,7 +5,7 @@ import { createAdminClient } from "../supabase/admin";
 import { addTrashItem, getCurrentUserEmail, getTrashItemByEntity, removeTrashItem } from "./trash";
 import { readJsonFile, writeJsonFile } from "./local-storage";
 import { isProductStatus } from "./types";
-import type { Product } from "./types";
+import type { Product, ProductStatus } from "./types";
 import { logAction } from "./history-logs";
 
 const TABLE = "products";
@@ -16,6 +16,40 @@ type ProductInput = Partial<Omit<Product, "id" | "created_at" | "updated_at" | "
   id?: string;
   deleted_at?: string | null;
 };
+
+export type ProductsPageOptions = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: "all" | ProductStatus;
+};
+
+export type ProductsPageResult = {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+const PRODUCT_LIST_SELECT = [
+  "id",
+  "status",
+  "name",
+  "slug",
+  "sku",
+  "main_image_id",
+  "price",
+  "compare_at_price",
+  "stock",
+  "low_stock_threshold",
+  "category_id",
+  "cta_label",
+  "cta_url",
+  "created_at",
+  "updated_at",
+  "deleted_at",
+].join(",");
 
 function toSlug(value: string) {
   return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-{2,}/g, "-");
@@ -43,10 +77,10 @@ function normalizeProduct(input: ProductInput, existing?: Product, allItems: Pro
   const lowStockThreshold = input.low_stock_threshold ?? existing?.low_stock_threshold ?? 5;
 
   if (!name) throw new Error("El nombre es obligatorio.");
-  if (!isProductStatus(status)) throw new Error("Estado no válido.");
-  if (price !== null && (!Number.isFinite(Number(price)) || Number(price) < 0)) throw new Error("Precio no válido.");
-  if (stock !== null && (!Number.isInteger(Number(stock)) || Number(stock) < 0)) throw new Error("Stock no válido.");
-  if (!Number.isInteger(Number(lowStockThreshold)) || Number(lowStockThreshold) < 0) throw new Error("Stock mínimo no válido.");
+  if (!isProductStatus(status)) throw new Error("Estado no vÃ¡lido.");
+  if (price !== null && (!Number.isFinite(Number(price)) || Number(price) < 0)) throw new Error("Precio no vÃ¡lido.");
+  if (stock !== null && (!Number.isInteger(Number(stock)) || Number(stock) < 0)) throw new Error("Stock no vÃ¡lido.");
+  if (!Number.isInteger(Number(lowStockThreshold)) || Number(lowStockThreshold) < 0) throw new Error("Stock mÃ­nimo no vÃ¡lido.");
 
   return {
     id: existing?.id ?? input.id ?? randomUUID(), status, name, slug,
@@ -74,7 +108,7 @@ function normalizeProduct(input: ProductInput, existing?: Product, allItems: Pro
   } satisfies Product;
 }
 
-// ── Mapping helpers ──
+// â”€â”€ Mapping helpers â”€â”€
 
 function rowToProduct(row: Record<string, unknown>): Product {
   return {
@@ -93,7 +127,7 @@ function productToRow(product: Product): Record<string, unknown> {
   return { ...product };
 }
 
-// ── Supabase helpers ──
+// â”€â”€ Supabase helpers â”€â”€
 
 async function readAllFromSupabase(): Promise<Product[] | null> {
   try {
@@ -113,6 +147,94 @@ async function readLocalProducts(): Promise<Product[]> {
     return JSON.parse(raw) as Product[];
   } catch {
     return [];
+  }
+}
+
+function emptyProductFields(row: Product): Product {
+  return {
+    ...row,
+    description: row.description ?? "",
+    excerpt: row.excerpt ?? "",
+    gallery: Array.isArray(row.gallery) ? row.gallery : [],
+    characteristics: row.characteristics ?? "",
+    weight: row.weight ?? "",
+    dimensions: row.dimensions ?? "",
+    seo_title: row.seo_title ?? "",
+    seo_description: row.seo_description ?? "",
+    seo_image: row.seo_image ?? "",
+  };
+}
+
+function normalizePageOptions(options: ProductsPageOptions = {}) {
+  const pageSize = Math.min(Math.max(Number(options.pageSize) || 12, 1), 100);
+  const page = Math.max(Number(options.page) || 1, 1);
+  return {
+    page,
+    pageSize,
+    q: (options.q ?? "").trim(),
+    status: options.status ?? "all",
+  };
+}
+
+function paginateProducts(items: Product[], options: ProductsPageOptions = {}): ProductsPageResult {
+  const normalized = normalizePageOptions(options);
+  const query = normalized.q.toLowerCase();
+  const filtered = items
+    .filter((item) => item.status !== "deleted")
+    .filter((item) => normalized.status === "all" || item.status === normalized.status)
+    .filter((item) => {
+      if (!query) return true;
+      return [item.name, item.slug, item.sku, item.category_id].join(" ").toLowerCase().includes(query);
+    })
+    .sort((a, b) => +new Date(b.updated_at || b.created_at) - +new Date(a.updated_at || a.created_at));
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / normalized.pageSize));
+  const page = Math.min(normalized.page, totalPages);
+  const start = (page - 1) * normalized.pageSize;
+  return {
+    items: filtered.slice(start, start + normalized.pageSize).map(emptyProductFields),
+    total,
+    page,
+    pageSize: normalized.pageSize,
+    totalPages,
+  };
+}
+
+async function readProductsPageFromSupabase(options: ProductsPageOptions = {}): Promise<ProductsPageResult | null> {
+  const normalized = normalizePageOptions(options);
+  const from = (normalized.page - 1) * normalized.pageSize;
+  const to = from + normalized.pageSize - 1;
+
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from(TABLE)
+      .select(PRODUCT_LIST_SELECT, { count: "exact" })
+      .neq("status", "deleted");
+
+    if (normalized.status !== "all") query = query.eq("status", normalized.status);
+    if (normalized.q) {
+      const term = normalized.q.replace(/[%]/g, "");
+      query = query.or("name.ilike.%" + term + "%,slug.ilike.%" + term + "%,sku.ilike.%" + term + "%");
+    }
+
+    const { data, error, count } = await query
+      .order("updated_at", { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+    const total = count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / normalized.pageSize));
+    return {
+      items: ((data ?? []) as unknown as Array<Record<string, unknown>>).map((row) => emptyProductFields(rowToProduct(row))),
+      total,
+      page: Math.min(normalized.page, totalPages),
+      pageSize: normalized.pageSize,
+      totalPages,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -140,7 +262,14 @@ async function deleteProductFromDb(id: string): Promise<void> {
   } catch { /* best-effort */ }
 }
 
-// ── Public API ──
+// â”€â”€ Public API â”€â”€
+
+export async function getProductsPage(options: ProductsPageOptions = {}) {
+  const fromSupabase = await readProductsPageFromSupabase(options);
+  if (fromSupabase) return fromSupabase;
+  const local = await readLocalProducts();
+  return paginateProducts(local.length ? local : await readJsonFile<Product[]>(FILE_NAME, []), options);
+}
 
 export async function getProducts() {
   const fromSupabase = await readAllFromSupabase();

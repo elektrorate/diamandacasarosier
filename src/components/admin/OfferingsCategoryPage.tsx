@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
-import { getOfferings } from "@/lib/cms/offerings";
+import { getOfferingsPage } from "@/lib/cms/offerings";
 import type { OfferingType } from "@/lib/cms/types";
 
 type SortKey = "recent" | "old";
@@ -55,28 +55,24 @@ export default async function OfferingsCategoryPage({
   searchParams?: CategorySearchParams | Promise<CategorySearchParams>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const offerings = await getOfferings();
   const rawQuery = (resolvedSearchParams?.q ?? "").trim();
   const q = rawQuery.toLowerCase();
   const sort = isSortKey(resolvedSearchParams?.sort ?? "") ? resolvedSearchParams?.sort as SortKey : "recent";
   const page = Math.max(1, Number(resolvedSearchParams?.page ?? 1) || 1);
 
-  const baseItems = offerings.filter((item) => item.type === type && !item.deleted_at && ["draft", "published"].includes(item.status));
-  const items = baseItems
-    .filter((item) => {
-      const haystack = [item.title, item.slug, item.excerpt, item.type].join(" ").toLowerCase();
-      return !q || haystack.includes(q);
-    })
-    .sort((a, b) => {
-      const first = +new Date(a.updated_at || a.created_at);
-      const second = +new Date(b.updated_at || b.created_at);
-      return sort === "old" ? first - second : second - first;
-    });
-
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const visible = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const result = await getOfferingsPage({
+    type,
+    status: ["draft", "published"],
+    q: rawQuery,
+    sort,
+    page,
+    pageSize,
+  });
+  const currentPage = result.page;
+  const totalPages = result.totalPages;
+  const visible = result.items;
   const hasSearch = Boolean(q);
+  const hasAnyItems = result.total > 0;
 
   return (
     <AdminShell>
@@ -129,8 +125,8 @@ export default async function OfferingsCategoryPage({
       ) : (
         <EmptyState
           icon={emptyIcon}
-          title={baseItems.length && hasSearch ? "No se encontraron resultados." : emptyTitle}
-          description={baseItems.length && hasSearch ? "Prueba con otra búsqueda." : emptyDescription}
+          title={hasAnyItems && hasSearch ? "No se encontraron resultados." : emptyTitle}
+          description={hasAnyItems && hasSearch ? "Prueba con otra búsqueda." : emptyDescription}
           action={<Button href={`${basePath}/new`} icon="add">{createLabel}</Button>}
         />
       )}

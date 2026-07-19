@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product, ProductCategory, ProductStatus } from "@/lib/cms/types";
 import { formatAdminDateTime } from "@/lib/admin/date-format";
@@ -39,25 +39,25 @@ function statusClass(status: ProductStatus) {
   return `shop-product-status is-${status}`;
 }
 
-export default function ProductsTable({ items, categories }: { items: Product[]; categories: ProductCategory[] }) {
+export default function ProductsTable({
+  items,
+  categories,
+  pagination,
+}: {
+  items: Product[];
+  categories: ProductCategory[];
+  pagination?: { total: number; q: string };
+}) {
   const router = useRouter();
   const [notice, setNotice] = useState<Notice | null>(null);
   const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const normalizedQuery = query.trim().toLowerCase();
+  const [query, setQuery] = useState(pagination?.q ?? "");
 
   function catName(id: string) {
     return categories.find((c) => c.id === id)?.name ?? id;
   }
 
-  const visibleItems = useMemo(() => {
-    if (!normalizedQuery) return items;
-    return items.filter((item) => {
-      const haystack = `${item.name} ${item.sku ?? ""} ${catName(item.category_id)}`.toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-  }, [items, categories, normalizedQuery]);
 
   function message(action: string) {
     if (action === "publish") return "Publicado exitosamente.";
@@ -123,15 +123,17 @@ export default function ProductsTable({ items, categories }: { items: Product[];
   return (
     <>
       <div className="shop-products-panel">
-        <div className="shop-products-toolbar">
+        <form action="/admin/shop" method="get" className="shop-products-toolbar">
+          <input type="hidden" name="tab" value="items" />
           <label className="shop-products-search">
             <span>Buscar</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, SKU o categoría" />
+            <input name="q" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, SKU o categoria" />
           </label>
-          <p>{visibleItems.length} de {items.length} artículos</p>
-        </div>
+          <button type="submit" className="secondary-btn">Buscar</button>
+          <p>{items.length} de {pagination?.total ?? items.length} articulos</p>
+        </form>
 
-        {visibleItems.length ? (
+        {items.length ? (
           <>
             <div className="table-card shop-products-table-card shop-products-desktop-table">
               <table className="admin-table shop-products-table">
@@ -147,7 +149,7 @@ export default function ProductsTable({ items, categories }: { items: Product[];
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleItems.map((product) => {
+                  {items.map((product) => {
                     const lowStock = product.stock !== null && product.stock <= product.low_stock_threshold;
                     return (
                       <tr key={product.id}>
@@ -174,7 +176,7 @@ export default function ProductsTable({ items, categories }: { items: Product[];
             </div>
 
             <div className="shop-products-mobile-list">
-              {visibleItems.map((product) => {
+              {items.map((product) => {
                 const lowStock = product.stock !== null && product.stock <= product.low_stock_threshold;
                 return (
                   <article className="shop-product-card" key={product.id}>

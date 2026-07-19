@@ -2,7 +2,7 @@ import Link from "@/components/admin/AdminLink";
 import AdminShell from "@/components/admin/AdminShell";
 import OfferingsTable from "@/components/admin/OfferingsTable";
 import SectionEmptyState from "@/components/admin/SectionEmptyState";
-import { getOfferings } from "@/lib/cms/offerings";
+import { getOfferingsPage } from "@/lib/cms/offerings";
 import type { OfferingStatus, OfferingType } from "@/lib/cms/types";
 
 const typeLabels: Record<"all" | OfferingType, string> = {
@@ -11,18 +11,14 @@ const typeLabels: Record<"all" | OfferingType, string> = {
 const statusLabels: Record<"all" | OfferingStatus, string> = {
   all: "Todos", draft: "Borrador", published: "Publicado", archived: "Archivado", deleted: "Papelera",
 };
-type OfferingSearchParams = { type?: string; status?: string };
+type OfferingSearchParams = { type?: string; status?: string; page?: string };
 
 export default async function OfferingsPage({ searchParams }: { searchParams?: Promise<OfferingSearchParams> }) {
   const params = await searchParams;
-  const offerings = await getOfferings();
   const type = (params?.type as keyof typeof typeLabels) || "all";
   const status = (params?.status as keyof typeof statusLabels) || "all";
-  const filtered = offerings.filter((item) => {
-    const matchesType = type === "all" || item.type === type;
-    const matchesStatus = status === "all" || item.status === status;
-    return matchesType && matchesStatus && item.status !== "deleted";
-  });
+  const page = Math.max(1, Number(params?.page ?? 1) || 1);
+  const result = await getOfferingsPage({ type, status, page, pageSize: 20 });
 
   return (
     <AdminShell>
@@ -42,7 +38,7 @@ export default async function OfferingsPage({ searchParams }: { searchParams?: P
           ))}
         </div>
       </div>
-      {filtered.length ? <OfferingsTable offerings={filtered} /> : (
+      {result.items.length ? <OfferingsTable offerings={result.items} /> : (
         <SectionEmptyState title="Aún no hay offerings" description="Crea el primer contenido comercial para empezar a poblar el CMS local." actionHref="/admin/offerings/new" actionLabel="Crear el primer contenido" />
       )}
     </AdminShell>
