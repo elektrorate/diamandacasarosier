@@ -113,6 +113,9 @@ export interface CmsHeroSettings {
   heroMenuMobilePositionY: string;
   heroImage: string;
   heroImageMobile: string;
+  heroVideoUrl: string;
+  heroVideoUrlMobile: string;
+  heroVideoPoster: string;
   titleImage: string;
   titleImageSecondary: string;
   /* Hero con imagen: escala + posición X/Y de cada imagen superpuesta */
@@ -214,6 +217,9 @@ export interface ClassOfferingDetails {
   homeSections: string[];
   heroImage: string;
   heroImageMobile: string;
+  heroVideoUrl: string;
+  heroVideoUrlMobile: string;
+  heroVideoPoster: string;
   titleImage: string;
   titleImageSecondary: string;
   titleImageScale: number;

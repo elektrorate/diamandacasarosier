@@ -6064,6 +6064,45 @@ body {
   }
 }
 
+.header-home .hero__video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.header-home .hero__video--mobile {
+  display: none;
+}
+
+.header-home .hero__video--embed {
+  top: 50%;
+  left: 50%;
+  width: max(120%, calc(120vh * 16 / 9));
+  height: max(120%, calc(120vw * 9 / 16));
+  border: 0;
+  transform: translate(-50%, -50%);
+}
+
+.header-home--video-hero .hero__bg {
+  z-index: 0;
+  background-image: none;
+  background-color: #61563a;
+}
+
+@media (max-width: 640px) {
+  .header-home--has-mobile-video .hero__video--desktop {
+    display: none;
+  }
+
+  .header-home--has-mobile-video .hero__video--mobile {
+    display: block;
+  }
+}
+
 @media (max-width: 1180px) {
   .header-home .hero__bg {
     background-size: cover;

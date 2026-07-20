@@ -5,6 +5,30 @@ import type { CmsHeroSettings } from "@/lib/cms/types";
 import { classNames } from "@/lib/utils";
 import type { CSSProperties } from "react";
 
+function heroVideoEmbedUrl(rawUrl: string) {
+  if (!rawUrl) return "";
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "player.vimeo.com" || host === "vimeo.com") {
+      const id = url.pathname.split("/").find((part) => /^\d+$/.test(part));
+      return id ? `https://player.vimeo.com/video/${id}?background=1&autoplay=1&muted=1&loop=1&autopause=0&controls=0` : "";
+    }
+
+    if (host === "youtu.be" || host === "youtube.com" || host === "m.youtube.com") {
+      const id = host === "youtu.be"
+        ? url.pathname.split("/").filter(Boolean)[0]
+        : url.searchParams.get("v") || url.pathname.split("/").filter(Boolean).pop();
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${id}&modestbranding=1&rel=0` : "";
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+
 export interface HomeHeroMenuSettings {
   headerLogoUrl: string;
   scrollMenuBackgroundColor: string;
@@ -28,6 +52,12 @@ export function HomeHeroView({
   const mobileScrollThreshold = Number.parseInt(hero.heroMenuMobilePositionY ?? "", 10) || 96;
   const desktopImage = hero.heroImage || "/img/hero-bg.jpg";
   const mobileImage = hero.heroImageMobile || desktopImage;
+  const desktopVideo = hero.heroVideoUrl.trim();
+  const mobileVideo = hero.heroVideoUrlMobile.trim() || desktopVideo;
+  const desktopVideoEmbed = heroVideoEmbedUrl(desktopVideo);
+  const mobileVideoEmbed = mobileVideo === desktopVideo ? desktopVideoEmbed : heroVideoEmbedUrl(mobileVideo);
+  const hasHeroVideo = hero.heroVariant === "image" && Boolean(desktopVideo);
+  const videoPoster = hero.heroVideoPoster || hero.heroImage || "/img/hero-bg.jpg";
   const heroStyle: CSSProperties = {
     "--home-hero-image": 'url("' + desktopImage + '")',
     "--home-hero-image-mobile": 'url("' + mobileImage + '")',
@@ -100,11 +130,57 @@ export function HomeHeroView({
         hero.heroVariant === "text" && "header-home--text-hero",
         hero.heroVariant === "image" && "header-home--image-hero",
         hero.heroVariant === "presentation" && "header-home--presentation-hero",
+        hasHeroVideo && "header-home--video-hero",
+        hasHeroVideo && mobileVideo && mobileVideo !== desktopVideo && "header-home--has-mobile-video",
       )}
       data-header-component="HeaderHome"
       style={heroStyle}
     >
       <div className="hero__bg" aria-hidden="true" />
+      {hasHeroVideo && desktopVideoEmbed ? (
+        <iframe
+          className="hero__video hero__video--embed hero__video--desktop"
+          src={desktopVideoEmbed}
+          title="Video de fondo del hero"
+          allow="autoplay; fullscreen; picture-in-picture"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      ) : hasHeroVideo ? (
+        <video
+          className="hero__video hero__video--desktop"
+          src={desktopVideo}
+          poster={videoPoster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+      ) : null}
+      {hasHeroVideo && mobileVideo && mobileVideo !== desktopVideo && mobileVideoEmbed ? (
+        <iframe
+          className="hero__video hero__video--embed hero__video--mobile"
+          src={mobileVideoEmbed}
+          title="Video de fondo movil del hero"
+          allow="autoplay; fullscreen; picture-in-picture"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      ) : hasHeroVideo && mobileVideo && mobileVideo !== desktopVideo ? (
+        <video
+          className="hero__video hero__video--mobile"
+          src={mobileVideo}
+          poster={hero.heroVideoPoster || mobileImage}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+      ) : null}
       <NavbarGlobal
         home
         navigationItems={navigationItems}

@@ -8,6 +8,30 @@ import ColorPickerField from "./ColorPickerField";
 import MediaSelectField from "./MediaSelectField";
 import RichTextField from "./RichTextField";
 
+function heroVideoEmbedUrl(rawUrl: string) {
+  if (!rawUrl) return "";
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "player.vimeo.com" || host === "vimeo.com") {
+      const id = url.pathname.split("/").find((part) => /^\d+$/.test(part));
+      return id ? `https://player.vimeo.com/video/${id}?background=1&autoplay=1&muted=1&loop=1&autopause=0&controls=0` : "";
+    }
+
+    if (host === "youtu.be" || host === "youtube.com" || host === "m.youtube.com") {
+      const id = host === "youtu.be"
+        ? url.pathname.split("/").filter(Boolean)[0]
+        : url.searchParams.get("v") || url.pathname.split("/").filter(Boolean).pop();
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${id}&modestbranding=1&rel=0` : "";
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+
 type DeviceKey = "phone" | "tablet" | "desktop";
 
 const subscribeToHydration = () => () => {};
@@ -160,6 +184,12 @@ export default function SharedHeroEditor({
   const navColor = details.heroMenuColor || (details.heroMenuTone === "light" ? "#ffffff" : "#3f3933");
   const isImageHero = details.heroVariant === "image";
   const isPresentationHero = details.heroVariant === "presentation";
+  const previewVideoUrl = isImageHero
+    ? device === "phone" && details.heroVideoUrlMobile
+      ? details.heroVideoUrlMobile
+      : details.heroVideoUrl
+    : "";
+  const previewVideoEmbedUrl = heroVideoEmbedUrl(previewVideoUrl);
   const frameStyle = {
     width: `${preset.width}px`,
     height: `${preset.height}px`,
@@ -267,6 +297,25 @@ export default function SharedHeroEditor({
                 value={details.heroImageMobile}
                 onChange={(heroImageMobile) => onChange({ heroImageMobile })}
                 className="cms-shared-hero-image-fields__background-mobile"
+                previewClassName="cms-shared-hero-media-preview"
+              />
+              <TextField
+                label="URL del video de fondo"
+                value={details.heroVideoUrl}
+                placeholder="https://.../hero.mp4"
+                help="Opcional. Si lo rellenas, este video sustituye a la imagen de fondo en el hero con imagen."
+                onChange={(event) => onChange({ heroVideoUrl: event.target.value })}
+              />
+              <TextField
+                label="URL del video para movil (opcional)"
+                value={details.heroVideoUrlMobile}
+                placeholder="https://.../hero-mobile.mp4"
+                onChange={(event) => onChange({ heroVideoUrlMobile: event.target.value })}
+              />
+              <MediaSelectField
+                label="Poster del video (opcional)"
+                value={details.heroVideoPoster}
+                onChange={(heroVideoPoster) => onChange({ heroVideoPoster })}
                 previewClassName="cms-shared-hero-media-preview"
               />
               <div className="cms-shared-hero-image-fields__titles">
@@ -449,6 +498,28 @@ export default function SharedHeroEditor({
 
         <div className="cms-hero-position-preview" aria-label="Vista de referencia del hero">
           <div className={`relative mx-auto overflow-hidden rounded-xl border border-outline-variant shadow-sm ${isHydrated && isPresentationHero ? "header-interno--presentation-hero" : ""}`} style={frameStyle}>
+            {previewVideoEmbedUrl ? (
+              <iframe
+                className="absolute inset-0 z-0 h-full w-full object-cover"
+                src={previewVideoEmbedUrl}
+                title="Video de fondo del hero"
+                allow="autoplay; fullscreen; picture-in-picture"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            ) : previewVideoUrl ? (
+              <video
+                className="absolute inset-0 z-0 h-full w-full object-cover"
+                src={previewVideoUrl}
+                poster={details.heroVideoPoster || details.heroImage}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-hidden="true"
+              />
+            ) : null}
             {device === "desktop" ? (
               <>
                 <span

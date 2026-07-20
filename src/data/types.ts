@@ -39,6 +39,9 @@ export interface ExperienceItem {
   homeExcerpt?: string;
   heroImage: string;
   heroImageMobile?: string;
+  heroVideoUrl?: string;
+  heroVideoUrlMobile?: string;
+  heroVideoPoster?: string;
   heroVariant?: "image" | "text" | "presentation";
   heroMenuTone?: "light" | "dark";
   heroMenuColor?: string;
