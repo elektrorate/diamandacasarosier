@@ -114,7 +114,11 @@ function cloneChildren(children: EditableMenuChild[]) {
 }
 
 function mergeChildrenWithSavedOrder(available: EditableMenuChild[], saved: EditableMenuChild[] = []) {
+  const availableById = new Map(available
+    .filter((child) => child.linked_entity_id)
+    .map((child) => [child.linked_entity_id, child]));
   const availableByUrl = new Map(available.map((child) => [child.url, child]));
+  const usedIds = new Set<string>();
   const usedUrls = new Set<string>();
   const merged: EditableMenuChild[] = [];
 
@@ -122,18 +126,31 @@ function mergeChildrenWithSavedOrder(available: EditableMenuChild[], saved: Edit
     .slice()
     .sort((a, b) => a.sort_order - b.sort_order)
     .forEach((child) => {
-      const availableChild = availableByUrl.get(child.url);
-      if (!availableChild) return;
+      const byId = child.linked_entity_id ? availableById.get(child.linked_entity_id) : undefined;
+      if (byId) {
+        usedIds.add(child.linked_entity_id);
+        usedUrls.add(byId.url);
+        merged.push({
+          ...byId,
+          is_visible: child.is_visible,
+          open_in_new_tab: child.open_in_new_tab,
+        });
+        return;
+      }
+
+      const byUrl = availableByUrl.get(child.url);
+      if (!byUrl) return;
       usedUrls.add(child.url);
       merged.push({
-        ...availableChild,
-        ...child,
-        key: child.key,
+        ...byUrl,
+        is_visible: child.is_visible,
+        open_in_new_tab: child.open_in_new_tab,
       });
     });
 
   available.forEach((child) => {
-    if (!usedUrls.has(child.url)) merged.push(child);
+    const alreadyUsed = (child.linked_entity_id && usedIds.has(child.linked_entity_id)) || usedUrls.has(child.url);
+    if (!alreadyUsed) merged.push(child);
   });
 
   return merged.map((child, index) => ({ ...child, sort_order: index }));
@@ -141,13 +158,13 @@ function mergeChildrenWithSavedOrder(available: EditableMenuChild[], saved: Edit
 
 function editableChildFromNavigation(item: NavigationItem, sortOrder: number): EditableMenuChild {
   return {
-    key: `available-${item.href}-${sortOrder}`,
+    key: `available-${item.linked_entity_id ?? item.href}-${sortOrder}`,
     label: item.label,
     url: item.href,
     sort_order: sortOrder,
     type: "internal",
-    linked_entity_type: "none",
-    linked_entity_id: "",
+    linked_entity_type: (item.linked_entity_type as LinkedEntityType | undefined) ?? "none",
+    linked_entity_id: item.linked_entity_id ?? "",
     is_visible: item.visible,
     open_in_new_tab: item.target === "_blank",
   };
@@ -168,7 +185,6 @@ function availableChildrenByRoot(navigationItems: NavigationItem[]) {
 
   return childrenByRoot;
 }
-
 function itemToEditable(item: MenuItem, children: MenuItem[]): EditableMenuItem {
   const key = keyForItem(item);
   const defaultPoint = DEFAULT_POINTS.find((point) => point.key === key);

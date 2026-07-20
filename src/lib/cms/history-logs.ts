@@ -180,10 +180,11 @@ export async function createHistoryLog(data: LogInput) {
 }
 
 export async function logAction(data: Omit<LogInput, "id" | "created_at" | "user_id" | "user_email" | "old_data" | "new_data"> & { user_id?: string; user_email?: string; old_data?: unknown; new_data?: unknown }) {
-  const identity = await getCurrentUserIdentity();
+  const needsIdentity = !data.user_id || !data.user_email;
+  const identity = needsIdentity ? await getCurrentUserIdentity() : null;
   return createHistoryLog({
-    user_id: data.user_id ?? identity.user_id,
-    user_email: data.user_email ?? identity.user_email,
+    user_id: data.user_id ?? identity?.user_id ?? "system",
+    user_email: data.user_email ?? identity?.user_email ?? "system",
     old_data: null,
     new_data: null,
     ...data,

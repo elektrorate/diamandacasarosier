@@ -71,6 +71,8 @@ function toNavigationItem(item: MenuItem, children: MenuItem[]): NavigationItem 
     order: item.sort_order,
     visible: item.is_visible,
     target: item.open_in_new_tab ? "_blank" : undefined,
+    linked_entity_id: item.linked_entity_id || undefined,
+    linked_entity_type: item.linked_entity_type !== "none" ? item.linked_entity_type : undefined,
     children: children
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((child) => toNavigationItem(child, [])),
@@ -134,13 +136,20 @@ function offeringToNavigationItem(offering: Offering, order: number): Navigation
     href: experienceHref(kindForOffering(offering.type), offering.slug),
     order,
     visible: true,
+    linked_entity_id: offering.id,
+    linked_entity_type: "offering",
   };
 }
 
 function mergeGeneratedChildrenWithSavedOrder(generated: NavigationItem[], saved: NavigationItem[] = []) {
   if (!saved.length) return generated;
 
+  // Build lookup maps: by entity ID (primary) and by href (fallback)
+  const generatedById = new Map(generated
+    .filter((child) => child.linked_entity_id)
+    .map((child) => [child.linked_entity_id!, child]));
   const generatedByHref = new Map(generated.map((child) => [child.href, child]));
+  const usedIds = new Set<string>();
   const usedHrefs = new Set<string>();
   const merged: NavigationItem[] = [];
 
@@ -148,19 +157,34 @@ function mergeGeneratedChildrenWithSavedOrder(generated: NavigationItem[], saved
     .slice()
     .sort((a, b) => a.order - b.order)
     .forEach((child) => {
-      const generatedChild = generatedByHref.get(child.href);
-      if (!generatedChild) return;
+      // Primary match: by entity ID (works even when slug/URL changes)
+      const byId = child.linked_entity_id ? generatedById.get(child.linked_entity_id) : undefined;
+      if (byId) {
+        usedIds.add(child.linked_entity_id!);
+        usedHrefs.add(byId.href);
+        merged.push({
+          // Always use the live label and href from the entity, not the stale saved record
+          ...byId,
+          visible: child.visible,
+          target: child.target ?? byId.target,
+        });
+        return;
+      }
+      // Fallback match: by href (for items without entity IDs)
+      const byHref = generatedByHref.get(child.href);
+      if (!byHref) return;
       usedHrefs.add(child.href);
       merged.push({
-        ...generatedChild,
-        label: generatedChild.label,
+        ...byHref,
         visible: child.visible,
-        target: child.target ?? generatedChild.target,
+        target: child.target ?? byHref.target,
       });
     });
 
+  // Append any generated children that were not matched (new entities)
   generated.forEach((child) => {
-    if (!usedHrefs.has(child.href)) merged.push(child);
+    const alreadyUsed = (child.linked_entity_id && usedIds.has(child.linked_entity_id)) || usedHrefs.has(child.href);
+    if (!alreadyUsed) merged.push(child);
   });
 
   return merged.map((child, index) => ({ ...child, order: index }));

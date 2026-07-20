@@ -5756,7 +5756,7 @@ body {
       transform 260ms ease;
   }
 
-  .mobile-scroll-nav.is-visible {
+  .mobile-scroll-nav.is-desktop-sticky {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);

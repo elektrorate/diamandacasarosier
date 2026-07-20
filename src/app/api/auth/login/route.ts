@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import {
@@ -11,6 +11,21 @@ import { logAction } from "@/lib/cms/history-logs";
 
 function hasSupabaseAuthEnv() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+function scheduleLoginLog(input: {
+  entity_id: string;
+  entity_title: string;
+  user_id: string;
+  user_email: string;
+}) {
+  after(() => {
+    void logAction({
+      action: "login",
+      entity_type: "auth",
+      ...input,
+    }).catch(() => undefined);
+  });
 }
 
 export async function POST(request: Request) {
@@ -56,14 +71,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Usuario sin permisos de administracion" }, { status: 403 });
     }
 
-    await logAction({
-      action: "login",
-      entity_type: "auth",
+    scheduleLoginLog({
       entity_id: data.user.id,
       entity_title: data.user.email ?? normalizedEmail,
       user_id: data.user.id,
       user_email: data.user.email ?? normalizedEmail,
-    }).catch(() => undefined);
+    });
 
     return response;
   }
@@ -73,14 +86,12 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.options);
 
-  await logAction({
-    action: "login",
-    entity_type: "auth",
+  scheduleLoginLog({
     entity_id: "bootstrap-admin",
     entity_title: normalizedEmail,
     user_id: "bootstrap-admin",
     user_email: normalizedEmail,
-  }).catch(() => undefined);
+  });
 
   return response;
 }

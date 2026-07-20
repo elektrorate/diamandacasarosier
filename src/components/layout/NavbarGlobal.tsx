@@ -8,6 +8,8 @@ import type { NavigationItem } from "@/data/types";
 import { classNames } from "@/lib/utils";
 
 const DESKTOP_SUBMENU_CLOSE_DELAY = 320;
+const DESKTOP_NAV_BREAKPOINT = 1025;
+const DESKTOP_SCROLL_HYSTERESIS = 40;
 
 export function NavbarGlobal({
   home = false,
@@ -73,6 +75,8 @@ export function NavbarGlobal({
   >(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileScrolled, setMobileScrolled] = useState(false);
+  const [desktopScrolled, setDesktopScrolled] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const [desktopOpen, setDesktopOpen] = useState<string | null>(null);
   const [scrollDesktopOpen, setScrollDesktopOpen] = useState<string | null>(
     null
@@ -85,6 +89,7 @@ export function NavbarGlobal({
     (item) => !home || item.href !== "/#hero"
   );
   const scrollDesktopItems = desktopItems;
+  const showDesktopScrollNav = isDesktopViewport && desktopScrolled;
   const effectiveScrollIconColor = scrollMenuIconColor || scrollMenuTextColor;
   const navStyle = {
     "--site-scroll-menu-bg": scrollMenuBackgroundColor,
@@ -200,26 +205,53 @@ export function NavbarGlobal({
   }, [clearDesktopCloseTimeout, clearScrollDesktopCloseTimeout]);
 
   useEffect(() => {
+    let frame = 0;
+
     const currentThreshold = () => {
       if (window.innerWidth <= 640) return mobileScrollThreshold;
       if (window.innerWidth <= 1024) return tabletScrollThreshold;
       return scrollThreshold;
     };
-    const onScroll = () => {
-      const scrolled = window.scrollY > currentThreshold();
-      setMobileScrolled(scrolled);
+
+    const evaluateNavigationState = () => {
+      frame = 0;
+      const width = window.innerWidth;
+      const isDesktop = width >= DESKTOP_NAV_BREAKPOINT;
+      const threshold = currentThreshold();
+      const scrollY = window.scrollY;
+      const scrolled = scrollY > threshold;
+
+      setIsDesktopViewport((previous) => previous === isDesktop ? previous : isDesktop);
+      setMobileScrolled((previous) => previous === scrolled ? previous : scrolled);
+
+      setDesktopScrolled((previous) => {
+        if (!isDesktop) return previous ? false : previous;
+        const activationPoint = threshold;
+        const deactivationPoint = Math.max(0, threshold - DESKTOP_SCROLL_HYSTERESIS);
+        const nextValue = previous ? scrollY > deactivationPoint : scrollY > activationPoint;
+        return previous === nextValue ? previous : nextValue;
+      });
+
       if (!scrolled) {
         setMobileOpen(false);
+        setScrollDesktopOpen(null);
       }
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+
+    const scheduleEvaluation = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(evaluateNavigationState);
     };
-  }, [mobileScrollThreshold, scrollThreshold, tabletScrollThreshold]);
+
+    scheduleEvaluation();
+    window.addEventListener("scroll", scheduleEvaluation, { passive: true });
+    window.addEventListener("resize", scheduleEvaluation);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleEvaluation);
+      window.removeEventListener("resize", scheduleEvaluation);
+    };
+  }, [mobileScrollThreshold, pathname, scrollThreshold, tabletScrollThreshold]);
 
   const current = (href: string) =>
     href === "/#hero"
@@ -235,110 +267,113 @@ export function NavbarGlobal({
       ref={rootRef}
       style={navStyle}
     >
-      <div className="navbar-global hero__top container">
-        <Link className="hero__logo" href="/#hero" aria-label="Casa Rosier">
-          {heroMenuColor ? (
-            <span className="hero__logo-tint" style={scrollLogoTintStyle} aria-hidden="true" />
-          ) : (
-            <img
-              className="hero__logo-image"
-              src={logoUrl}
-              alt="Casa Rosier"
-            />
-          )}
-        </Link>
+      {!showDesktopScrollNav && (
+        <div className="navbar-global hero__top container">
+          <Link className="hero__logo" href="/#hero" aria-label="Casa Rosier">
+            {heroMenuColor ? (
+              <span className="hero__logo-tint" style={scrollLogoTintStyle} aria-hidden="true" />
+            ) : (
+              <img
+                className="hero__logo-image"
+                src={logoUrl}
+                alt="Casa Rosier"
+              />
+            )}
+          </Link>
 
-        <nav className="hero__nav nav-desktop" aria-label="Principal">
-          <ul className="hero__nav-list">
-            {desktopItems.map((item, index) => {
-              const children =
-                item.children?.filter((child) => child.visible) ?? [];
-              const open = desktopOpen === item.href;
-              const submenuId = `desktop-submenu-${index}`;
-              return (
-                <li
-                  className={classNames(
-                    "hero__nav-item",
-                    children.length > 0 && "hero__nav-item--has-children",
-                    open && "hero__nav-item--open"
-                  )}
-                  key={item.label}
-                  onMouseEnter={() =>
-                    children.length > 0 && openDesktopMenu(item.href)
-                  }
-                  onMouseLeave={() =>
-                    children.length > 0 && scheduleDesktopMenuClose()
-                  }
-                  onFocus={() =>
-                    children.length > 0 && openDesktopMenu(item.href)
-                  }
-                >
-                  <div className="hero__nav-group">
-                    <Link
-                      className="hero__nav-link"
-                      href={item.href}
-                      target={item.target}
-                      rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-                      aria-current={current(item.href) ? "page" : undefined}
-                      onClick={() => {
-                        setMobileOpen(false);
-                        closeDesktopMenu();
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                    {children.length > 0 && (
-                      <button
-                        className="hero__nav-toggle"
-                        type="button"
-                        aria-expanded={open}
-                        aria-haspopup="menu"
-                        aria-controls={submenuId}
-                        aria-label={`Abrir submenu de ${item.label}`}
-                        onClick={() =>
-                          open ? closeDesktopMenu() : openDesktopMenu(item.href)
-                        }
-                      >
-                        <span className="hero__plus" aria-hidden="true" />
-                      </button>
+          <nav className="hero__nav nav-desktop" aria-label="Principal">
+            <ul className="hero__nav-list">
+              {desktopItems.map((item, index) => {
+                const children =
+                  item.children?.filter((child) => child.visible) ?? [];
+                const open = desktopOpen === item.href;
+                const submenuId = `desktop-submenu-${index}`;
+                return (
+                  <li
+                    className={classNames(
+                      "hero__nav-item",
+                      children.length > 0 && "hero__nav-item--has-children",
+                      open && "hero__nav-item--open"
                     )}
-                  </div>
-                  {children.length > 0 && (
-                    <ul className="nav-submenu" id={submenuId} role="menu">
-                      {children.map((child) => (
-                        <li
-                          className="nav-submenu__item"
-                          role="none"
-                          key={child.href}
+                    key={item.label}
+                    onMouseEnter={() =>
+                      children.length > 0 && openDesktopMenu(item.href)
+                    }
+                    onMouseLeave={() =>
+                      children.length > 0 && scheduleDesktopMenuClose()
+                    }
+                    onFocus={() =>
+                      children.length > 0 && openDesktopMenu(item.href)
+                    }
+                  >
+                    <div className="hero__nav-group">
+                      <Link
+                        className="hero__nav-link"
+                        href={item.href}
+                        target={item.target}
+                        rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+                        aria-current={current(item.href) ? "page" : undefined}
+                        onClick={() => {
+                          setMobileOpen(false);
+                          closeDesktopMenu();
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                      {children.length > 0 && (
+                        <button
+                          className="hero__nav-toggle"
+                          type="button"
+                          aria-expanded={open}
+                          aria-haspopup="menu"
+                          aria-controls={submenuId}
+                          aria-label={`Abrir submenu de ${item.label}`}
+                          onClick={() =>
+                            open ? closeDesktopMenu() : openDesktopMenu(item.href)
+                          }
                         >
-                          <Link
-                            className="nav-submenu__link"
-                            href={child.href}
-                            target={child.target}
-                            rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
-                            role="menuitem"
-                            aria-current={
-                              current(child.href) ? "page" : undefined
-                            }
-                            onClick={closeDesktopMenu}
+                          <span className="hero__plus" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                    {children.length > 0 && (
+                      <ul className="nav-submenu" id={submenuId} role="menu">
+                        {children.map((child) => (
+                          <li
+                            className="nav-submenu__item"
+                            role="none"
+                            key={child.href}
                           >
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </div>
+                            <Link
+                              className="nav-submenu__link"
+                              href={child.href}
+                              target={child.target}
+                              rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
+                              role="menuitem"
+                              aria-current={
+                                current(child.href) ? "page" : undefined
+                              }
+                              onClick={closeDesktopMenu}
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
+      )}
 
       <div
         className={classNames(
           "mobile-scroll-nav",
-          "is-visible",
+          !isDesktopViewport && "is-visible",
+          showDesktopScrollNav && "is-desktop-sticky",
           !mobileScrolled && !mobileOpen && "is-at-top",
           mobileOpen && "is-open"
         )}
@@ -366,89 +401,91 @@ export function NavbarGlobal({
               />
             )}
           </Link>
-          <nav className="scroll-desktop-nav" aria-label="Principal">
-            <ul className="scroll-desktop-nav__list">
-              {scrollDesktopItems.map((item, index) => {
-                const open = scrollDesktopOpen === item.href;
-                const children = item.children ?? [];
-                return (
-                  <li
-                    className={classNames(
-                      "scroll-desktop-nav__item",
-                      children.length > 0 &&
-                        "scroll-desktop-nav__item--has-children",
-                      open && "is-open"
-                    )}
-                    key={item.href}
-                    onMouseEnter={() =>
-                      children.length > 0 &&
-                      openScrollDesktopMenu(item.href)
-                    }
-                    onMouseLeave={() =>
-                      children.length > 0 &&
-                      scheduleScrollDesktopMenuClose()
-                    }
-                    onFocus={() =>
-                      children.length > 0 &&
-                      openScrollDesktopMenu(item.href)
-                    }
-                  >
-                    <Link
-                      className="scroll-desktop-nav__link"
-                      href={item.href}
-                      target={item.target}
-                      rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-                      aria-current={current(item.href) ? "page" : undefined}
-                      onClick={closeScrollDesktopMenu}
+          {showDesktopScrollNav && (
+            <nav className="scroll-desktop-nav" aria-label="Principal">
+              <ul className="scroll-desktop-nav__list">
+                {scrollDesktopItems.map((item, index) => {
+                  const open = scrollDesktopOpen === item.href;
+                  const children = item.children ?? [];
+                  return (
+                    <li
+                      className={classNames(
+                        "scroll-desktop-nav__item",
+                        children.length > 0 &&
+                          "scroll-desktop-nav__item--has-children",
+                        open && "is-open"
+                      )}
+                      key={item.href}
+                      onMouseEnter={() =>
+                        children.length > 0 &&
+                        openScrollDesktopMenu(item.href)
+                      }
+                      onMouseLeave={() =>
+                        children.length > 0 &&
+                        scheduleScrollDesktopMenuClose()
+                      }
+                      onFocus={() =>
+                        children.length > 0 &&
+                        openScrollDesktopMenu(item.href)
+                      }
                     >
-                      {item.label}
+                      <Link
+                        className="scroll-desktop-nav__link"
+                        href={item.href}
+                        target={item.target}
+                        rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+                        aria-current={current(item.href) ? "page" : undefined}
+                        onClick={closeScrollDesktopMenu}
+                      >
+                        {item.label}
+                        {children.length > 0 && (
+                          <span
+                            className="scroll-desktop-nav__plus"
+                            aria-hidden="true"
+                          >
+                            +
+                          </span>
+                        )}
+                      </Link>
                       {children.length > 0 && (
+                        <ul className="scroll-desktop-submenu" role="menu">
+                          {children.map((child) => (
+                            <li
+                              className="scroll-desktop-submenu__item"
+                              role="none"
+                              key={child.href}
+                            >
+                              <Link
+                                className="scroll-desktop-submenu__link"
+                                href={child.href}
+                                target={child.target}
+                                rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
+                                role="menuitem"
+                                aria-current={
+                                  current(child.href) ? "page" : undefined
+                                }
+                                onClick={closeScrollDesktopMenu}
+                              >
+                                {child.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {index < scrollDesktopItems.length - 1 && (
                         <span
-                          className="scroll-desktop-nav__plus"
+                          className="scroll-desktop-nav__separator"
                           aria-hidden="true"
                         >
-                          +
+                          |
                         </span>
                       )}
-                    </Link>
-                    {children.length > 0 && (
-                      <ul className="scroll-desktop-submenu" role="menu">
-                        {children.map((child) => (
-                          <li
-                            className="scroll-desktop-submenu__item"
-                            role="none"
-                            key={child.href}
-                          >
-                            <Link
-                              className="scroll-desktop-submenu__link"
-                              href={child.href}
-                              target={child.target}
-                              rel={child.target === "_blank" ? "noopener noreferrer" : undefined}
-                              role="menuitem"
-                              aria-current={
-                                current(child.href) ? "page" : undefined
-                              }
-                              onClick={closeScrollDesktopMenu}
-                            >
-                              {child.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {index < scrollDesktopItems.length - 1 && (
-                      <span
-                        className="scroll-desktop-nav__separator"
-                        aria-hidden="true"
-                      >
-                        |
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          )}
           <button
             ref={scrollMobileToggleRef}
             className="mobile-scroll-nav__toggle"

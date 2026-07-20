@@ -238,6 +238,8 @@ export interface NavigationItem {
   visible: boolean;
   target?: string;
   children?: NavigationItem[];
+  linked_entity_id?: string;
+  linked_entity_type?: string;
 }
 
 export interface CartSummaryRow {
