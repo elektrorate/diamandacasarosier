@@ -25,6 +25,100 @@ function hasMeaningfulProgramItem(item: ExperienceItem["program"][number]) {
     (item.points?.some((point) => hasMeaningfulContent(point)) ?? false)
   );
 }
+const PUBLIC_MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const PUBLIC_WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DEFAULT_CALENDAR_LABELS_TITLE = "PR\u00d3XIMAS FECHAS DEL WORKSHOP";
+const DEFAULT_CALENDAR_LABELS_DESCRIPTION = "Consulta las pr\u00f3ximas fechas disponibles del workshop durante el a\u00f1o y elige la edici\u00f3n que mejor se adapte a tu calendario. Cada convocatoria incluye informaci\u00f3n sobre horarios, plazas disponibles y detalles de reserva.";
+
+function daysInMonth(year: number, month: number) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return 0;
+  return new Date(year, month, 0).getDate();
+}
+
+function calendarMonthCells(year: number, month: number) {
+  const count = daysInMonth(year, month);
+  if (!count) return [] as Array<number | null>;
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const mondayOffset = (firstDay + 6) % 7;
+  return [
+    ...Array.from({ length: mondayOffset }, () => null),
+    ...Array.from({ length: count }, (_, index) => index + 1),
+  ];
+}
+
+function formatCalendarDays(days: number[]) {
+  if (days.length <= 1) return days.join("");
+  if (days.length === 2) return `${days[0]} y ${days[1]}`;
+  return `${days.slice(0, -1).join(", ")} y ${days[days.length - 1]}`;
+}
+
+function visibleCalendarLabels(item: ExperienceItem) {
+  return (item.showCalendarLabels ? item.calendarLabels ?? [] : [])
+    .filter((label) => label.active && label.days.length > 0 && daysInMonth(label.year, label.month) > 0)
+    .sort((a, b) => a.year - b.year || a.month - b.month || a.order - b.order);
+}
+
+function CalendarLabelsSection({ item }: { item: ExperienceItem }) {
+  const [open, setOpen] = useState(false);
+  const labels = visibleCalendarLabels(item);
+
+  if (!labels.length) return null;
+
+  const title = item.calendarLabelsTitle?.trim() || DEFAULT_CALENDAR_LABELS_TITLE;
+  const description = item.calendarLabelsDescription?.trim() || DEFAULT_CALENDAR_LABELS_DESCRIPTION;
+  const panelId = "calendar-labels-panel-" + item.id;
+
+  return (
+    <section className={open ? "class-calendar-labels is-open" : "class-calendar-labels"}>
+      <div className="class-calendar-labels__head">
+        <div>
+          <h2>{title}</h2>
+          {description ? <p>{description}</p> : null}
+        </div>
+        <button
+          className="class-calendar-labels__arrow"
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span>{open ? "ocultar fechas" : "ver otras fechas"}</span>
+          <span className="class-calendar-labels__arrow-icon" aria-hidden="true" />
+        </button>
+      </div>
+      {open ? <div className="class-calendar-labels__grid" id={panelId}>
+        {labels.map((label) => {
+          const monthName = PUBLIC_MONTH_NAMES[label.month - 1] || "Mes";
+          const selectedDays = [...label.days].sort((a, b) => a - b);
+          const cells = calendarMonthCells(label.year, label.month);
+
+          return (
+            <article className="class-calendar-card" key={label.id}>
+              <div className="class-calendar-card__top">
+                <span aria-hidden="true">&lsaquo;</span>
+                <h3>{monthName} {label.year}</h3>
+                <span aria-hidden="true">&rsaquo;</span>
+              </div>
+              <div className="class-calendar-card__weekdays">
+                {PUBLIC_WEEKDAY_LABELS.map((day) => <span key={day}>{day}</span>)}
+              </div>
+              <div className="class-calendar-card__days">
+                {cells.map((day, index) => day ? (
+                  <span className={selectedDays.includes(day) ? "is-selected" : undefined} key={day}>{day}</span>
+                ) : <span key={`empty-${index}`} aria-hidden="true" />)}
+              </div>
+              <div className="class-calendar-card__summary">
+                <h4>{monthName} {label.year}</h4>
+                <p><span>{selectedDays.length} {selectedDays.length === 1 ? "dia" : "dias"}</span> <strong>{formatCalendarDays(selectedDays)}</strong></p>
+                {label.availabilityText ? <p>{label.availabilityText}</p> : null}
+              </div>
+            </article>
+          );
+        })}
+      </div> : null}
+    </section>
+  );
+}
 export function DetailPage({
   item,
   titleLevel = "h1",
@@ -45,11 +139,13 @@ export function DetailPage({
   const hasLearningContent = item.showLearningSection && hasMeaningfulContent(item.whatYouWillLearn);
   const hasParticipationContent = item.showParticipationSection && hasMeaningfulContent(item.whoCanJoin);
   const showPaymentMethods = item.showPaymentMethodsSection && item.paymentMethods.length > 0;
+  const hasCalendarLabels = visibleCalendarLabels(item).length > 0;
   const hasSideContent = Boolean(
     item.videoUrl ||
     item.videoCardImage ||
     showPaymentMethods ||
-    item.additionalInfo.trim()
+    item.additionalInfo.trim() ||
+    hasCalendarLabels
   );
   const defaultPrice = useMemo(
     () =>
@@ -113,8 +209,8 @@ export function DetailPage({
                   <h3>Metodos de pago</h3>
                   <p>Puedes pagar con cualquiera de estos medios</p>
                   <ul>
-                    {item.paymentMethods.map((method) => (
-                      <li key={method}>{method}</li>
+                    {item.paymentMethods.map((method, methodIndex) => (
+                      <li key={`${method}-${methodIndex}`}>{method}</li>
                     ))}
                   </ul>
                 </div>
@@ -125,6 +221,7 @@ export function DetailPage({
                   <MarkdownContent source={item.additionalInfo} />
                 </div>
               ) : null}
+              <CalendarLabelsSection item={item} />
               </aside>
             ) : null}
           </section>
@@ -146,10 +243,10 @@ export function DetailPage({
                 <div className="class-detail__fact-block">
                   <h2>Precio</h2>
                   <div className="class-detail__price-list">
-                    {item.priceOptions.map((option) => (
+                    {item.priceOptions.map((option, optionIndex) => (
                       <div
                         className="class-detail__price-row"
-                        key={option.label}
+                        key={`${option.label}-${optionIndex}`}
                       >
                         <span>{option.label}</span>
                         <strong>{option.price}</strong>
@@ -162,14 +259,14 @@ export function DetailPage({
                   <p className="class-detail__duration">{item.duration}</p>
                   {item.schedule.length ? (
                     <div className="class-detail__schedule">
-                      {item.schedule.map((schedule) => (
+                      {item.schedule.map((schedule, scheduleIndex) => (
                         <div
                           className="class-detail__schedule-item"
-                          key={schedule.day}
+                          key={`${schedule.day}-${scheduleIndex}`}
                         >
                           <h4>{schedule.day}</h4>
-                          {schedule.slots.map((slot) => (
-                            <p key={slot}>{slot}</p>
+                          {schedule.slots.map((slot, slotIndex) => (
+                            <p key={`${slot}-${slotIndex}`}>{slot}</p>
                           ))}
                         </div>
                       ))}
@@ -178,14 +275,15 @@ export function DetailPage({
                 </div>
               </section>
 
+
               {showIncluded || consultHref ? (
                 <section className="class-detail__includes">
                   {showIncluded ? (
                     <>
                       <h2>Incluye</h2>
                       <ul>
-                        {item.included.map((included) => (
-                          <li key={included}>{renderInlineMarkdown(includedText(included))}</li>
+                        {item.included.map((included, includedIndex) => (
+                          <li key={`${included}-${includedIndex}`}>{renderInlineMarkdown(includedText(included))}</li>
                         ))}
                       </ul>
                     </>

@@ -30,6 +30,16 @@ export interface ClassScheduleDay {
   order: number;
 }
 
+export interface CalendarLabel {
+  id: string;
+  month: number;
+  year: number;
+  days: number[];
+  active: boolean;
+  order: number;
+  availabilityText?: string;
+}
+
 export interface ClassOfferingModule {
   id: string;
   title: string;
@@ -213,6 +223,10 @@ export interface ClassOfferingDetails {
   scheduleDescription: string;
   showScheduleOnFrontend: boolean;
   scheduleDays: ClassScheduleDay[];
+  showCalendarLabels: boolean;
+  calendarLabelsTitle: string;
+  calendarLabelsDescription: string;
+  calendarLabels: CalendarLabel[];
   menuPlacement: string[];
   homeSections: string[];
   heroImage: string;

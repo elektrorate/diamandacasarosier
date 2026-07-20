@@ -22,6 +22,7 @@ import RichTextField from "./RichTextField";
 import SharedHeroEditor from "./SharedHeroEditor";
 import ClassContentTab, { defaultContent } from "./ClassContentTab";
 import type {
+  CalendarLabel,
   ClassHomeCard,
   ClassOfferingDetails,
   ClassScheduleDay,
@@ -49,6 +50,12 @@ type LegacyOfferingDetails = Partial<ClassOfferingDetails> & {
 };
 
 const DEFAULT_HERO_IMAGE = "/img/hero-bg.jpg";
+const MAX_CALENDAR_LABELS = 6;
+const MONTH_OPTIONS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const WEEKDAY_LABELS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
+const YEAR_OPTIONS = Array.from({ length: 101 }, (_, index) => 2000 + index);
+const DEFAULT_CALENDAR_LABELS_TITLE = "PR?XIMAS FECHAS DEL WORKSHOP";
+const DEFAULT_CALENDAR_LABELS_DESCRIPTION = "Consulta las pr?ximas fechas disponibles del workshop durante el a?o y elige la edici?n que mejor se adapte a tu calendario. Cada convocatoria incluye informaci?n sobre horarios, plazas disponibles y detalles de reserva.";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -115,6 +122,10 @@ const defaultClassDetails: ClassOfferingDetails = {
   scheduleDescription: "",
   showScheduleOnFrontend: true,
   scheduleDays: [],
+  showCalendarLabels: false,
+  calendarLabelsTitle: DEFAULT_CALENDAR_LABELS_TITLE,
+  calendarLabelsDescription: DEFAULT_CALENDAR_LABELS_DESCRIPTION,
+  calendarLabels: [],
   menuPlacement: ["classes"],
   homeSections: [],
   heroImage: DEFAULT_HERO_IMAGE,
@@ -281,6 +292,53 @@ function legacyScheduleDays(schedule: string[]): ClassScheduleDay[] {
   });
 }
 
+function daysInMonth(year: number, month: number) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return 0;
+  return new Date(year, month, 0).getDate();
+}
+
+function calendarMonthCells(year: number, month: number) {
+  const count = daysInMonth(year, month);
+  if (!count) return [] as Array<number | null>;
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const mondayOffset = (firstDay + 6) % 7;
+  return [
+    ...Array.from({ length: mondayOffset }, () => null),
+    ...Array.from({ length: count }, (_, index) => index + 1),
+  ];
+}
+
+function sanitizeCalendarLabel(entry: unknown, index: number): CalendarLabel | null {
+  const source = entry && typeof entry === "object" ? entry as Partial<CalendarLabel> : {};
+  const now = new Date();
+  const month = Number(source.month) || now.getMonth() + 1;
+  const year = Number(source.year) || now.getFullYear();
+  if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 2000 || year > 2100) return null;
+  const maxDay = daysInMonth(year, month);
+  const days = Array.isArray(source.days)
+    ? Array.from(new Set(source.days.map((day) => Number(day)).filter((day) => Number.isInteger(day) && day >= 1 && day <= maxDay))).sort((a, b) => a - b)
+    : [];
+
+  return {
+    id: firstText(source.id) || createId("calendar-label"),
+    month,
+    year,
+    days,
+    active: source.active !== false,
+    order: Number.isFinite(Number(source.order)) ? Number(source.order) : index,
+    availabilityText: firstText(source.availabilityText),
+  };
+}
+
+function sanitizeCalendarLabels(value: unknown): CalendarLabel[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .slice(0, MAX_CALENDAR_LABELS)
+    .map(sanitizeCalendarLabel)
+    .filter((label): label is CalendarLabel => Boolean(label))
+    .map((label, order) => ({ ...label, order }));
+}
+
 function toClassDetails(offering: Offering): ClassOfferingDetails {
   const legacyDetails = (offering.details ?? {}) as LegacyOfferingDetails;
   const fromDetails = { ...legacyDetails, ...(offering.details.class ?? {}) } as LegacyOfferingDetails;
@@ -347,6 +405,7 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
       : [];
 
   const scheduleDays = Array.isArray(fromDetails.scheduleDays) && fromDetails.scheduleDays.length ? fromDetails.scheduleDays : legacyScheduleDays(offering.schedule);
+  const calendarLabels = sanitizeCalendarLabels(fromDetails.calendarLabels);
   const includedItems = Array.isArray(fromDetails.includedItems) && fromDetails.includedItems.length ? fromDetails.includedItems : textList(fromDetails.included);
   const heroVariant = fromDetails.heroVariant === "image" || fromDetails.heroVariant === "text" || fromDetails.heroVariant === "presentation"
     ? fromDetails.heroVariant
@@ -427,6 +486,10 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
     pricing: pricing.map((item, index) => ({ description: item.description || "", price: item.price ?? null, order: item.order ?? index })),
     scheduleDescription: firstText(fromDetails.scheduleDescription, offering.schedule.join("\n")),
     showScheduleOnFrontend: fromDetails.showScheduleOnFrontend ?? true,
+    showCalendarLabels: fromDetails.showCalendarLabels === true,
+    calendarLabelsTitle: firstText(fromDetails.calendarLabelsTitle, DEFAULT_CALENDAR_LABELS_TITLE),
+    calendarLabelsDescription: firstText(fromDetails.calendarLabelsDescription, DEFAULT_CALENDAR_LABELS_DESCRIPTION),
+    calendarLabels,
     scheduleDays: scheduleDays
       .map((item, index) => ({
         id: item.id || `schedule-${index}`,
@@ -486,6 +549,37 @@ function TextField({
       />
       {help && !error ? <p id={descriptionId} className="text-label-md text-on-surface-variant/70">{help}</p> : null}
       {error ? <p id={descriptionId} className="text-label-md text-error">{error}</p> : null}
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  children,
+  onChange,
+  help,
+}: {
+  label: string;
+  value: string | number;
+  children: React.ReactNode;
+  onChange: React.ChangeEventHandler<HTMLSelectElement>;
+  help?: string;
+}) {
+  const generatedId = useId();
+
+  return (
+    <div className="space-y-1.5">
+      <FieldLabel htmlFor={generatedId}>{label}</FieldLabel>
+      <select
+        id={generatedId}
+        value={value}
+        onChange={onChange}
+        className="block w-full rounded-xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-secondary-container"
+      >
+        {children}
+      </select>
+      {help ? <p className="text-label-md text-on-surface-variant/70">{help}</p> : null}
     </div>
   );
 }
@@ -1036,6 +1130,60 @@ export default function ClassEditForm({
     updateDetails({ includedItems: toLines(value) });
   }
 
+  function addCalendarLabel() {
+    if (details.calendarLabels.length >= MAX_CALENDAR_LABELS) return;
+    const now = new Date();
+    updateDetails({
+      calendarLabels: [
+        ...details.calendarLabels,
+        {
+          id: createId("calendar-label"),
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          days: [],
+          active: true,
+          order: details.calendarLabels.length,
+          availabilityText: "",
+        },
+      ],
+    });
+  }
+
+  function updateCalendarLabel(index: number, next: Partial<CalendarLabel>) {
+    const labels = details.calendarLabels.map((item, i) => {
+      if (i !== index) return item;
+      const month = next.month ?? item.month;
+      const year = next.year ?? item.year;
+      const maxDay = daysInMonth(Number(year), Number(month));
+      const days = (next.days ?? item.days).filter((day) => day >= 1 && day <= maxDay);
+      return { ...item, ...next, month, year, days };
+    });
+    updateDetails({ calendarLabels: labels });
+  }
+
+  function toggleCalendarDay(index: number, day: number) {
+    const label = details.calendarLabels[index];
+    if (!label) return;
+    const maxDay = daysInMonth(label.year, label.month);
+    if (day < 1 || day > maxDay) return;
+    const days = label.days.includes(day)
+      ? label.days.filter((item) => item !== day)
+      : [...label.days, day].sort((a, b) => a - b);
+    updateCalendarLabel(index, { days });
+  }
+
+  function removeCalendarLabel(index: number) {
+    updateDetails({ calendarLabels: details.calendarLabels.filter((_, i) => i !== index).map((item, order) => ({ ...item, order })) });
+  }
+
+  function moveCalendarLabel(from: number, to: number) {
+    if (to < 0 || to >= details.calendarLabels.length || from === to) return;
+    const next = [...details.calendarLabels];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    updateDetails({ calendarLabels: next.map((item, order) => ({ ...item, order })) });
+  }
+
   function handleSelectImage(url: string) {
     if (pickerTarget === "hero") updateDetails({ heroImage: url });
     if (pickerTarget === "home") updateHomeCard({ image: url });
@@ -1117,7 +1265,7 @@ export default function ClassEditForm({
     if (errorKey === "heroTitle") return "hero";
     if (errorKey.startsWith("schedule-")) return "schedule";
     if (errorKey.startsWith("pricing-") || errorKey === "menuTitle" || errorKey === "title" || errorKey === "slug" || errorKey === "whatsappNumber") return "basic";
-    if (errorKey.startsWith("gallery-")) return "basic";
+    if (errorKey.startsWith("gallery-") || errorKey.startsWith("calendar-label-") || errorKey === "calendarLabels") return "basic";
     return "basic";
   }
 
@@ -1150,6 +1298,10 @@ export default function ClassEditForm({
     const schedule = errorKey.match(/^schedule-(date|end|seats)-(\d+)$/);
     if (schedule) return `Horario - Día ${Number(schedule[2]) + 1}`;
 
+    const calendar = errorKey.match(/^calendar-label-(\d+)$/);
+    if (calendar) return `Pagina detallada - Etiqueta calendario ${Number(calendar[1]) + 1}`;
+    if (errorKey === "calendarLabels") return "Pagina detallada - Etiquetas calendario";
+
     return errorKey;
   }
 
@@ -1170,6 +1322,13 @@ export default function ClassEditForm({
     });
     details.galleryImages.forEach((item, index) => {
       if (item.image && !item.alt.trim()) nextErrors[`gallery-${index}`] = "El texto alternativo es obligatorio.";
+    });
+    if (details.calendarLabels.length > MAX_CALENDAR_LABELS) nextErrors.calendarLabels = "Puedes crear hasta seis etiquetas calendario.";
+    details.calendarLabels.forEach((item, index) => {
+      const maxDay = daysInMonth(item.year, item.month);
+      if (!maxDay) nextErrors[`calendar-label-${index}`] = "Selecciona un mes y anio validos.";
+      if (item.days.some((day) => day < 1 || day > maxDay)) nextErrors[`calendar-label-${index}`] = "Hay dias que no existen en ese mes.";
+      if (details.showCalendarLabels && item.active && item.days.length === 0) nextErrors[`calendar-label-${index}`] = "Marca al menos un dia o desactiva esta etiqueta.";
     });
     setErrors(nextErrors);
     return nextErrors;
@@ -1204,6 +1363,7 @@ export default function ClassEditForm({
       const pricing = details.pricing.filter((item) => item.description.trim() || item.price !== null).map((item, order) => ({ ...item, order }));
       const galleryImages = details.galleryImages.filter((item) => item.image).map((item, order) => ({ ...item, order }));
       const scheduleDays: ClassOfferingDetails["scheduleDays"] = [];
+      const calendarLabels = sanitizeCalendarLabels(details.calendarLabels);
       const primaryPrice = pricing.find((item) => item.price !== null)?.price ?? null;
       const coverImage = details.heroVariant === "image" || details.heroVariant === "presentation" ? details.heroImage || DEFAULT_HERO_IMAGE : galleryImages[0]?.image || details.videoPoster || offering.cover_image_url;
 
@@ -1265,6 +1425,10 @@ export default function ClassEditForm({
               pricing,
               galleryImages,
               scheduleDays,
+              showCalendarLabels: details.showCalendarLabels,
+              calendarLabelsTitle: details.calendarLabelsTitle.trim() || DEFAULT_CALENDAR_LABELS_TITLE,
+              calendarLabelsDescription: details.calendarLabelsDescription.trim(),
+              calendarLabels,
               includedItems: details.includedItems.map((item) => item.trim()).filter(Boolean),
               heroTitle: details.heroTitle.trim(),
               heroSubtitle: details.heroSubtitle.trim(),
@@ -1669,6 +1833,103 @@ export default function ClassEditForm({
 
         {activeTab === "basic" ? (
           <>
+            <Card padding="lg" className="space-y-5 rounded-2xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-headline-sm text-on-surface">Etiquetas Calendario</h2>
+                  <p className="mt-1 text-body-md text-on-surface-variant">Crea hasta seis meses puntuales y marca solo los dias destacados para la pagina publica.</p>
+                </div>
+                <Button type="button" onClick={addCalendarLabel} size="sm" disabled={details.calendarLabels.length >= MAX_CALENDAR_LABELS}>
+                  Agregar etiqueta
+                </Button>
+              </div>
+              <Switch
+                checked={details.showCalendarLabels}
+                label="Mostrar etiquetas calendario"
+                description="Si esta apagado, no se renderiza nada en el frontend publico."
+                onCheckedChange={(checked) => updateDetails({ showCalendarLabels: checked })}
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField
+                  label="T?tulo del encabezado"
+                  value={details.calendarLabelsTitle}
+                  placeholder={DEFAULT_CALENDAR_LABELS_TITLE}
+                  onChange={(event) => updateDetails({ calendarLabelsTitle: event.target.value })}
+                />
+                <TextAreaField
+                  label="Texto del encabezado"
+                  value={details.calendarLabelsDescription}
+                  placeholder={DEFAULT_CALENDAR_LABELS_DESCRIPTION}
+                  onChange={(event) => updateDetails({ calendarLabelsDescription: event.target.value })}
+                  className="min-h-[120px]"
+                />
+              </div>
+              {errors.calendarLabels ? <p className="text-label-md text-error">{errors.calendarLabels}</p> : null}
+              <div className="space-y-4">
+                {details.calendarLabels.length ? details.calendarLabels.map((label, index) => {
+                  const monthDays = calendarMonthCells(label.year, label.month);
+                  return (
+                    <div key={label.id} className="space-y-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4" data-validation-key={`calendar-label-${index}`}>
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-label-lg font-bold text-on-surface">Etiqueta {index + 1}</p>
+                          <p className="text-label-md text-on-surface-variant">{label.days.length ? `${label.days.length} dias seleccionados` : "Sin dias seleccionados"}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => moveCalendarLabel(index, index - 1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-container-high" aria-label="Subir etiqueta">
+                            <span className="material-symbols-outlined text-lg">arrow_upward</span>
+                          </button>
+                          <button type="button" onClick={() => moveCalendarLabel(index, index + 1)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-surface-container-high" aria-label="Bajar etiqueta">
+                            <span className="material-symbols-outlined text-lg">arrow_downward</span>
+                          </button>
+                          <button type="button" onClick={() => removeCalendarLabel(index)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-error hover:bg-error-container" aria-label="Eliminar etiqueta">
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-[180px_150px_1fr] md:items-start">
+                        <SelectField label="Mes" value={label.month} onChange={(event) => updateCalendarLabel(index, { month: Number(event.target.value) })}>
+                          {MONTH_OPTIONS.map((month, monthIndex) => (
+                            <option key={month} value={monthIndex + 1}>{month}</option>
+                          ))}
+                        </SelectField>
+                        <SelectField label="Anio" value={label.year} onChange={(event) => updateCalendarLabel(index, { year: Number(event.target.value) })}>
+                          {YEAR_OPTIONS.map((year) => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </SelectField>
+                        <TextField label="Disponibilidad" value={label.availabilityText ?? ""} placeholder="disponibilidad: 8 alumnos" onChange={(event) => updateCalendarLabel(index, { availabilityText: event.target.value })} />
+                      </div>
+                      <Switch
+                        checked={label.active}
+                        label="Etiqueta activa"
+                        description="Permite conservarla en el CMS sin mostrarla en la pagina publica."
+                        onCheckedChange={(checked) => updateCalendarLabel(index, { active: checked })}
+                      />
+                      <div className="max-w-[520px] rounded-2xl border border-outline-variant bg-surface p-3">
+                        <div className="mb-2 grid grid-cols-7 gap-1 text-center text-label-sm uppercase text-on-surface-variant">
+                          {WEEKDAY_LABELS.map((day) => <span key={day}>{day}</span>)}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {monthDays.map((day, dayIndex) => day ? (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => toggleCalendarDay(index, day)}
+                              className={`aspect-square rounded-full text-label-lg font-bold transition-colors ${label.days.includes(day) ? "bg-[#ff5a1f] text-white shadow-[0_8px_18px_rgba(255,90,31,0.35)]" : "text-on-surface hover:bg-surface-container-high"}`}
+                              aria-pressed={label.days.includes(day)}
+                            >
+                              {day}
+                            </button>
+                          ) : <span key={`empty-${dayIndex}`} aria-hidden="true" />)}
+                        </div>
+                      </div>
+                      {errors[`calendar-label-${index}`] ? <p className="text-label-md text-error">{errors[`calendar-label-${index}`]}</p> : null}
+                    </div>
+                  );
+                }) : <p className="text-body-md text-on-surface-variant">No hay etiquetas calendario cargadas.</p>}
+              </div>
+            </Card>
             <Card padding="lg" className="space-y-5 rounded-2xl">
               <h2 className="text-headline-sm text-on-surface">Galería, video e incluye</h2>
               <RichTextField

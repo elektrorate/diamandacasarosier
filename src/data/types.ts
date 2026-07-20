@@ -1,4 +1,4 @@
-import type { CmsHeroSettings } from "@/lib/cms/types";
+import type { CalendarLabel, CmsHeroSettings } from "@/lib/cms/types";
 
 export type ExperienceKind =
   | "class"
@@ -130,6 +130,10 @@ export interface ExperienceItem {
   priceOptions: PriceOption[];
   duration: string;
   schedule: ScheduleItem[];
+  showCalendarLabels?: boolean;
+  calendarLabelsTitle?: string;
+  calendarLabelsDescription?: string;
+  calendarLabels?: CalendarLabel[];
   included: string[];
   showIncludedSection: boolean;
   program: ProgramItem[];

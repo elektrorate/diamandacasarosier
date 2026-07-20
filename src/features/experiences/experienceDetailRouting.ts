@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ExperienceItem, ExperienceKind } from "@/data/types";
 import { getOfferingBySlug, getOfferings } from "@/lib/cms/offerings";
 import { normalizeHeroSettings } from "@/lib/cms/hero-settings";
-import type { ClassOfferingDetails, Offering } from "@/lib/cms/types";
+import type { CalendarLabel, ClassOfferingDetails, Offering } from "@/lib/cms/types";
 
 type LegacyProgramItem = {
   title?: unknown;
@@ -110,6 +110,39 @@ function detailsForOffering(offering: Offering): LegacyOfferingDetails {
   };
 }
 
+function daysInMonth(year: number, month: number) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return 0;
+  return new Date(year, month, 0).getDate();
+}
+
+function normalizeCalendarLabels(value: unknown): CalendarLabel[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .slice(0, 6)
+    .map((entry, index) => {
+      const source = entry && typeof entry === "object" ? entry as Partial<CalendarLabel> : {};
+      const month = Number(source.month);
+      const year = Number(source.year);
+      const maxDay = daysInMonth(year, month);
+      const days = Array.isArray(source.days)
+        ? Array.from(new Set(source.days.map((day) => Number(day)).filter((day) => Number.isInteger(day) && day >= 1 && day <= maxDay))).sort((a, b) => a - b)
+        : [];
+
+      return {
+        id: stringValue(source.id) || `calendar-label-${index}`,
+        month,
+        year,
+        days,
+        active: source.active !== false,
+        order: Number.isFinite(Number(source.order)) ? Number(source.order) : index,
+        availabilityText: stringValue(source.availabilityText),
+      };
+    })
+    .filter((label) => Number.isInteger(label.month) && label.month >= 1 && label.month <= 12 && Number.isInteger(label.year) && label.year >= 2000 && label.year <= 2100 && label.days.length > 0)
+    .sort((a, b) => a.year - b.year || a.month - b.month || a.order - b.order)
+    .map((label, order) => ({ ...label, order }));
+}
 function scheduleForOffering(offering: Offering, details: LegacyOfferingDetails) {
   if (details.showScheduleOnFrontend === false) return [];
 
@@ -183,6 +216,7 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map((item) => ({ label: item.description || "Precio", price: formatPrice(item.price) }));
   const schedule = scheduleForOffering(offering, details);
+  const calendarLabels = normalizeCalendarLabels(details.calendarLabels).filter((label) => label.active);
   const consultHref = ctaConsultHref(details);
   const enrollHref = ctaEnrollHref(details);
   const hero = normalizeHeroSettings(details, {
@@ -319,6 +353,10 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     priceOptions,
     duration: details.durationText || offering.duration,
     schedule,
+    showCalendarLabels: details.showCalendarLabels === true,
+    calendarLabelsTitle: stringValue(details.calendarLabelsTitle),
+    calendarLabelsDescription: stringValue(details.calendarLabelsDescription),
+    calendarLabels,
     included,
     showIncludedSection,
     program,

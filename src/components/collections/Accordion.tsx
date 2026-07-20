@@ -23,8 +23,8 @@ export function Accordion({ items }: { items: ProgramItem[] }) {
         const panelId = `course-panel-${index}`;
         return (
           <div
-            className={`course-accordion__item ${open ? "is-open" : ""}`}
-            key={item.title}
+            className={open ? "course-accordion__item is-open" : "course-accordion__item"}
+            key={`${item.title}-${index}`}
           >
             <button
               className="course-accordion__trigger"
