@@ -18,7 +18,7 @@ import { assetPath } from "@/lib/assets";
 import type { ClassEditorPreviewChrome } from "@/lib/cms/class-editor-preview";
 import AdminActionModal from "./AdminActionModal";
 import MediaLibraryModal from "./MediaLibraryModal";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 import SharedHeroEditor from "./SharedHeroEditor";
 import ClassContentTab, { defaultContent } from "./ClassContentTab";
 import type {
@@ -56,6 +56,7 @@ const WEEKDAY_LABELS = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 const YEAR_OPTIONS = Array.from({ length: 101 }, (_, index) => 2000 + index);
 const DEFAULT_CALENDAR_LABELS_TITLE = "PR?XIMAS FECHAS DEL WORKSHOP";
 const DEFAULT_CALENDAR_LABELS_DESCRIPTION = "Consulta las pr?ximas fechas disponibles del workshop durante el a?o y elige la edici?n que mejor se adapte a tu calendario. Cada convocatoria incluye informaci?n sobre horarios, plazas disponibles y detalles de reserva.";
+const DEFAULT_DETAIL_QUESTION = "Te apasiona la creatividad y deseas explorar el mundo de la ceramica?";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -108,6 +109,7 @@ const defaultClassDetails: ClassOfferingDetails = {
   ctaEnrollLabel: "",
   showConsultCta: true,
   showEnrollCta: true,
+  detailQuestion: DEFAULT_DETAIL_QUESTION,
   highlightDescription: "",
   homeCard: {
     image: "",
@@ -452,6 +454,7 @@ function toClassDetails(offering: Offering): ClassOfferingDetails {
     heroPresentationCtaNewTab: Boolean(fromDetails.heroPresentationCtaNewTab),
     heroPresentationCtaBackgroundColor: firstText(fromDetails.heroPresentationCtaBackgroundColor, defaultClassDetails.heroPresentationCtaBackgroundColor),
     heroPresentationCtaTextColor: firstText(fromDetails.heroPresentationCtaTextColor, defaultClassDetails.heroPresentationCtaTextColor),
+    detailQuestion: firstText(fromDetails.detailQuestion, DEFAULT_DETAIL_QUESTION),
     highlightDescription: firstText(fromDetails.highlightDescription, fromDetails.introHighlight, offering.excerpt),
     homeCard: {
       image: firstText(persistedHomeCard.image),
@@ -809,6 +812,7 @@ function buildPreviewItem({
     heroTitle: details.heroTitle || title || "Título del hero",
     listingTitle: title || "Título del producto",
     listingSubtitle: details.heroSubtitle || "",
+    detailQuestion: details.detailQuestion || DEFAULT_DETAIL_QUESTION,
     introHighlight: details.highlightDescription || "Texto remarcado color café.",
     galleryImages: galleryImages.length ? galleryImages : [fallbackImage],
     videoCardImage: details.videoPoster || undefined,
@@ -1432,6 +1436,7 @@ export default function ClassEditForm({
               includedItems: details.includedItems.map((item) => item.trim()).filter(Boolean),
               heroTitle: details.heroTitle.trim(),
               heroSubtitle: details.heroSubtitle.trim(),
+              detailQuestion: details.detailQuestion.trim(),
               highlightDescription: details.highlightDescription.trim(),
               homeCard: {
                 image: details.homeCard.image.trim(),
@@ -1706,13 +1711,9 @@ export default function ClassEditForm({
                   onChange={(event) => { setTitle(event.target.value); setIsDirty(true); }}
                   onBlur={() => { if (!slug.trim()) setSlug(slugify(title)); }}
                 />
-                <TextField
-                  label="Título de página"
-                  value={subtitle}
-                  help="Título grande (H1) que se muestra en la página pública."
-                  onChange={(event) => { setSubtitle(event.target.value); setIsDirty(true); }}
-                />
               </div>
+              <RichTextField label="Titulo de pagina" value={subtitle} onChange={(value) => { setSubtitle(value); setIsDirty(true); }} minHeight="120px" />
+              <RichTextField label="Pregunta / frase introductoria" value={details.detailQuestion} onChange={(value) => updateDetails({ detailQuestion: value })} minHeight="120px" />
               <RichTextField label="Texto remarcado (café)" value={details.highlightDescription} onChange={(value) => updateDetails({ highlightDescription: value })} minHeight="150px" />
               <RichTextField label="Texto normal / descripción" value={description} onChange={(value) => { setDescription(value); setIsDirty(true); }} minHeight="220px" />
               <div className="grid gap-4 md:grid-cols-2">

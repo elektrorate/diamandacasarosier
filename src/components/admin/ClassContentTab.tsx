@@ -3,7 +3,7 @@
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Switch from "@/components/ui/Switch";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 import type { ClassOfferingContent, ClassOfferingModule } from "@/lib/cms/types";
 
 interface ClassContentTabProps {

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Teacher, TeacherStatus } from "@/lib/cms/types";
 import MediaSelectField from "./MediaSelectField";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 
 export default function TeacherForm({
   mode,

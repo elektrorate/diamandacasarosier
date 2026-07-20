@@ -16,7 +16,7 @@ import type { SiteSettings } from "@/lib/cms/settings";
 import type { Faq, FaqGroup, SocialGallery as CmsSocialGallery, StudioPageSettings, Teacher } from "@/lib/cms/types";
 import AdminActionModal from "./AdminActionModal";
 import CmsPublicHeroPreview from "./CmsPublicHeroPreview";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 import SharedHeroEditor from "./SharedHeroEditor";
 import TeachersTable from "./TeachersTable";
 

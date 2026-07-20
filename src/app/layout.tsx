@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Baskervville, Inter, Manrope } from "next/font/google";
+import { Baskervville, Inter, Manrope, Roboto_Flex } from "next/font/google";
 import { SiteChrome } from "@/components/layout/SiteChrome";
 import "./tailwind.css";
 import "./legacy/base.css";
@@ -38,6 +38,12 @@ const manrope = Manrope({
   display: "swap"
 });
 
+const robotoFlex = Roboto_Flex({
+  subsets: ["latin"],
+  variable: "--font-roboto-flex",
+  display: "swap"
+});
+
 const nunito = localFont({
   src: [
     {
@@ -69,7 +75,7 @@ export default function RootLayout({
     <html lang="es" data-scroll-behavior="smooth">
       <body
         suppressHydrationWarning
-        className={`${baskervville.variable} ${inter.variable} ${manrope.variable} ${nunito.variable}`}
+        className={`${baskervville.variable} ${inter.variable} ${manrope.variable} ${robotoFlex.variable} ${nunito.variable}`}
       >
         {children}
         <SiteChrome />

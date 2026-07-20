@@ -18,6 +18,17 @@ function hasMeaningfulContent(value: string | string[] | undefined) {
   return values.some((entry) => entry.trim().length > 0);
 }
 
+function titleMarkdownToInline(source: string) {
+  return source
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trim().replace(/^#{1,3}\s+/, "").replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""))
+    .filter(Boolean)
+    .join(" ")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
 function hasMeaningfulProgramItem(item: ExperienceItem["program"][number]) {
   return (
     hasMeaningfulContent(item.title) ||
@@ -228,11 +239,8 @@ export function DetailPage({
 
           <section className="class-detail__content-column">
             <header className="class-detail__head">
-              <DetailTitle className="class-detail__title">{item.subtitle}</DetailTitle>
-              <p className="class-detail__question">
-                Te apasiona la creatividad y deseas explorar el mundo de la
-                ceramica?
-              </p>
+              <DetailTitle className="class-detail__title">{renderInlineMarkdown(titleMarkdownToInline(item.subtitle) || item.title)}</DetailTitle>
+              <MarkdownContent source={item.detailQuestion} className="class-detail__question" />
               <MarkdownContent source={item.introHighlight} className="class-detail__highlight" />
             </header>
 

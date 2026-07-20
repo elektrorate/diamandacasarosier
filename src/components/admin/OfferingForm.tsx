@@ -11,7 +11,7 @@ import Textarea from "@/components/ui/Textarea";
 import Checkbox from "@/components/ui/Checkbox";
 import Button from "@/components/ui/Button";
 import MediaLibraryModal from "./MediaLibraryModal";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 
 function defaultOffering(type?: string): Partial<Offering> {
   return {

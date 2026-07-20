@@ -13,7 +13,7 @@ import Switch from "@/components/ui/Switch";
 import AdminActionModal from "./AdminActionModal";
 import CmsPublicHeroPreview from "./CmsPublicHeroPreview";
 import MediaSelectField from "./MediaSelectField";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 import SharedHeroEditor from "./SharedHeroEditor";
 import { normalizeHeroSettings } from "@/lib/cms/hero-settings";
 import type { SiteSettings } from "@/lib/cms/settings";

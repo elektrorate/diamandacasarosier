@@ -549,22 +549,22 @@ export async function getOfferings() {
 }
 
 export async function getOfferingById(id: string) {
-  const cached = getCachedOfferings()?.find((item) => item.id === id);
-  if (cached) return cached;
-
   const fromSupabase = await withTimeout(readOneFromSupabase("id", id), SUPABASE_READ_TIMEOUT_MS, null);
   if (fromSupabase) return fromSupabase;
+
+  const cached = getCachedOfferings()?.find((item) => item.id === id);
+  if (cached) return cached;
 
   const offerings = await getOfferings();
   return offerings.find((item) => item.id === id) ?? null;
 }
 
 export async function getOfferingBySlug(slug: string) {
-  const cached = getCachedOfferings()?.find((item) => item.slug === slug);
-  if (cached) return cached;
-
   const fromSupabase = await withTimeout(readOneFromSupabase("slug", slug), SUPABASE_READ_TIMEOUT_MS, null);
   if (fromSupabase) return fromSupabase;
+
+  const cached = getCachedOfferings()?.find((item) => item.slug === slug);
+  if (cached) return cached;
 
   const offerings = await getOfferings();
   return offerings.find((item) => item.slug === slug) ?? null;

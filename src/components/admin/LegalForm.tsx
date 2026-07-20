@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import RichTextField from "@/components/admin/RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 import { DEFAULT_PRIVACY_POLICY_MARKDOWN } from "@/lib/cms/types";
 
 interface PrivacyPolicySettings {

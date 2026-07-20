@@ -6,7 +6,7 @@ import { PublicHeroContent } from "@/components/hero/PublicHeroContent";
 import type { CmsHeroSettings, ClassHeroVariant } from "@/lib/cms/types";
 import ColorPickerField from "./ColorPickerField";
 import MediaSelectField from "./MediaSelectField";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 
 function heroVideoEmbedUrl(rawUrl: string) {
   if (!rawUrl) return "";

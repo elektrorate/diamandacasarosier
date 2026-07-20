@@ -214,6 +214,7 @@ export interface ClassOfferingDetails {
   ctaEnrollLabel: string;
   showConsultCta: boolean;
   showEnrollCta: boolean;
+  detailQuestion: string;
   highlightDescription: string;
   homeCard: ClassHomeCard;
   /** Compatibilidad con registros anteriores a la tarjeta de Home independiente. */

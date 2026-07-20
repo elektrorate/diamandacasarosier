@@ -6,7 +6,7 @@ import type { PromoBanner, PromoStatus } from "@/lib/cms/types";
 import { MarkdownContent } from "@/components/ui/MarkdownContent";
 import AdminActionModal from "./AdminActionModal";
 import MediaSelectField from "./MediaSelectField";
-import RichTextField from "./RichTextField";
+import RichTextField from "@/components/editor/RichTextEditor";
 
 const limits = {
   key_text: 40,

@@ -120,6 +120,7 @@ export interface ExperienceItem {
   heroTitle: string;
   listingTitle: string;
   listingSubtitle: string;
+  detailQuestion: string;
   introHighlight: string;
   galleryImages: string[];
   videoCardImage?: string;

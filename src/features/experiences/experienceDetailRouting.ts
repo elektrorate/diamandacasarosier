@@ -247,6 +247,7 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
   const homeCard = classDetails?.homeCard;
   const defaultHomeImage = offering.cover_image_url || galleryImages[0] || details.heroImage || "img/hero-bg.jpg";
   const defaultHomeEyebrow = details.heroSubtitle || stringValue(details.category) || offering.type;
+  const detailQuestion = stringValue(details.detailQuestion) || "Te apasiona la creatividad y deseas explorar el mundo de la ceramica?";
 
   return {
     id: offering.id,
@@ -343,6 +344,7 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     heroTitle: hero.heroTitle || offering.title,
     listingTitle: offering.title,
     listingSubtitle: details.heroSubtitle || "",
+    detailQuestion,
     introHighlight: details.highlightDescription || stringValue(details.introHighlight) || offering.excerpt,
     galleryImages: galleryImages.length ? galleryImages : [offering.cover_image_url || details.heroImage || "img/hero-bg.jpg"],
     videoCardImage: details.videoPoster || stringValue(details.videoCardImage) || undefined,
