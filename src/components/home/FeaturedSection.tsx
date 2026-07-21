@@ -30,39 +30,36 @@ export function FeaturedSection({
           <p className="featured__subtitle section-subtitle">{subtitle}</p>
         </header>
         <div className="featured__grid cards-grid">
-          {items.map((item) => (
-            <article className="content-card" key={item.id}>
-              <Link
-                className="content-card__media"
-                href={experienceHref(item.kind, item.slug)}
-              >
-                <img
-                  src={assetPath(item.homeImage || item.coverImage)}
-                  alt={item.homeImageAlt || item.homeTitle || item.title}
-                  loading="lazy"
-                  decoding="async"
-                  className={
-                    assetPath(item.homeImage || item.coverImage) !== `/${item.homeImage || item.coverImage}`
-                      ? "asset-fallback"
-                      : undefined
-                  }
-                />
-              </Link>
-              <div className="content-card__body">
-                <p className="content-card__meta">{item.homeEyebrow || item.category}</p>
-                <h3 className="content-card__title card__title">
-                  {item.homeTitle || item.title}
-                </h3>
-                <MarkdownContent className="content-card__excerpt body-text" source={item.homeExcerpt || item.excerpt} />
-                <Link
-                  className="content-card__cta"
-                  href={experienceHref(item.kind, item.slug)}
-                >
-                  leer mas
+          {items.map((item) => {
+            const href = experienceHref(item.kind, item.slug);
+            const image = item.homeImage || item.coverImage;
+
+            return (
+              <article className="content-card" key={item.id}>
+                <Link className="content-card__link" href={href} aria-label={`Ver ${item.homeTitle || item.title}`}>
+                  <span className="content-card__media">
+                    <img
+                      src={assetPath(image)}
+                      alt={item.homeImageAlt || item.homeTitle || item.title}
+                      loading="lazy"
+                      decoding="async"
+                      className={assetPath(image) !== `/${image}` ? "asset-fallback" : undefined}
+                    />
+                  </span>
+                  <span className="content-card__body">
+                    <span className="content-card__meta">{item.homeEyebrow || item.category}</span>
+                    <span className="content-card__title card__title">
+                      {item.homeTitle || item.title}
+                    </span>
+                    <MarkdownContent className="content-card__excerpt body-text" source={item.homeExcerpt || item.excerpt} />
+                    <span className="content-card__cta" aria-hidden="true">
+                      leer mas
+                    </span>
+                  </span>
                 </Link>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

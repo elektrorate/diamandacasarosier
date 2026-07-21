@@ -98,6 +98,7 @@ export interface CmsHeroSettings {
   heroTitle: string;
   heroSubtitle: string;
   heroPresentationText: string;
+  heroPresentationSubtitle: string;
   heroPresentationTextColor: string;
   heroPresentationImage: string;
   heroPresentationCtaEnabled: boolean;
@@ -184,6 +185,7 @@ export interface ClassOfferingDetails {
   heroTitle: string;
   heroSubtitle: string;
   heroPresentationText: string;
+  heroPresentationSubtitle: string;
   heroPresentationTextColor: string;
   heroPresentationImage: string;
   heroPresentationCtaEnabled: boolean;

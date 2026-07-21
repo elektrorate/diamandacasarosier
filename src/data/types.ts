@@ -61,6 +61,7 @@ export interface ExperienceItem {
   heroTitleImage?: string;
   heroTitleImageSecondary?: string;
   heroPresentationText?: string;
+  heroPresentationSubtitle?: string;
   heroPresentationTextColor?: string;
   heroPresentationImage?: string;
   heroPresentationCtaEnabled?: boolean;

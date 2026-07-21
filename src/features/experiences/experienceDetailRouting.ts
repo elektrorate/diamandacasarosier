@@ -288,6 +288,7 @@ function cmsOfferingToExperienceItem(offering: Offering): ExperienceItem {
     heroTitleImage: details.titleImage,
     heroTitleImageSecondary: details.titleImageSecondary,
     heroPresentationText: hero.heroPresentationText,
+    heroPresentationSubtitle: hero.heroPresentationSubtitle,
     heroPresentationTextColor: hero.heroPresentationTextColor,
     heroPresentationImage: hero.heroPresentationImage,
     heroPresentationCtaEnabled: hero.heroPresentationCtaEnabled,

@@ -3793,6 +3793,25 @@ button:disabled {
   border: 0;
 }
 
+.content-card__link,
+.gift-carousel__card-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.content-card__link:focus-visible,
+.gift-carousel__card-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+
+.content-card__link .content-card__body,
+.gift-carousel__card-link .gift-carousel__body {
+  color: inherit;
+}
+
 .content-card__excerpt.markdown-content,
 .blog-card__excerpt.markdown-content,
 .featured-slide__excerpt.markdown-content,
@@ -5227,6 +5246,13 @@ body {
   color: inherit;
 }
 
+.page-hero__presentation-subtitle.markdown-content {
+  display: grid;
+  gap: 8px;
+  margin: clamp(14px, 2vw, 24px) 0 0;
+  color: inherit;
+}
+
 .page-hero__presentation-text {
   position: relative;
   z-index: 2;
@@ -5238,7 +5264,11 @@ body {
 .page-hero__presentation-copy h3,
 .page-hero__presentation-copy p,
 .page-hero__presentation-copy li,
-.page-hero__presentation-copy blockquote {
+.page-hero__presentation-copy blockquote,
+.page-hero__presentation-subtitle h3,
+.page-hero__presentation-subtitle p,
+.page-hero__presentation-subtitle li,
+.page-hero__presentation-subtitle blockquote {
   margin: 0;
   color: inherit;
 }
@@ -5256,7 +5286,11 @@ body {
 .page-hero__presentation-copy h3,
 .page-hero__presentation-copy p,
 .page-hero__presentation-copy li,
-.page-hero__presentation-copy blockquote {
+.page-hero__presentation-copy blockquote,
+.page-hero__presentation-subtitle h3,
+.page-hero__presentation-subtitle p,
+.page-hero__presentation-subtitle li,
+.page-hero__presentation-subtitle blockquote {
   max-width: 34ch;
   font-family: var(--font-menu);
   font-size: clamp(13px, 1.4vw, 16px);
@@ -5265,7 +5299,9 @@ body {
 }
 
 .page-hero__presentation-copy ul,
-.page-hero__presentation-copy ol {
+.page-hero__presentation-copy ol,
+.page-hero__presentation-subtitle ul,
+.page-hero__presentation-subtitle ol {
   display: grid;
   gap: 4px;
   margin: 0;
@@ -6064,6 +6100,16 @@ body {
   }
 }
 
+@keyframes homeHeroVideoFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .header-home .hero__video {
   position: absolute;
   inset: 0;
@@ -6071,7 +6117,9 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
   pointer-events: none;
+  animation: homeHeroVideoFadeIn 4s ease 0.35s forwards;
 }
 
 .header-home .hero__video--mobile {
@@ -6089,8 +6137,7 @@ body {
 
 .header-home--video-hero .hero__bg {
   z-index: 0;
-  background-image: none;
-  background-color: #61563a;
+  background: var(--home-hero-image) center center / cover no-repeat #61563a;
 }
 
 @media (max-width: 640px) {
@@ -6100,6 +6147,10 @@ body {
 
   .header-home--has-mobile-video .hero__video--mobile {
     display: block;
+  }
+
+  .header-home--video-hero .hero__bg {
+    background: var(--home-hero-image-mobile, var(--home-hero-image)) center center / cover no-repeat #61563a;
   }
 }
 
@@ -8854,8 +8905,8 @@ body {
 
 .cms-shared-hero-presentation-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.85fr);
+  gap: 28px;
   align-items: start;
 }
 
@@ -8866,11 +8917,13 @@ body {
 }
 
 .cms-shared-hero-presentation-layout__side {
+  display: grid;
   min-width: 0;
+  gap: 18px;
   border: 1px solid #eadfd7;
   border-radius: 12px;
   background: #fffaf6;
-  padding: 14px;
+  padding: 16px;
 }
 
 .cms-shared-hero-presentation-layout__side .media-select-field__actions,
@@ -8880,6 +8933,33 @@ body {
 
 .cms-shared-hero-presentation-layout__side .danger-btn {
   display: none;
+}
+
+.cms-shared-hero-presentation-positions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cms-hero-position-fieldset--compact {
+  min-height: 0;
+  padding: 22px 14px 14px;
+}
+
+.cms-hero-position-fieldset--compact .cms-hero-position-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.cms-shared-hero-presentation-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.cms-shared-hero-presentation-cta-colors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .cms-shared-hero-side-preview.img-preview {
@@ -9261,6 +9341,8 @@ body {
   .cms-featured-editor,
   .cms-shared-hero-presentation-fields,
   .cms-shared-hero-presentation-layout,
+  .cms-shared-hero-presentation-positions,
+  .cms-shared-hero-presentation-cta-colors,
   .cms-shared-hero-image-fields,
   .cms-hero-position-grid,
   .cms-hero-position-fields--menu {

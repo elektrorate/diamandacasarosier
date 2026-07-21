@@ -342,17 +342,7 @@ export default function SharedHeroEditor({
             <div className="cms-shared-hero-presentation-layout md:col-span-2">
               <div className="cms-shared-hero-presentation-layout__main">
                 <RichTextField label="Texto de presentación" value={details.heroPresentationText} onChange={(heroPresentationText) => onChange({ heroPresentationText })} minHeight="220px" />
-                <ColorPickerField label="Color del texto" value={details.heroPresentationTextColor || "#FFFFFF"} onChange={(heroPresentationTextColor) => onChange({ heroPresentationTextColor })} />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <TextField label="Texto del CTA" value={details.heroPresentationCtaLabel} placeholder="Descubrir" onChange={(event) => onChange({ heroPresentationCtaLabel: event.target.value })} />
-                  <TextField label="Enlace del CTA" value={details.heroPresentationCtaHref} placeholder="/clases o https://..." onChange={(event) => onChange({ heroPresentationCtaHref: event.target.value })} />
-                  <ColorPickerField label="Fondo del CTA" value={details.heroPresentationCtaBackgroundColor || "#FFFFFF"} onChange={(heroPresentationCtaBackgroundColor) => onChange({ heroPresentationCtaBackgroundColor })} />
-                  <ColorPickerField label="Texto del CTA" value={details.heroPresentationCtaTextColor || "#3f3933"} onChange={(heroPresentationCtaTextColor) => onChange({ heroPresentationCtaTextColor })} />
-                </div>
-                <div className="flex flex-wrap gap-5">
-                  <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaEnabled} onChange={(event) => onChange({ heroPresentationCtaEnabled: event.target.checked })} /><span>Mostrar CTA</span></label>
-                  <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaNewTab} onChange={(event) => onChange({ heroPresentationCtaNewTab: event.target.checked })} /><span>Abrir en nueva pestaña</span></label>
-                </div>
+                <RichTextField label="Texto sub-título" value={details.heroPresentationSubtitle} onChange={(heroPresentationSubtitle) => onChange({ heroPresentationSubtitle })} minHeight="170px" />
               </div>
               <aside className="cms-shared-hero-presentation-layout__side">
                 <MediaSelectField
@@ -361,6 +351,37 @@ export default function SharedHeroEditor({
                   onChange={(heroPresentationImage) => onChange({ heroPresentationImage })}
                   previewClassName="cms-shared-hero-side-preview"
                 />
+                <div className="cms-shared-hero-presentation-positions">
+                  <fieldset className="cms-hero-position-fieldset cms-hero-position-fieldset--compact">
+                    <legend>Texto de presentación (izquierda)</legend>
+                    <div className="cms-hero-position-fields">
+                      <TextField label="Posición X" value={heroText(details, keys.presentationTextX)} onChange={(event) => onChange({ [keys.presentationTextX]: event.target.value } as Partial<CmsHeroSettings>)} />
+                      <TextField label="Posición Y" value={heroText(details, keys.presentationTextY)} onChange={(event) => onChange({ [keys.presentationTextY]: event.target.value } as Partial<CmsHeroSettings>)} />
+                      <ScaleField label="Escala" value={heroScale(details, keys.presentationTextScale)} onChange={(n) => onChange({ [keys.presentationTextScale]: n } as Partial<CmsHeroSettings>)} />
+                    </div>
+                  </fieldset>
+                  <fieldset className="cms-hero-position-fieldset cms-hero-position-fieldset--compact">
+                    <legend>Imagen lateral (derecha)</legend>
+                    <div className="cms-hero-position-fields">
+                      <TextField label="Posición X" value={heroText(details, keys.presentationImageX)} onChange={(event) => onChange({ [keys.presentationImageX]: event.target.value } as Partial<CmsHeroSettings>)} />
+                      <TextField label="Posición Y" value={heroText(details, keys.presentationImageY)} onChange={(event) => onChange({ [keys.presentationImageY]: event.target.value } as Partial<CmsHeroSettings>)} />
+                      <ScaleField label="Escala" value={heroScale(details, keys.presentationImageScale)} onChange={(n) => onChange({ [keys.presentationImageScale]: n } as Partial<CmsHeroSettings>)} />
+                    </div>
+                  </fieldset>
+                </div>
+                <div className="cms-shared-hero-presentation-controls">
+                  <ColorPickerField label="Color del texto" value={details.heroPresentationTextColor || "#FFFFFF"} onChange={(heroPresentationTextColor) => onChange({ heroPresentationTextColor })} />
+                  <TextField label="Texto del CTA" value={details.heroPresentationCtaLabel} placeholder="Descubrir" onChange={(event) => onChange({ heroPresentationCtaLabel: event.target.value })} />
+                  <TextField label="Enlace del CTA" value={details.heroPresentationCtaHref} placeholder="/clases o https://..." onChange={(event) => onChange({ heroPresentationCtaHref: event.target.value })} />
+                  <div className="cms-shared-hero-presentation-cta-colors">
+                    <ColorPickerField label="Fondo del CTA" value={details.heroPresentationCtaBackgroundColor || "#FFFFFF"} onChange={(heroPresentationCtaBackgroundColor) => onChange({ heroPresentationCtaBackgroundColor })} />
+                    <ColorPickerField label="Texto del CTA" value={details.heroPresentationCtaTextColor || "#3f3933"} onChange={(heroPresentationCtaTextColor) => onChange({ heroPresentationCtaTextColor })} />
+                  </div>
+                  <div className="flex flex-wrap gap-5">
+                    <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaEnabled} onChange={(event) => onChange({ heroPresentationCtaEnabled: event.target.checked })} /><span>Mostrar CTA</span></label>
+                    <label className="checkbox-field"><input type="checkbox" checked={details.heroPresentationCtaNewTab} onChange={(event) => onChange({ heroPresentationCtaNewTab: event.target.checked })} /><span>Abrir en nueva pestaña</span></label>
+                  </div>
+                </div>
               </aside>
             </div>
           ) : null}
@@ -470,31 +491,6 @@ export default function SharedHeroEditor({
           </div>
         ) : null}
 
-        {isPresentationHero ? (
-          <div className="cms-hero-position-grid">
-            <div className="cms-hero-overlay-position__head">
-              <h4>Centrado del conjunto</h4>
-              <p>Mueve texto e imagen a una composición equilibrada en el dispositivo seleccionado.</p>
-              <button type="button" className="secondary-btn inline" onClick={() => onChange({ [keys.presentationTextX]: "30%", [keys.presentationTextY]: "50%", [keys.presentationImageX]: "70%", [keys.presentationImageY]: "50%" } as Partial<CmsHeroSettings>)}>Centrar conjunto</button>
-            </div>
-            <fieldset className="cms-hero-position-fieldset">
-              <legend>Texto de presentación (izquierda)</legend>
-              <div className="cms-hero-position-fields">
-                <TextField label="Posición X" value={heroText(details, keys.presentationTextX)} onChange={(event) => onChange({ [keys.presentationTextX]: event.target.value } as Partial<CmsHeroSettings>)} />
-                <TextField label="Posición Y" value={heroText(details, keys.presentationTextY)} onChange={(event) => onChange({ [keys.presentationTextY]: event.target.value } as Partial<CmsHeroSettings>)} />
-                <ScaleField label="Escala" value={heroScale(details, keys.presentationTextScale)} onChange={(n) => onChange({ [keys.presentationTextScale]: n } as Partial<CmsHeroSettings>)} />
-              </div>
-            </fieldset>
-            <fieldset className="cms-hero-position-fieldset">
-              <legend>Imagen lateral (derecha)</legend>
-              <div className="cms-hero-position-fields">
-                <TextField label="Posición X" value={heroText(details, keys.presentationImageX)} onChange={(event) => onChange({ [keys.presentationImageX]: event.target.value } as Partial<CmsHeroSettings>)} />
-                <TextField label="Posición Y" value={heroText(details, keys.presentationImageY)} onChange={(event) => onChange({ [keys.presentationImageY]: event.target.value } as Partial<CmsHeroSettings>)} />
-                <ScaleField label="Escala" value={heroScale(details, keys.presentationImageScale)} onChange={(n) => onChange({ [keys.presentationImageScale]: n } as Partial<CmsHeroSettings>)} />
-              </div>
-            </fieldset>
-          </div>
-        ) : null}
 
         <div className="cms-hero-position-preview" aria-label="Vista de referencia del hero">
           <div className={`relative mx-auto overflow-hidden rounded-xl border border-outline-variant shadow-sm ${isHydrated && isPresentationHero ? "header-interno--presentation-hero" : ""}`} style={frameStyle}>
@@ -564,6 +560,7 @@ export default function SharedHeroEditor({
                   hero={{
                     ...details,
                     heroPresentationText: details.heroPresentationText || details.heroTitle || titleFallback,
+                    heroPresentationSubtitle: details.heroPresentationSubtitle,
                   }}
                 />
               ) : null}

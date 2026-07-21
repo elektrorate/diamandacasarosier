@@ -47,6 +47,7 @@ export function PublicHeroContent({ hero }: { hero: CmsHeroSettings }) {
         <div className="page-hero__presentation-stage">
           <div className="page-hero__presentation-text" style={{ color: hero.heroPresentationTextColor || "#FFFFFF" }}>
             <MarkdownContent source={hero.heroPresentationText || hero.heroTitle} className="page-hero__presentation-copy" />
+            {hero.heroPresentationSubtitle ? <MarkdownContent source={hero.heroPresentationSubtitle} className="page-hero__presentation-subtitle" /> : null}
             {hero.heroPresentationCtaEnabled && hero.heroPresentationCtaHref ? (
               <a
                 className="page-hero__presentation-cta"

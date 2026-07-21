@@ -26,24 +26,24 @@ function GiftCard({ item }: { item: ExperienceItem }) {
   const href = experienceHref(item.kind, item.slug);
 
   return (
-    <>
-      <Link className="gift-carousel__media" href={href}>
+    <Link className="gift-carousel__card-link" href={href} aria-label={`Ver ${content.title}`}>
+      <span className="gift-carousel__media">
         <img
           src={assetPath(content.image)}
           alt={content.imageAlt}
           loading="lazy"
           decoding="async"
         />
-      </Link>
-      <div className="gift-carousel__body">
-        {content.eyebrow ? <p className="gift-carousel__eyebrow">{content.eyebrow}</p> : null}
-        <h3 className="gift-carousel__title">{content.title}</h3>
+      </span>
+      <span className="gift-carousel__body">
+        {content.eyebrow ? <span className="gift-carousel__eyebrow">{content.eyebrow}</span> : null}
+        <span className="gift-carousel__title">{content.title}</span>
         <MarkdownContent className="gift-carousel__text" source={content.excerpt} />
-        <Link className="gift-carousel__cta" href={href}>
+        <span className="gift-carousel__cta" aria-hidden="true">
           ver mas
-        </Link>
-      </div>
-    </>
+        </span>
+      </span>
+    </Link>
   );
 }
 
